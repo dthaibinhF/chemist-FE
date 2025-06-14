@@ -27,10 +27,9 @@ export type TAuthProps = {
 export type TCredentials = {
     email: string;
     password: string;
-    twoFactorCode?: string;
 }
 
 export type TAuthResponse = {
-    accessToken: string;
-    refreshToken: string;
+    access_token: string;
+    refresh_token: string;
 }

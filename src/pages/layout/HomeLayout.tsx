@@ -1,34 +1,24 @@
-import {Outlet} from "react-router-dom";
+import {Outlet, useNavigate} from "react-router-dom";
 import {useEffect} from "react";
-import {TestTubeDiagonal} from "lucide-react";
-import {renderToStaticMarkup} from "react-dom/server";
+import {useAppSelector} from "@/redux/hook.ts";
+import {usePageTitle} from "@/hooks/usePageTitle.tsx";
 
 const HomeLayout = () => {
+    usePageTitle('Login');
+    const navigate = useNavigate();
+    const {accessToken} = useAppSelector(state => state.auth);
 
     useEffect(() => {
-        document.title = 'Chemist'; // Set the title
-
-        // Render FlaskConical to SVG string
-        const svgString = renderToStaticMarkup(<TestTubeDiagonal color={'#fff'} size={32} />);
-        const dataUrl = `data:image/svg+xml;base64,${btoa(svgString)}`;
-
-        // Remove existing favicon
-        const existingLink = document.querySelector("link[rel*='icon']");
-        if (existingLink) {
-            existingLink.remove();
+        console.log('access token at Home Layout: ', accessToken);
+        if (!accessToken) {
+            navigate("/login");
         }
+    }, [accessToken, navigate]);
 
-        // Create new favicon link
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        link.href = dataUrl;
-        document.head.appendChild(link);
-    }, [])
-
-    return <h1>
+    return <div>
         Home Layout
         <Outlet/>
-    </h1>
+    </div>
 }
 
 export default HomeLayout;

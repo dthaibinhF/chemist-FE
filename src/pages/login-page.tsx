@@ -1,6 +1,13 @@
+import LoginForm from "@/components/common/login-form"
+import {usePageTitle} from "@/hooks/usePageTitle.tsx";
+
 export const LoginPage = () => {
+    usePageTitle('Login');
+
     return (
-        <h1>Login</h1>
+        <div className="flex min-h-svh flex-col items-center justify-center">
+            <LoginForm />
+        </div>
     )
 }
 

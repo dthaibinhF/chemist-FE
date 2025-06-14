@@ -6,8 +6,7 @@ import {useForm} from "react-hook-form";
 import {z} from 'zod';
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useNavigate} from "react-router-dom";
-import {useAppDispatch} from "@/hooks";
-import {setAccessToken} from "@/feature/auth/services/authSlice.ts";
+import {useAuth} from "@/feature/auth/hooks/useAuth.ts";
 
 const formSchema = z.object({
     email: z.string().nonempty("Username is required"),
@@ -17,9 +16,9 @@ const formSchema = z.object({
 type Credential = z.infer<typeof formSchema>;
 
 const LoginForm = () => {
-    const dispatch = useAppDispatch();
+    const {login} = useAuth();
+    // const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const {}
     const form = useForm<Credential>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -31,13 +30,13 @@ const LoginForm = () => {
 
     const submit = async (value: Credential) => {
         try {
-            const response = await requestUsernamePasswordLogin(value.email, value.password);
+            const response = await login({email: value.email, password: value.password});
             console.log('response in login: ', response);
-            const newToken = response.headers.authorization;
-            dispatch(setAccessToken(newToken));
+            // const newToken = response.headers.authorization;
+            // dispatch(setAccessToken(newToken));
             navigate("/dashboard");
         } catch {
-            dispatch(setAccessToken(null));
+            // dispatch(setAccessToken(null));
         }
     }
 
