@@ -9,7 +9,7 @@ import {
 } from '../slice/authSlice';
 import {TAuthResponse, TCredentials} from "@/feature/auth/types/auth.type.ts";
 import {useAppDispatch, useAppSelector} from "@/redux/hook.ts";
-import {clearTokens, getAccessToken, getRefreshToken, storeTokens} from "@/feature/auth/services/token-manager.ts";
+import {clearTokens, storeTokens} from "@/feature/auth/services/token-manager.ts";
 
 export const useAuth = () => {
     const dispatch = useAppDispatch();
