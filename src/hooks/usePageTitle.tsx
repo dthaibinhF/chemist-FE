@@ -2,7 +2,7 @@ import {useEffect} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {TestTubeDiagonal} from "lucide-react";
 
-export const usePageLoad = (title:string) => {
+export const usePageTitle = (title:string) => {
     useEffect(() => {
         document.title = `${title}`; // Set the title
 
