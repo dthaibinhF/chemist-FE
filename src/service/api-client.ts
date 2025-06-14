@@ -1,6 +1,5 @@
 import axios from "axios";
 import {getAccessToken, getRefreshToken, storeTokens} from "@/feature/auth/services/token-manager.ts";
-
 const API_URL = import.meta.env.VITE_SERVER_ROOT_URL;
 
 interface ApiOptions {
@@ -11,6 +10,7 @@ export function createApiClient(
     resourceUrl: string,
     options: ApiOptions = { auth: true },
 ) {
+
     const axiosInstance = axios.create({
         baseURL: `${API_URL}/${resourceUrl}`,
         withCredentials: true,
@@ -54,7 +54,6 @@ export function createApiClient(
                         );
                         const newAccessToken = response.data.payload.accessToken;
                         const newRefreshToken = response.data.payload.refreshToken;
-                        // localStorage.setItem("access_token", newAccessToken);
                         storeTokens(newAccessToken, newRefreshToken);
                         return axiosInstance(originalRequest);
                     } catch (error) {

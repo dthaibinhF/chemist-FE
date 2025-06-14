@@ -30,8 +30,7 @@ const LoginForm = () => {
 
     const submit = async (value: Credential) => {
         try {
-            const response = await login({email: value.email, password: value.password});
-            console.log('response in login: ', response);
+            await login({email: value.email, password: value.password});
             // const newToken = response.headers.authorization;
             // dispatch(setAccessToken(newToken));
             navigate("/dashboard");

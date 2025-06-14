@@ -10,8 +10,8 @@ export const storeTokens = (accessToken: string, refreshToken: string) => {
 };
 
 export const clearTokens = () => {
-    document.cookie = `accessToken=; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`;
-    document.cookie = `refreshToken=; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`;
+    document.cookie = `accessToken=; Secure; SameSite=Strict; Path=/; Max-Age=0`;
+    document.cookie = `refreshToken=; Secure; SameSite=Strict; Path=/; Max-Age=0`;
 };
 
 export const getAccessToken = (): string | null => {
