@@ -1,15 +1,15 @@
 // src/features/auth/hooks/useAuth.ts
 import {useCallback} from 'react';
-import {loginWithEmailAndPassword} from '../services/authApi';
+import {getAccount, loginWithEmailAndPassword} from '../services/authApi';
 import {
     loginFailure,
     loginStart,
     loginSuccess,
-    logout,
+    logout, setAccount,
 } from '../slice/authSlice';
 import {TAuthResponse, TCredentials} from "@/feature/auth/types/auth.type.ts";
 import {useAppDispatch, useAppSelector} from "@/redux/hook.ts";
-import {clearTokens, getAccessToken, getRefreshToken, storeTokens} from "@/feature/auth/services/token-manager.ts";
+import {clearTokens, storeTokens} from "@/feature/auth/services/token-manager.ts";
 
 export const useAuth = () => {
     const dispatch = useAppDispatch();
@@ -22,6 +22,17 @@ export const useAuth = () => {
         refreshToken
     } = useAppSelector((state) => state.auth);
 
+    const fetchUser = async () => {
+        try {
+            const response = await getAccount();
+            const account = response.payload;
+            dispatch(setAccount(account));
+            // return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const login = useCallback(
         async (credentials: TCredentials) => {
             dispatch(loginStart());
@@ -29,10 +40,7 @@ export const useAuth = () => {
                 const response : TAuthResponse = await loginWithEmailAndPassword(credentials);
                 const {access_token, refresh_token} = response;
                 storeTokens(access_token, refresh_token); // Store server-provided tokens
-                console.log('accessToken from cookie: ', getAccessToken());
-                console.log('refresh- from cooki: ', getRefreshToken());
                 dispatch(loginSuccess({access_token, refresh_token}));
-                return true;
             } catch (err) {
                 dispatch(loginFailure('Login failed. Please check your credentials.'));
                 throw err;
@@ -69,7 +77,7 @@ export const useAuth = () => {
     // }, [dispatch, logoutAction]);
 
     return {
-        user: account,
+        account,
         isAuthenticated,
         isLoading,
         error,
@@ -77,6 +85,7 @@ export const useAuth = () => {
         refreshToken,
         login,
         logout: logoutAction,
+        fetchUser,
         // refreshToken: refreshTokenAction,
     };
 };

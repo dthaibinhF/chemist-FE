@@ -45,8 +45,9 @@ const authSlice = createSlice({
             state.isAuthenticated = false;
             state.error = null;
         },
-        refreshTokenSuccess(state, action: PayloadAction<string>) {
-            state.accessToken = action.payload;
+        refreshTokenSuccess(state, action: PayloadAction<TAuthResponse>) {
+            state.accessToken = action.payload.access_token;
+            state.refreshToken = action.payload.refresh_token;
             state.isLoading = false;
         },
         refreshTokenFailure(state, action: PayloadAction<string>) {
@@ -57,6 +58,9 @@ const authSlice = createSlice({
             state.refreshToken = null;
             state.isAuthenticated = false;
         },
+        setAccount(state, action: PayloadAction<TAccount>) {
+            state.account = action.payload;
+        }
     },
 });
 
@@ -67,6 +71,7 @@ export const {
     logout,
     refreshTokenSuccess,
     refreshTokenFailure,
+    setAccount,
 } = authSlice.actions;
 
 export default authSlice.reducer;

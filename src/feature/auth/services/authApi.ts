@@ -5,7 +5,6 @@ const apiClient = createApiClient('auth', {auth:false});
 
 export const loginWithEmailAndPassword = async (credential: TCredentials) => {
     try {
-        console.log("loginWithEmailAndPassword", credential);
         const response = await apiClient.post('/login', {
             email: credential.email,
             password: credential.password,
@@ -17,3 +16,13 @@ export const loginWithEmailAndPassword = async (credential: TCredentials) => {
     }
 }
 
+export const getAccount = async () => {
+    const apiFetchUser = createApiClient('auth');
+
+    try {
+        const response = await apiFetchUser.get('/me');
+        return response.data;
+    } catch (error) {
+        console.log(error);
+    }
+}
