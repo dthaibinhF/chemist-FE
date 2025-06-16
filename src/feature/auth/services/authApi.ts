@@ -9,7 +9,6 @@ export const loginWithEmailAndPassword = async (credential: TCredentials) => {
             email: credential.email,
             password: credential.password,
         });
-        console.log('loginWithEmailAndPassword', response);
         return response.data;
     } catch (error) {
         console.log(error);
