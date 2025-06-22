@@ -7,6 +7,7 @@ import {z} from 'zod';
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "@/feature/auth/hooks/useAuth.ts";
+import {toast} from "sonner";
 
 const formSchema = z.object({
     email: z.string().nonempty("Username is required"),
@@ -30,12 +31,28 @@ const LoginForm = () => {
 
     const submit = async (value: Credential) => {
         try {
+            toast.loading(
+                "Logging in..."
+                ,
+                {
+                    id: "loading-toast", // Unique ID to update the toast
+                    duration: Infinity, // Keep open until updated
+                    className: "bg-blue-500 text-white border-blue-600",
+                }
+            )
             await login({email: value.email, password: value.password});
-            // const newToken = response.headers.authorization;
-            // dispatch(setAccessToken(newToken));
+            toast.success("Login successful", {
+                id: "loading-toast", // Update the same toast
+                duration: 2000, // Auto-close after 2 seconds
+            })
             navigate("/dashboard");
         } catch {
-            // dispatch(setAccessToken(null));
+            toast.error("Email or Password is incorrect", {
+                id: "loading-toast",
+                duration: 2000,
+            })
+
+
         }
     }
 
@@ -71,7 +88,7 @@ const LoginForm = () => {
                                     <FormItem className={'mb-3'}>
                                         <FormLabel>Password</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="" {...field} />
+                                            <Input type={'password'} placeholder="" {...field} />
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>

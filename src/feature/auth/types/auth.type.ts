@@ -7,7 +7,7 @@ export type TRole = {
 
 export type TAccount = {
     id: number,
-    fullName: string,
+    name: string,
     role: TRole,
     phone: string,
     email: string,

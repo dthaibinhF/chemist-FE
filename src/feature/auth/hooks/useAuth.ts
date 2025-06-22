@@ -1,11 +1,11 @@
 // src/features/auth/hooks/useAuth.ts
 import {useCallback} from 'react';
-import {getAccount, loginWithEmailAndPassword} from '../services/authApi';
+import { loginWithEmailAndPassword} from '../services/authApi';
 import {
     loginFailure,
     loginStart,
     loginSuccess,
-    logout, setAccount,
+    logout,
 } from '../slice/authSlice';
 import {TAuthResponse, TCredentials} from "@/feature/auth/types/auth.type.ts";
 import {useAppDispatch, useAppSelector} from "@/redux/hook.ts";
@@ -22,25 +22,15 @@ export const useAuth = () => {
         refreshToken
     } = useAppSelector((state) => state.auth);
 
-    const fetchUser = async () => {
-        try {
-            const response = await getAccount();
-            const account = response.payload;
-            dispatch(setAccount(account));
-            // return response;
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     const login = useCallback(
         async (credentials: TCredentials) => {
             dispatch(loginStart());
             try {
-                const response : TAuthResponse = await loginWithEmailAndPassword(credentials);
+                const response: TAuthResponse = await loginWithEmailAndPassword(credentials);
                 const {access_token, refresh_token} = response;
                 storeTokens(access_token, refresh_token); // Store server-provided tokens
                 dispatch(loginSuccess({access_token, refresh_token}));
+
             } catch (err) {
                 dispatch(loginFailure('Login failed. Please check your credentials.'));
                 throw err;
@@ -85,7 +75,6 @@ export const useAuth = () => {
         refreshToken,
         login,
         logout: logoutAction,
-        fetchUser,
         // refreshToken: refreshTokenAction,
     };
 };
