@@ -1,6 +1,7 @@
 import {useEffect} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {TestTubeDiagonal} from "lucide-react";
+import {useLocation} from "react-router-dom";
 
 export const usePageTitle = (title:string) => {
     useEffect(() => {
@@ -23,3 +24,28 @@ export const usePageTitle = (title:string) => {
         document.head.appendChild(link);
     }, [])
 }
+
+// Hook để lấy tiêu đề trang dựa trên route hiện tại
+export const useCurrentPageTitle = () => {
+    const location = useLocation();
+    
+    const getPageTitle = (pathname: string) => {
+        switch (pathname) {
+            case '/':
+            case '/dashboard':
+                return 'Dashboard';
+            case '/student':
+                return 'Quản lý học sinh';
+            case '/finance':
+                return 'Quản lý tài chính';
+            case '/group':
+                return 'Quản lý nhóm học';
+            case '/login':
+                return 'Đăng nhập';
+            default:
+                return 'Trang chủ';
+        }
+    };
+    
+    return getPageTitle(location.pathname);
+};
