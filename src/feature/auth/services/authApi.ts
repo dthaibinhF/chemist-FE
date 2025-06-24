@@ -17,3 +17,13 @@ export const getAccount = async () => {
     const response = await apiFetchUser.get('/me');
     return response.data;
 }
+
+export const refreshToken = async (refreshToken: string) => {
+    const apiClient = createApiClient('auth', {auth: false});
+    const response = await apiClient.post('/refresh-token', {}, {
+        headers: {
+            Authorization: `Bearer ${refreshToken}`
+        }
+    });
+    return response.data;
+}
