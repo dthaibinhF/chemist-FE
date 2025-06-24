@@ -1,15 +1,17 @@
 // src/features/auth/hooks/useAuth.ts
 import {useCallback} from 'react';
-import { loginWithEmailAndPassword} from '../services/authApi';
+import { loginWithEmailAndPassword, refreshToken as refreshTokenApi} from '../services/authApi';
 import {
     loginFailure,
     loginStart,
     loginSuccess,
     logout,
+    refreshTokenSuccess,
+    refreshTokenFailure,
 } from '../slice/authSlice';
 import {TAuthResponse, TCredentials} from "@/feature/auth/types/auth.type.ts";
 import {useAppDispatch, useAppSelector} from "@/redux/hook.ts";
-import {clearTokens, storeTokens} from "@/feature/auth/services/token-manager.ts";
+import {clearTokens, storeTokens, getRefreshToken} from "@/feature/auth/services/token-manager.ts";
 
 export const useAuth = () => {
     const dispatch = useAppDispatch();
@@ -48,23 +50,23 @@ export const useAuth = () => {
             throw err;
         }
     }, [dispatch]);
-    //
-    // const refreshTokenAction = useCallback(async () => {
-    //     dispatch(loginStart());
-    //     try {
-    //         const currentRefreshToken = getRefreshToken();
-    //         if (!currentRefreshToken) throw new Error('No refresh token');
-    //         const response = await axios.post('http://localhost:8080/api/v1/auth/refresh-token', {refreshToken: currentRefreshToken});
-    //         const {accessToken} = response.data;
-    //         storeTokens(accessToken, currentRefreshToken); // Store new access token
-    //         dispatch(refreshTokenSuccess(accessToken));
-    //         return accessToken;
-    //     } catch (err) {
-    //         dispatch(refreshTokenFailure('Token refresh failed.'));
-    //         logoutAction();
-    //         throw err;
-    //     }
-    // }, [dispatch, logoutAction]);
+
+    const refreshTokenAction = useCallback(async () => {
+        dispatch(loginStart());
+        try {
+            const currentRefreshToken = getRefreshToken();
+            if (!currentRefreshToken) throw new Error('No refresh token');
+            const response = await refreshTokenApi(currentRefreshToken);
+            const {access_token, refresh_token} = response;
+            storeTokens(access_token, refresh_token);
+            dispatch(refreshTokenSuccess({access_token, refresh_token}));
+            return access_token;
+        } catch (err) {
+            dispatch(refreshTokenFailure('Token refresh failed.'));
+            logoutAction();
+            throw err;
+        }
+    }, [dispatch, logoutAction]);
 
     return {
         account,
@@ -72,9 +74,8 @@ export const useAuth = () => {
         isLoading,
         error,
         accessToken,
-        refreshToken,
+        refreshToken: refreshTokenAction,
         login,
         logout: logoutAction,
-        // refreshToken: refreshTokenAction,
     };
 };
