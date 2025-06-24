@@ -19,6 +19,7 @@ const HomeLayout = () => {
             try {
                 console.log("Fetching user");
                 const response = await getAccount();
+                console.log(response);
                 const account = response.payload;
                 dispatch(setAccount(account));
                 // return response;
@@ -41,7 +42,7 @@ const HomeLayout = () => {
                 <AppSideBar/>
                 <SidebarInset>
                     <SiteHeader/>
-                    <div>
+                    <div className="p-4">
                         <Outlet/>
                     </div>
                 </SidebarInset>

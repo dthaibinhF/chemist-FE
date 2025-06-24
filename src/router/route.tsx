@@ -2,9 +2,13 @@ import {createBrowserRouter} from "react-router-dom";
 import HomeLayout from "@/pages/layout/HomeLayout.tsx";
 import {LoginPage} from "@/pages/login-page.tsx";
 import {StudentManagement} from "@/pages/student-management.tsx";
+import {StudentDetail} from "@/pages/student-detail.tsx";
 import Dashboard from "@/pages/dashboard.tsx";
 import FinanceManagement from "@/pages/finance.tsx";
 import GroupManagement from "@/pages/group.tsx";
+
+import { ErrorPage } from "@/pages/error-page";
+
 
 export const router = createBrowserRouter([
     {
@@ -19,6 +23,12 @@ export const router = createBrowserRouter([
             {
                 path:'student',
                 Component: StudentManagement,
+                errorElement: <ErrorPage />,
+            },
+            {
+                path:'student/:id',
+                Component: StudentDetail,
+                // errorElement: <ErrorPage />,
             },
             {
                 path:'finance',
