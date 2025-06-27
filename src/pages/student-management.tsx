@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { Student } from "@/types/student.type";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { useNavigate, useLoaderData, useRevalidator } from "react-router-dom";
+import { useNavigate, useRevalidator } from "react-router-dom";
 import {
     StudentTable,
     StudentTableHeader,
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useStudent } from "@/feature/student/hooks/useStudent";
 
 export const StudentManagement = () => {
-    const {students,removeStudent, loadStudents} = useStudent();
+    const { students, removeStudent, loadStudents } = useStudent();
     // const students: Student[] = useLoaderData();
     const navigate = useNavigate();
     const revalidate = useRevalidator();
@@ -70,7 +70,7 @@ export const StudentManagement = () => {
         <div className="grid grid-cols-[2fr_1fr] gap-4 h-full">
             <div className="min-h-0 space-y-4">
                 <StudentTableHeader onAddStudent={handleAddStudent} />
-                <StudentTable 
+                <StudentTable
                     students={students}
                     onViewStudent={handleViewStudent}
                     onEditStudent={handleEditStudent}
@@ -81,4 +81,3 @@ export const StudentManagement = () => {
         </div>
     );
 };
-    

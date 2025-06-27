@@ -1,11 +1,11 @@
 import { createApiClient } from "./api-client";
-import { Group, GroupList } from "@/types/api.types";
+import { Group } from "@/types/api.types";
 
 const apiClient = createApiClient("group");
 
 export const groupService = {
     // Lấy tất cả nhóm (danh sách)
-    getAllGroups: async (): Promise<GroupList[]> => {
+    getAllGroups: async (): Promise<Group[]> => {
         const response = await apiClient.get("");
         return response.data;
     },
@@ -23,13 +23,13 @@ export const groupService = {
     },
 
     // Lấy nhóm theo năm học
-    getGroupsByAcademicYearId: async (academicYearId: number): Promise<GroupList[]> => {
+    getGroupsByAcademicYearId: async (academicYearId: number): Promise<Group[]> => {
         const response = await apiClient.get(`/academic-year/${academicYearId}`);
         return response.data;
     },
 
     // Lấy nhóm theo khối
-    getGroupsByGradeId: async (gradeId: number): Promise<GroupList[]> => {
+    getGroupsByGradeId: async (gradeId: number): Promise<Group[]> => {
         const response = await apiClient.get(`/grade/${gradeId}`);
         return response.data;
     },

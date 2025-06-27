@@ -3,16 +3,17 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Student } from "../../../types/student.type";
 import { Button } from "@/components/ui/button";
-import { 
-    DropdownMenu, 
-    DropdownMenuContent, 
-    DropdownMenuItem, 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
-    DropdownMenuSeparator 
+    DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Trash2, Eye } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, ArrowUpDown, LoaderCircle } from "lucide-react";
 import { EditStudentDialog } from "./edit-student-dialog";
 import { StudentFormData } from "../schemas/student.schema";
+import { useStudent } from "../hooks";
 
 interface StudentTableProps {
     students: Student[];
@@ -21,13 +22,14 @@ interface StudentTableProps {
     onDeleteStudent: (student: Student) => void;
 }
 
-export const StudentTable = memo(({ 
-    students, 
-    onViewStudent, 
-    onEditStudent, 
+export const StudentTable = memo(({
+    students,
+    onViewStudent,
+    onEditStudent,
     onDeleteStudent
 }: StudentTableProps) => {
-    
+    const {loading} = useStudent();
+
     // Memoize handlers để tránh re-render không cần thiết
     const handleViewStudent = useCallback((student: Student) => {
         onViewStudent(student);
@@ -41,11 +43,21 @@ export const StudentTable = memo(({
     const columns = useMemo<ColumnDef<Student, any>[]>(() => [
         {
             accessorKey: "id",
-            header: "ID",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant={'ghost'}
+                        className="text-center"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                    >ID
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                )
+            },
             cell: ({ row }) => (
-                <span className="font-mono text-sm">
+                <p className="font-mono text-sm pl-7">
                     {row.original.id}
-                </span>
+                </p>
             ),
         },
         {
@@ -125,13 +137,13 @@ export const StudentTable = memo(({
                             Xem chi tiết
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <EditStudentDialog 
+                            <EditStudentDialog
                                 student={row.original}
                                 onEditStudent={onEditStudent}
                             />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                             onClick={() => handleDeleteStudent(row.original)}
                             className="text-destructive focus:text-destructive"
                         >
@@ -143,6 +155,13 @@ export const StudentTable = memo(({
             ),
         },
     ], [handleViewStudent, handleDeleteStudent, onEditStudent]);
+
+    if (loading) {
+        return <div className="flex items-center justify-center py-12">
+            <LoaderCircle size={40} className="animate-spin"/>
+            <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>;
+    }
 
     // Hiển thị empty state nếu không có dữ liệu
     if (students.length === 0) {
@@ -160,10 +179,10 @@ export const StudentTable = memo(({
 
     return (
         <div className="space-y-4">
-            <DataTable 
-                pagination={false} 
-                columns={columns} 
-                data={students} 
+            <DataTable
+                pagination={false}
+                columns={columns}
+                data={students}
             />
         </div>
     );

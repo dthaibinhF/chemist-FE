@@ -6,24 +6,37 @@ import {
     createGroup, 
     updateGroup, 
     deleteGroup,
-    selectGroups,
-    selectGroup,
-    selectLoading,
-    selectError
+    fetchGroupsWithDetail,
 } from '../slice/group.slice';
+import { useCallback } from 'react';
 
 export const useGroup = () => {
     const dispatch = useAppDispatch();
-    const groups = useAppSelector(selectGroups);
-    const group = useAppSelector(selectGroup);
-    const loading = useAppSelector(selectLoading);
-    const error = useAppSelector(selectError);
+    const { groups, group, loading, error } = useAppSelector(state => state.group);
 
-    const handleFetchGroups = () => dispatch(fetchGroups());
-    const handleFetchGroup = (id: number) => dispatch(fetchGroup(id));
-    const handleCreateGroup = (data: Omit<Group, 'id'>) => dispatch(createGroup(data));
-    const handleUpdateGroup = (id: number, data: Omit<Group, 'id'>) => dispatch(updateGroup({ id, data }));
-    const handleDeleteGroup = (id: number) => dispatch(deleteGroup(id));
+    const handleFetchGroups = useCallback(() => {
+        dispatch(fetchGroups());
+    }, [dispatch]);
+
+    const handleFetchGroupWithDetaisl = useCallback(() => {
+        dispatch(fetchGroupsWithDetail());
+    }, [dispatch]);
+
+    const handleFetchGroup = useCallback((id: number) => {
+        dispatch(fetchGroup(id));
+    }, [dispatch]);
+
+    const handleCreateGroup = useCallback((data: Group) => {
+        dispatch(createGroup(data));
+    }, [dispatch]);
+
+    const handleUpdateGroup = useCallback((id: number, data: Group) => {
+        dispatch(updateGroup({ id, data }));
+    }, [dispatch]);
+    
+    const handleDeleteGroup = useCallback((id: number) => {
+        dispatch(deleteGroup(id));
+    }, [dispatch]);
 
     return {
         // Data
@@ -33,6 +46,7 @@ export const useGroup = () => {
         error,
 
         // Actions
+        fetchGroupsWithDetail: handleFetchGroupWithDetaisl,
         fetchGroups: handleFetchGroups,
         fetchGroup: handleFetchGroup,
         createGroup: handleCreateGroup,

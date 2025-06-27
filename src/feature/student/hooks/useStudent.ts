@@ -1,11 +1,11 @@
-import {useAppDispatch, useAppSelector} from "@/redux/hook";
-import {fetchStudents, createStudent, updateStudent, deleteStudent, setSelectedStudent, fetchStudent} from "../slice/studentSlice";
-import {Student} from "../../../types/student.type";
-import {useCallback} from "react";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { fetchStudents, createStudent, updateStudent, deleteStudent, setSelectedStudent, fetchStudent } from "../slice/studentSlice";
+import { Student } from "../../../types/student.type";
+import { useCallback } from "react";
 
 export const useStudent = () => {
     const dispatch = useAppDispatch();
-    const {students, selectedStudent, loading, error} = useAppSelector(state => state.student);
+    const { students, selectedStudent, loading, error } = useAppSelector(state => state.student);
 
     const loadStudents = useCallback(() => {
         dispatch(fetchStudents());
@@ -16,7 +16,7 @@ export const useStudent = () => {
     }, [dispatch]);
 
     const editStudent = useCallback((id: number, student: Student) => {
-        dispatch(updateStudent({id, student}));
+        dispatch(updateStudent({ id, student }));
     }, [dispatch]);
 
     const removeStudent = async (id: number) => {

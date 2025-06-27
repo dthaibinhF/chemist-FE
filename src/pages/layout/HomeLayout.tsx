@@ -1,5 +1,5 @@
 import {Outlet, useNavigate} from "react-router-dom";
-import {useLayoutEffect} from "react";
+import {useEffect} from "react";
 import {useAppDispatch, useAppSelector} from "@/redux/hook.ts";
 import {usePageTitle} from "@/hooks/usePageTitle.tsx";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar.tsx";
@@ -14,7 +14,7 @@ const HomeLayout = () => {
     const {accessToken} = useAppSelector(state => state.auth);
     usePageTitle('HomeLayout');
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const fetchUser = async () => {
             try {
                 console.log("Fetching user");
@@ -23,8 +23,8 @@ const HomeLayout = () => {
                 const account = response.payload;
                 dispatch(setAccount(account));
                 // return response;
-            } catch (error) {
-                console.log(error);
+            } catch {
+                navigate("/login");
             }
         }
         return () => {
