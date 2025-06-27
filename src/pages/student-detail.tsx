@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-    ArrowLeft, 
-    User, 
-    Phone, 
-    GraduationCap, 
-    Building2, 
-    Users, 
+import {
+    ArrowLeft,
+    User,
+    Phone,
+    GraduationCap,
+    Building2,
+    Users,
     Calendar,
     BookOpen,
     MapPin,
@@ -23,19 +23,22 @@ import { EditStudentDialog } from "@/feature/student/components";
 import { useStudent } from "@/feature/student/hooks/useStudent";
 
 export const StudentDetail = () => {
-    const {loadStudent, selectedStudent, loading} = useStudent();
-    const {id} = useParams();
+    const { loadStudent, selectedStudent, loading } = useStudent();
+    const { id } = useParams();
     const navigate = useNavigate();
     const [openEdit, setOpenEdit] = useState(false);
 
-    useEffect(()=> {
-    const fetchStudent = async () => {
-        if(id && !isNaN(Number(id))) {
-            loadStudent(Number(id));
-            console.log("selectedStudent", selectedStudent);
+    // Đặt tiêu đề trang
+    usePageTitle(`Chi tiết học sinh - ${selectedStudent?.name || 'Không xác định'}`);
+
+    useEffect(() => {
+        const fetchStudent = async () => {
+            if (id && !isNaN(Number(id))) {
+                loadStudent(Number(id));
+                console.log("selectedStudent", selectedStudent);
+            }
         }
-    }
-    fetchStudent();
+        fetchStudent();
     }, [loadStudent])
 
     // Hàm xử lý cập nhật học sinh
@@ -44,9 +47,6 @@ export const StudentDetail = () => {
         setOpenEdit(false);
         // window.location.reload(); // hoặc navigate(0) nếu muốn reload lại dữ liệu
     };
-    
-    // Đặt tiêu đề trang
-    usePageTitle(`Chi tiết học sinh - ${selectedStudent?.name || 'Không xác định'}`);
 
     if (!selectedStudent) {
         return (
@@ -54,7 +54,7 @@ export const StudentDetail = () => {
                 <div className="text-center">
                     <h3 className="text-lg font-semibold text-destructive">Không tìm thấy học sinh</h3>
                     <p className="text-muted-foreground">Học sinh này không tồn tại hoặc đã bị xóa.</p>
-                    <Button 
+                    <Button
                         onClick={() => navigate('/students')}
                         className="mt-4"
                         variant="outline"
@@ -66,7 +66,7 @@ export const StudentDetail = () => {
             </div>
         );
     }
-    
+
 
 
     if (loading) {
@@ -80,8 +80,8 @@ export const StudentDetail = () => {
         <div className="space-y-6">
             {/* Back Button */}
             <div className="mb-2">
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     size="icon"
                     onClick={() => navigate('/student')}
                     className="rounded-full shadow hover:bg-accent transition-colors"
@@ -112,7 +112,7 @@ export const StudentDetail = () => {
                             <User className="mr-2 h-4 w-4" />
                             Chỉnh sửa
                         </Button>
-                        <EditStudentDialog 
+                        <EditStudentDialog
                             student={selectedStudent}
                             onEditStudent={handleEditStudent}
                             open={openEdit}
@@ -256,7 +256,7 @@ export const StudentDetail = () => {
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm">Trạng thái học tập</span>
-                                    <Badge variant="default">Đang học</Badge>
+                                    <Badge className="text-accent" variant="outline">Đang học</Badge>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm">Tình trạng thanh toán</span>
@@ -279,7 +279,7 @@ export const StudentDetail = () => {
                                 <label className="text-sm font-medium text-muted-foreground">SĐT Phụ huynh</label>
                                 <p className="font-mono text-sm">{selectedStudent.parentPhone || "Chưa cập nhật"}</p>
                             </div>
-                                {(selectedStudent.studentDetails?.[0] && typeof (selectedStudent.studentDetails?.[0] as any).emergencyContact === 'string' && (selectedStudent.studentDetails?.[0] as any).emergencyContact) ? (
+                            {(selectedStudent.studentDetails?.[0] && typeof (selectedStudent.studentDetails?.[0] as any).emergencyContact === 'string' && (selectedStudent.studentDetails?.[0] as any).emergencyContact) ? (
                                 <div className="space-y-1">
                                     <label className="text-sm font-medium text-muted-foreground">Liên hệ khẩn cấp</label>
                                     <p className="font-mono text-sm">{String((selectedStudent.studentDetails?.[0] as any).emergencyContact)}</p>

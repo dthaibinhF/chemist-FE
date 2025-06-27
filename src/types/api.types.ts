@@ -1,10 +1,11 @@
 export interface BaseDTO {
-    id?: number;
-    created_at: Date;
-    updated_at: Date;
+    id?: number; //Union becasue when create new object, ID not needed
+    created_at?: Date;
+    updated_at?: Date;
+    end_at?: Date;
 }
 
-export interface Account extends BaseDTO{
+export interface Account extends BaseDTO {
     name: string;
     email: string;
     phone: string;
@@ -18,25 +19,25 @@ export interface AcademicYear extends BaseDTO {
 
 // School types
 export interface School extends BaseDTO {
-    address?: string;
+    name: string;
 }
 
 // School Class types
-export interface SchoolClass extends BaseDTO{
+export interface SchoolClass extends BaseDTO {
     name: string;
 }
 
 // Grade types
-export interface Grade extends BaseDTO{
+export interface Grade extends BaseDTO {
     name: string;
 }
 
 // Role types
-export interface Role extends BaseDTO{
+export interface Role extends BaseDTO {
     name: string;
 }
 
-export interface PaymentDetail extends BaseDTO{
+export interface PaymentDetail extends BaseDTO {
     fee_id: number;
     fee_name: string;
     student_id: number;
@@ -48,7 +49,7 @@ export interface PaymentDetail extends BaseDTO{
 }
 
 // Fee types
-export interface Fee extends BaseDTO{
+export interface Fee extends BaseDTO {
     name: string;
     description?: string;
     amount: number;
@@ -57,15 +58,15 @@ export interface Fee extends BaseDTO{
     payment_details: PaymentDetail[];
 }
 
-export interface GroupSchedule extends BaseDTO{
-    group_id: number;
-    group_name: string;
+export interface GroupSchedule extends BaseDTO {
+    group_id?: number;
+    group_name?: string;
     day_of_week: string;
     start_time: Date;
     end_time: Date;
 }
 
-export interface Attendance extends BaseDTO{
+export interface Attendance extends BaseDTO {
     schedule_id: number;
     group_id: number;
     group_name: string;
@@ -75,17 +76,17 @@ export interface Attendance extends BaseDTO{
     description: string;
 }
 
-export interface TeacherDetail extends BaseDTO{
+export interface TeacherDetail extends BaseDTO {
     teacher_id: number;
     teacher_name: string;
     school: School;
     school_class: SchoolClass;
 }
-export interface Teacher extends BaseDTO{
+export interface Teacher extends BaseDTO {
     account: Account;
     teacher_details: TeacherDetail[];
 }
-export interface Schedule extends BaseDTO{
+export interface Schedule extends BaseDTO {
     group_id: number;
     group_name: string;
     start_time: Date;
@@ -97,7 +98,7 @@ export interface Schedule extends BaseDTO{
     room: Room;
 }
 
-export interface StudentDetail extends BaseDTO{
+export interface StudentDetail extends BaseDTO {
     group_id: number;
     group_name: string;
     school: School;
@@ -109,9 +110,9 @@ export interface StudentDetail extends BaseDTO{
 }
 
 // Group types
-export interface Group extends BaseDTO{
+export interface Group extends BaseDTO {
     name: string;
-    level: string;
+    level: "REGULAR" | "ADVANCED" | "VIP";
     fee_id: number;
     fee_name: string;
     academic_year_id: number;
@@ -124,13 +125,13 @@ export interface Group extends BaseDTO{
 }
 
 // Room types
-export interface Room extends BaseDTO{
+export interface Room extends BaseDTO {
     name: string;
     location: string;
     capacity: number;
-} 
+}
 
-export interface Exam extends BaseDTO{
+export interface Exam extends BaseDTO {
     name: string;
     description: string;
     type: string;
@@ -138,7 +139,7 @@ export interface Exam extends BaseDTO{
     scores: Score[];
 }
 
-export interface Score extends BaseDTO{
+export interface Score extends BaseDTO {
     exam_id: number;
     exam_name: string;
     student_id: number;
@@ -147,7 +148,7 @@ export interface Score extends BaseDTO{
     description: string;
 }
 
-export interface Student extends BaseDTO{
+export interface Student extends BaseDTO {
     name: string;
     parent_phone: string;
     scores: Score[];
@@ -158,7 +159,7 @@ export interface Student extends BaseDTO{
 
 
 
-export interface GroupSession extends BaseDTO{
+export interface GroupSession extends BaseDTO {
     session_type: string;
     date: Date;
     start_time: Date;

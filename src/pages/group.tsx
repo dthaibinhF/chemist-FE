@@ -1,63 +1,73 @@
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { useGroup } from "@/feature/group/hooks/useGroup";
-import { GroupList } from "@/feature/group/components/group-list";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Group } from "@/types/api.types";
+import GroupTable from "@/feature/group/components/group-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const GroupManagement = () => {
     usePageTitle("Quản lý nhóm học");
-    const { groups, loading, error, fetchGroups, createGroup } = useGroup();
-
-    const handleCreateGroup = async (data: Omit<Group, 'id'>) => {
-        try {
-            await createGroup(data);
-        } catch (err) {
-            console.error("Failed to create group", err);
-        }
-    };
-
-    const handleOpenCreateModal = () => {
-        const newGroup: Omit<Group, 'id'> = {
-            name: "",
-            gradeId: 0,
-            maxStudents: 20
-        };
-        handleCreateGroup(newGroup);
-    };
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-semibold">Quản lý nhóm học</h1>
-                <Button 
-                    onClick={handleOpenCreateModal}
-                >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tạo mới
-                </Button>
+
+        <div className="space-y-6">
+
+            {/* Filters Section */}
+            <div className="flex items-center gap-4">
+                {/* Add your filter components here */}
+                {/* Example: Academic Year filter, Grade filter, Status filter */}
             </div>
 
-            {error && (
-                <Card className="bg-destructive/10 text-destructive border-destructive">
-                    {error}
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Tổng số nhóm
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">20</div>
+                        <p className="text-xs text-muted-foreground">
+                            +2 nhóm trong tháng này
+                        </p>
+                    </CardContent>
                 </Card>
-            )}
 
-            <GroupList 
-                groups={groups}
-                onEditGroup={(group) => {
-                    // TODO: Implement edit group modal
-                    console.log("Edit group:", group);
-                }}
-                onDeleteGroup={(id) => {
-                    // TODO: Implement delete confirmation
-                    console.log("Delete group:", id);
-                }}
-            />
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Nhóm đang hoạt động
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">15</div>
+                        <p className="text-xs text-muted-foreground">
+                            80% tổng số nhóm
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Học sinh đang học
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">150</div>
+                        <p className="text-xs text-muted-foreground">
+                            Trung bình 10 học sinh/nhóm
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Group Table */}
+            <div>
+                <GroupTable />
+            </div>
+
+
         </div>
     );
-}
+};
 
 export default GroupManagement;

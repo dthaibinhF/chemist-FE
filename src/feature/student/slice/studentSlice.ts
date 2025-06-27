@@ -1,5 +1,5 @@
 import {createSlice, createAsyncThunk, PayloadAction} from "@reduxjs/toolkit";
-import {Student} from "../../../types/student.type";
+import {Student} from "@/types/student.type";
 import * as studentApi from "../services/studentApi";
 
 export interface StudentState {
