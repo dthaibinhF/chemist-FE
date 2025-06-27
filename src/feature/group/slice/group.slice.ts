@@ -28,7 +28,7 @@ export const fetchGroup = createAsyncThunk(
 
 export const createGroup = createAsyncThunk(
     'group/createGroup',
-    async (groupData: Omit<Group, 'id'>) => {
+    async (groupData:Group) => {
         const response = await groupService.createGroup(groupData);
         return response;
     }
@@ -36,7 +36,7 @@ export const createGroup = createAsyncThunk(
 
 export const updateGroup = createAsyncThunk(
     'group/updateGroup',
-    async ({ id, data }: { id: number; data: Omit<Group, 'id'> }) => {
+    async ({ id, data }: { id: number; data: Group }) => {
         const response = await groupService.updateGroup(id, data);
         return response;
     }
@@ -49,6 +49,14 @@ export const deleteGroup = createAsyncThunk(
         return id;
     }
 );
+
+export const fetchGroupsWithDetail = createAsyncThunk(
+    'group/fetchGroupsWithDetail',
+    async ()=> {
+        const response = await groupService.getAllGroupsWithDetail();
+        return response;
+    }
+)
 
 const initialState: GroupState = {
     groups: [],
@@ -74,6 +82,20 @@ export const groupSlice = createSlice({
         builder.addCase(fetchGroups.rejected, (state, action) => {
             state.loading = false;
             state.error = action.error.message ?? 'Failed to fetch groups';
+        });
+
+        //fetch groups with details
+        builder.addCase(fetchGroupsWithDetail.pending, (state) => {
+            state.loading = true;
+            state.error = undefined;
+        });
+        builder.addCase(fetchGroupsWithDetail.fulfilled, (state, action) => {
+            state.loading = false;
+            state.groups = action.payload;
+        });
+        builder.addCase(fetchGroupsWithDetail.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error.message ?? 'Failed to fetch groups with details';
         });
 
         // Fetch single group
@@ -140,6 +162,7 @@ export const groupSlice = createSlice({
 export default groupSlice.reducer;
 
 // Selectors
+export const selectGroupsWithDetail = (state: { group: GroupState }) => state.group.groups;
 export const selectGroups = (state: { group: GroupState }) => state.group.groups;
 export const selectGroup = (state: { group: GroupState }) => state.group.group;
 export const selectLoading = (state: { group: GroupState }) => state.group.loading;
