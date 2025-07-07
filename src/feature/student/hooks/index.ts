@@ -1,1 +1,1 @@
-export { useStudent } from "./useStudent";
+export { useStudent } from './useStudent';

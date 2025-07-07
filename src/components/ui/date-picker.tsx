@@ -1,38 +1,34 @@
-import * as React from "react"
-import { ChevronDownIcon } from "lucide-react"
+import { ChevronDownIcon } from 'lucide-react';
+import * as React from 'react';
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Label } from "@/components/ui/label"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface DatePickerProps {
-  label?: string
-  placeholder?: string
-  value?: Date | undefined
-  onValueChange?: (date: Date | undefined) => void
-  disabled?: boolean
-  className?: string
-  labelClassName?: string
-  buttonClassName?: string
-  required?: boolean
-  error?: string
-  id?: string
-  name?: string
-  minDate?: Date
-  maxDate?: Date
-  disabledDates?: Date[]
-  showLabel?: boolean
+  label?: string;
+  placeholder?: string;
+  value?: Date | undefined;
+  onValueChange?: (date: Date | undefined) => void;
+  disabled?: boolean;
+  className?: string;
+  labelClassName?: string;
+  buttonClassName?: string;
+  required?: boolean;
+  error?: string;
+  id?: string;
+  name?: string;
+  minDate?: Date;
+  maxDate?: Date;
+  disabledDates?: Date[];
+  showLabel?: boolean;
 }
 
 export function DatePicker({
   label,
-  placeholder = "Chọn ngày",
+  placeholder = 'Chọn ngày',
   value,
   onValueChange,
   disabled = false,
@@ -48,20 +44,17 @@ export function DatePicker({
   disabledDates,
   showLabel = true,
 }: DatePickerProps) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   const handleDateSelect = (date: Date | undefined) => {
-    onValueChange?.(date)
-    setOpen(false)
-  }
+    onValueChange?.(date);
+    setOpen(false);
+  };
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn('flex flex-col gap-2', className)}>
       {showLabel && label && (
-        <Label 
-          htmlFor={id} 
-          className={cn("px-1 text-sm font-medium", labelClassName)}
-        >
+        <Label htmlFor={id} className={cn('px-1 text-sm font-medium', labelClassName)}>
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -74,8 +67,8 @@ export function DatePicker({
             name={name}
             disabled={disabled}
             className={cn(
-              "w-full justify-between font-normal",
-              error && "border-red-500 focus:border-red-500",
+              'w-full justify-between font-normal',
+              error && 'border-red-500 focus:border-red-500',
               buttonClassName
             )}
           >
@@ -93,19 +86,16 @@ export function DatePicker({
             fromYear={minDate?.getFullYear() || 1900}
             toYear={maxDate?.getFullYear() || new Date().getFullYear() + 10}
             disabled={(date) => {
-              if (minDate && date < minDate) return true
-              if (maxDate && date > maxDate) return true
-              if (disabledDates?.some(disabledDate => 
-                disabledDate.getTime() === date.getTime()
-              )) return true
-              return false
+              if (minDate && date < minDate) return true;
+              if (maxDate && date > maxDate) return true;
+              if (disabledDates?.some((disabledDate) => disabledDate.getTime() === date.getTime()))
+                return true;
+              return false;
             }}
           />
         </PopoverContent>
       </Popover>
-      {error && (
-        <p className="text-sm text-red-500 px-1">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-500 px-1">{error}</p>}
     </div>
-  )
+  );
 }

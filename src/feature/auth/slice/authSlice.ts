@@ -1,80 +1,81 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {TAccount, TAuthResponse} from "@/feature/auth/types/auth.type.ts";
-import {getAccessToken, getRefreshToken} from "@/feature/auth/services/token-manager.ts";
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
-type AuthState =  {
-    account: TAccount | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    error: string | null;
-    accessToken: string | null;
-    refreshToken: string | null;
-}
+import { getAccessToken, getRefreshToken } from '@/feature/auth/services/token-manager.ts';
+import type { TAccount, TAuthResponse } from '@/feature/auth/types/auth.type.ts';
+
+type AuthState = {
+  account: TAccount | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+};
 
 const initialState: AuthState = {
-    account: null,
-    isAuthenticated: false,
-    isLoading: false,
-    error: null,
-    accessToken: getAccessToken(),
-    refreshToken: getRefreshToken(),
+  account: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+  accessToken: getAccessToken(),
+  refreshToken: getRefreshToken(),
 };
 
 const authSlice = createSlice({
-    name: 'auth',
-    initialState,
-    reducers: {
-        loginStart(state) {
-            state.isLoading = true;
-            state.error = null;
-        },
-        loginSuccess(state, action: PayloadAction<TAuthResponse>) {
-            state.accessToken = action.payload.access_token;
-            state.refreshToken = action.payload.refresh_token;
-            state.isAuthenticated = true;
-            state.isLoading = false;
-        },
-        loginFailure(state, action: PayloadAction<string>) {
-            state.isLoading = false;
-            state.error = action.payload;
-        },
-        logout(state) {
-            state.account = null;
-            state.accessToken = null;
-            state.refreshToken = null;
-            state.isAuthenticated = false;
-            state.error = null;
-        },
-        refreshTokenSuccess(state, action: PayloadAction<TAuthResponse>) {
-            state.accessToken = action.payload.access_token;
-            state.refreshToken = action.payload.refresh_token;
-            state.isLoading = false;
-        },
-        refreshTokenFailure(state, action: PayloadAction<string>) {
-            state.isLoading = false;
-            state.error = action.payload;
-            state.account = null;
-            state.accessToken = null;
-            state.refreshToken = null;
-            state.isAuthenticated = false;
-        },
-        setAccount(state, action: PayloadAction<TAccount>) {
-            state.account = action.payload;
-        }
+  name: 'auth',
+  initialState,
+  reducers: {
+    loginStart(state) {
+      state.isLoading = true;
+      state.error = null;
     },
+    loginSuccess(state, action: PayloadAction<TAuthResponse>) {
+      state.accessToken = action.payload.access_token;
+      state.refreshToken = action.payload.refresh_token;
+      state.isAuthenticated = true;
+      state.isLoading = false;
+    },
+    loginFailure(state, action: PayloadAction<string>) {
+      state.isLoading = false;
+      state.error = action.payload;
+    },
+    logout(state) {
+      state.account = null;
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.isAuthenticated = false;
+      state.error = null;
+    },
+    refreshTokenSuccess(state, action: PayloadAction<TAuthResponse>) {
+      state.accessToken = action.payload.access_token;
+      state.refreshToken = action.payload.refresh_token;
+      state.isLoading = false;
+    },
+    refreshTokenFailure(state, action: PayloadAction<string>) {
+      state.isLoading = false;
+      state.error = action.payload;
+      state.account = null;
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.isAuthenticated = false;
+    },
+    setAccount(state, action: PayloadAction<TAccount>) {
+      state.account = action.payload;
+    },
+  },
 });
 
 export const {
-    loginStart,
-    loginSuccess,
-    loginFailure,
-    logout,
-    refreshTokenSuccess,
-    refreshTokenFailure,
-    setAccount,
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  logout,
+  refreshTokenSuccess,
+  refreshTokenFailure,
+  setAccount,
 } = authSlice.actions;
 
 export default authSlice.reducer;
 
 // console.log(authSlice)
-

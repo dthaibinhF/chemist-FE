@@ -1,1 +1,1 @@
-export { useGrade } from "./useGrade";
+export { useGrade } from './useGrade';

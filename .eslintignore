@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+public
+.git
+.husky
+.vscode
+*.config.js
+*.config.ts
+vite.config.ts 

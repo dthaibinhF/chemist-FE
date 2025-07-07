@@ -1,6 +1,6 @@
 export type ApiResponse<T> = {
-    payload?: T;
-    error?: string;
-    message?: string;
-    status: number;
-}
+  payload?: T;
+  error?: string;
+  message?: string;
+  status: number;
+};

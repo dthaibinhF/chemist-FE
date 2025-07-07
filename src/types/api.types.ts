@@ -1,5 +1,5 @@
 export interface BaseDTO {
-    id?: number; //Union becasue when create new object, ID not needed
+    id?: number; // Union becasue when create new object, ID not needed
     created_at?: Date;
     updated_at?: Date;
     end_at?: Date;
@@ -98,21 +98,10 @@ export interface Schedule extends BaseDTO {
     room: Room;
 }
 
-export interface StudentDetail extends BaseDTO {
-    group_id: number;
-    group_name: string;
-    school: School;
-    school_class: SchoolClass;
-    academic_year: AcademicYear;
-    grade: Grade;
-    student_id: number;
-    student_name: string;
-}
-
 // Group types
 export interface Group extends BaseDTO {
     name: string;
-    level: "REGULAR" | "ADVANCED" | "VIP";
+    level: 'REGULAR' | 'ADVANCED' | 'VIP';
     fee_id: number;
     fee_name: string;
     academic_year_id: number;
@@ -150,14 +139,23 @@ export interface Score extends BaseDTO {
 
 export interface Student extends BaseDTO {
     name: string;
-    parent_phone: string;
-    scores: Score[];
-    attendances: Attendance[];
-    payment_details: PaymentDetail[];
-    student_details: StudentDetail[];
+    parent_phone?: string;
+    scores?: Score[];
+    attendances?: Attendance[];
+    payment_details?: PaymentDetail[];
+    student_details?: StudentDetail[];
 }
 
-
+export interface StudentDetail extends BaseDTO {
+    group_id: number;
+    group_name: string;
+    school: School;
+    school_class: SchoolClass;
+    academic_year: AcademicYear;
+    grade: Grade;
+    student_id: number;
+    student_name: string;
+}
 
 export interface GroupSession extends BaseDTO {
     session_type: string;

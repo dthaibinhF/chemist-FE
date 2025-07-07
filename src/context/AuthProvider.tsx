@@ -1,13 +1,7 @@
-import {ReactNode,} from "react";
+import type { ReactNode } from 'react';
 
-
-const AuthProvider = ({children}: { children: ReactNode }) => {
-
-    return (
-        <AuthProvider>
-            {children}
-        </AuthProvider>
-    )
-}
+const AuthProvider = ({ children }: { children: ReactNode }) => {
+  return <AuthProvider>{children}</AuthProvider>;
+};
 
 export default AuthProvider;
