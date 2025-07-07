@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { CircleX, Loader2, Trash2, Upload } from 'lucide-react';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { File as UploadedFile, uploadFile, deleteFile, viewFile } from './public.api';
+import { File as UploadedFile, deleteFile, uploadFile, viewFile } from './public.api';
 
 import { Button } from '@/components/ui/button';
 import { Media, MediaType } from './media';
@@ -100,11 +100,12 @@ export default function UploadAndViewFile({
         if (!files || files.length === 0) return;
 
         setIsLoading(true);
-        const uploadedMediaList: Media[] = [];
-        const newUploadedFiles: UploadedFile[] = [...uploadedFiles];
 
         try {
-            // process each file
+            const uploadedMediaList: Media[] = [];
+            // Dùng biến tạm để gom các file mới upload
+            const newUploadedFiles: UploadedFile[] = [];
+
             for (let i = 0; i < files.length; i += 1) {
                 const file = files[i];
                 // check file size
@@ -140,26 +141,37 @@ export default function UploadAndViewFile({
                 };
 
                 uploadedMediaList.push(newMedia);
-
-                if (!multiple) {
-                    newUploadedFiles.splice(0, newUploadedFiles.length, response);
-                } else {
-                    newUploadedFiles.push(response);
-                }
+                newUploadedFiles.push(response);
             }
 
-            setUploadedFiles(newUploadedFiles);
-
-            if (onMediaChange) {
+            // Cập nhật state dựa trên giá trị hiện tại nhất
+            setUploadedFiles(prevFiles => {
+                let updatedFiles;
                 if (multiple) {
-                    // in multiple mode, return array of media
-                    const allMedia = [...uploadedMediaList];
-                    onMediaChange(allMedia);
+                    updatedFiles = [...prevFiles, ...newUploadedFiles];
                 } else {
-                    // In single mode, return the last uploaded media or null
-                    onMediaChange(uploadedMediaList[uploadedMediaList.length - 1] || null);
+                    updatedFiles = newUploadedFiles.slice(-1);
                 }
-            }
+                // Gọi onMediaChange với media mới nhất
+                if (onMediaChange) {
+                    if (multiple) {
+                        const allMedia = updatedFiles.map(f => ({
+                            url: f.url,
+                            fileName: f.filename,
+                        }));
+                        onMediaChange(allMedia);
+                    } else {
+                        const lastMedia = updatedFiles[0]
+                            ? {
+                                url: updatedFiles[0].url,
+                                fileName: updatedFiles[0].filename,
+                            }
+                            : null;
+                        onMediaChange(lastMedia);
+                    }
+                }
+                return updatedFiles;
+            });
 
             if (uploadedMediaList.length > 0) {
                 toast.success(
@@ -168,15 +180,10 @@ export default function UploadAndViewFile({
                         : 'File uploaded successfully'
                 );
             }
-
-            // update state
-            setUploadedFiles(newUploadedFiles);
-            onMediaChange?.(uploadedMediaList);
         } catch (error) {
             toast.error('Lỗi khi tải lên tệp');
         } finally {
             setIsLoading(false);
-            // Clear the input to allow uploading the same file again
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -230,7 +237,7 @@ export default function UploadAndViewFile({
                         url: file.url,
                         fileName: file.filename
                     }));
-                    onMediaChange(remainingMedia.length > 0 ? remainingMedia : null);
+                    onMediaChange(remainingMedia.length > 0 ? remainingMedia : []);
                 } else {
                     // Use newFiles[0] instead of uploadedFiles[0]
                     const remainingFile = newFiles[0];
@@ -241,7 +248,7 @@ export default function UploadAndViewFile({
                         };
                         onMediaChange(media);
                     } else {
-                        onMediaChange(null);
+                        onMediaChange([]);
                     }
                 }
             }
@@ -271,7 +278,7 @@ export default function UploadAndViewFile({
 
             // Update parent component
             if (onMediaChange) {
-                onMediaChange(null);
+                onMediaChange([]);
             }
 
             toast.success('Tất cả tệp đã được xóa thành công');
