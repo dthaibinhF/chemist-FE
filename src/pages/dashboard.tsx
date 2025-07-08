@@ -1,13 +1,12 @@
+import { createEmptyApplication } from '@/components/file-view-and-picker/localstorage';
 import { IApplicationPreview } from '@/components/file-view-and-picker/media';
-import { Form, FormField, FormMessage, FormItem } from '@/components/ui/form';
+import UploadAndViewFile from '@/components/file-view-and-picker/upload-and-view-file';
+import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { createEmptyApplication, saveApplicationToLocalStorage } from '@/components/file-view-and-picker/localstorage';
-import UploadAndViewFile from '@/components/file-view-and-picker/upload-and-view-file';
-import { Button } from '@/components/ui/button';
 
 export interface IStudentDocumentsPreview {
   portraitPhotoUrls: { url: string; fileName: string }[];
@@ -182,45 +181,23 @@ const Dashboard = () => {
     },
   });
 
-  // Memoize the save function to prevent unnecessary re-renders
-  const saveToLocalStorage = useCallback((formValues: z.infer<typeof schema>) => {
-    if (application) {
-      const updatedApplication = {
-        ...application,
-        documentInfor: {
-          ...application.documentInfor,
-          ...formValues
-        },
-      };
 
-      console.log('Saving to localStorage:', updatedApplication.documentInfor);
-      setApplication(updatedApplication);
-      saveApplicationToLocalStorage(updatedApplication);
-    }
-  }, [application]);
-
-  // Watch form values and save to localStorage when they change
-  const formValues = form.watch();
-
-  // Memoize form values to prevent unnecessary effect triggers
-  const memoizedFormValues = useMemo(() => formValues, [
-    formValues.portraitPhotoUrls,
-    formValues.admissionLetterUrls,
-    formValues.grade12TranscriptUrls,
-    formValues.topAcademicAwardCertificateUrls,
-    formValues.letterUrls,
-    formValues.povertyCertificateUrls,
-    formValues.foreignLanguageCertificateUrls,
-  ]);
-
-  useEffect(() => {
-    console.log('Form values changed:', memoizedFormValues);
-    saveToLocalStorage(memoizedFormValues);
-  }, [memoizedFormValues]);
-
-  const onSubmit = (data: z.infer<typeof schema>) => {
-    console.log('Form submitted:', data);
-  };
+  const handleSave = () => {
+    const updatedApplication = {
+      ...application,
+      documentInfor: {
+        ...application?.documentInfor,
+        portraitPhotoUrls: form.getValues('portraitPhotoUrls'),
+        admissionLetterUrls: form.getValues('admissionLetterUrls'),
+        grade12TranscriptUrls: form.getValues('grade12TranscriptUrls'),
+        topAcademicAwardCertificateUrls: form.getValues('topAcademicAwardCertificateUrls'),
+        letterUrls: form.getValues('letterUrls'),
+        povertyCertificateUrls: form.getValues('povertyCertificateUrls'),
+        foreignLanguageCertificateUrls: form.getValues('foreignLanguageCertificateUrls'),
+      }
+    } as IApplicationPreview;
+    setApplication(updatedApplication)
+  }
 
   return (
     <div className="space-y-4">
@@ -228,7 +205,8 @@ const Dashboard = () => {
       <Button onClick={() => console.log(form.watch())}>coi form watch</Button> */}
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onBlur={handleSave}
+          onSubmit={form.handleSubmit(handleSave)}
           id="student-documents-form"
         >
           {items.map(item => (

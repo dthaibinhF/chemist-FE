@@ -166,7 +166,7 @@ export default function UploadAndViewFile({
                                 url: updatedFiles[0].url,
                                 fileName: updatedFiles[0].filename,
                             }
-                            : null;
+                            : [];
                         onMediaChange(lastMedia);
                     }
                 }
