@@ -1,13 +1,15 @@
 import { useAcademicYear } from '@/hooks/useAcademicYear';
+import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
-import { useEffect } from 'react';
 
 interface AcademicYearSelectProps {
     handleSelect: (value: string) => void;
+    value?: string;
 }
 
-export const AcademicYearSelect = ({ handleSelect }: AcademicYearSelectProps) => {
+export const AcademicYearSelect = ({ handleSelect, value }: AcademicYearSelectProps) => {
     const { academicYears, handleFetchAcademicYears } = useAcademicYear();
+    const [selectedValue, setSelectedValue] = useState<string>('');
 
     useEffect(() => {
         const load = () => {
@@ -16,8 +18,18 @@ export const AcademicYearSelect = ({ handleSelect }: AcademicYearSelectProps) =>
             }
         }
         load();
-        handleSelect(getDefaultAcademicYear());
-    }, [academicYears, handleFetchAcademicYears])
+    }, [academicYears, handleFetchAcademicYears]);
+
+    useEffect(() => {
+        const initialValue = value
+            ? academicYears.find(ay => ay.id?.toString() === value)?.id?.toString()
+            : getDefaultAcademicYear();
+
+        if (initialValue) {
+            setSelectedValue(initialValue);
+            handleSelect(initialValue);
+        }
+    }, [value, academicYears]);
 
     const getDefaultAcademicYear = () => {
         const currentDate = new Date();
@@ -29,13 +41,17 @@ export const AcademicYearSelect = ({ handleSelect }: AcademicYearSelectProps) =>
 
             return currentDate >= startDate && currentDate < endDate;
         });
-        const defaultAcademicYear = academicYear?.id?.toString() ?? '';
-        return defaultAcademicYear;
+        return academicYear?.id?.toString() ?? '';
+    };
+
+    const handleChange = (value: string) => {
+        setSelectedValue(value);
+        handleSelect(value);
     };
 
     return <Select
-        defaultValue={getDefaultAcademicYear()}
-        onValueChange={(value) => handleSelect(value)}>
+        value={selectedValue}
+        onValueChange={handleChange}>
         <SelectTrigger>
             <SelectValue placeholder="Chọn năm học" />
         </SelectTrigger>

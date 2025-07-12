@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
 
+import { useFee } from '@/hooks/useFee';
 import type { Fee } from '@/types/api.types';
 
 import { Button } from '../ui/button';
@@ -21,11 +22,8 @@ import {
 } from '../ui/select';
 
 interface FeeSelectProps {
-  fees: Fee[];
   onSelect: (fee: Fee) => void;
-  value: Fee | null;
-  handleCreateFee: (fee: Fee) => any;
-  handleFetchFees: () => void;
+  value?: string;
 }
 
 const FeeSchema = z.object({
@@ -35,14 +33,14 @@ const FeeSchema = z.object({
 });
 
 export const FeeSelect = ({
-  fees,
   onSelect,
   value,
-  handleCreateFee,
-  handleFetchFees,
 }: FeeSelectProps) => {
+  const { fees, handleFetchFees, loading, handleCreateFee } = useFee();
   const [isNewFeeDialogOpen, setIsNewFeeDialogOpen] = useState(false);
   const [creatingFee, setCreatingFee] = useState(false);
+  const [selectedValue, setSelectedValue] = useState<string>(value || '');
+
   const feeForm = useForm<z.infer<typeof FeeSchema>>({
     resolver: zodResolver(FeeSchema),
     defaultValues: {
@@ -52,24 +50,46 @@ export const FeeSelect = ({
     },
   });
 
+  useEffect(() => {
+    if (fees.length === 0 && loading) {
+      handleFetchFees();
+    }
+  }, [fees, handleFetchFees]);
+
+  useEffect(() => {
+    if (value) {
+      setSelectedValue(value);
+    }
+  }, [value]);
+
+  const handleSelectValue = (value: string) => {
+    if (value === 'new') {
+      setIsNewFeeDialogOpen(true);
+      return;
+    }
+
+    setSelectedValue(value);
+    const selectedFee = fees.find((fee) => fee.id?.toString() === value);
+    if (selectedFee) {
+      onSelect(selectedFee);
+    }
+  };
+
   const handleCreateNewFee = async (data: z.infer<typeof FeeSchema>) => {
     try {
       setCreatingFee(true);
-      // Create a new fee object with required fields
       const newFee: Partial<Fee> = {
         name: data.name,
         amount: parseFloat(data.amount),
         description: data.description || '',
         start_time: new Date(),
-        end_time: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Default 1 year validity
+        end_time: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       };
 
       await handleCreateFee(newFee as Fee);
       toast.success('Tạo học phí mới thành công');
       setIsNewFeeDialogOpen(false);
       feeForm.reset();
-
-      // Refresh fees list
       handleFetchFees();
     } catch (error) {
       toast.error('Không thể tạo học phí mới');
@@ -79,29 +99,18 @@ export const FeeSelect = ({
     }
   };
 
-  const handleSelectValue = (value: string) => {
-    if (value === 'new') {
-      setIsNewFeeDialogOpen(true);
-      return;
-    }
-
-    const selectedFee = fees.find((fee) => fee.id?.toString() === value);
-    if (selectedFee) {
-      onSelect(selectedFee);
-    }
-  };
-
   return (
     <div>
-      <Select onValueChange={handleSelectValue} value={value?.id?.toString() || ''}>
+      <Select onValueChange={handleSelectValue} value={selectedValue}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Chọn học phí" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
+            <SelectItem value="-1">Không chọn</SelectItem>
             {fees.map((fee) => (
-              <SelectItem key={fee.id} value={fee.id?.toString() || ''}>
-                {fee.name} - {fee.amount?.toLocaleString('vi-VN')} VNĐ{' '}
+              <SelectItem key={fee.id} value={fee.id?.toString() ?? ''}>
+                {fee.name} - {fee.amount?.toLocaleString('vi-VN')} VNĐ
               </SelectItem>
             ))}
             <SelectItem value="new" className="text-primary font-medium">
@@ -111,7 +120,6 @@ export const FeeSelect = ({
         </SelectContent>
       </Select>
 
-      {/* Dialog for creating new fee */}
       <Dialog open={isNewFeeDialogOpen} onOpenChange={setIsNewFeeDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -167,7 +175,7 @@ export const FeeSelect = ({
                 >
                   Hủy
                 </Button>
-                <Button type="submit" disabled={creatingFee}>
+                <Button type="submit" disabled={creatingFee || loading}>
                   {creatingFee ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

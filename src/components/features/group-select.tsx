@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Select,
@@ -13,12 +13,14 @@ import {
 
 import { useGroup } from '../../feature/group/hooks/useGroup';
 
-interface SelectGroup {
-  handleSelectGroup: (value: string) => void;
+interface GroupSelectProps {
+  handleSelect: (value: string) => void;
+  value?: string;
 }
 
-const GroupSelect: FC<SelectGroup> = ({ handleSelectGroup }) => {
+const GroupSelect: FC<GroupSelectProps> = ({ handleSelect, value }) => {
   const { groups, fetchGroups } = useGroup();
+  const [selectedValue, setSelectedValue] = useState<string>(value || '');
 
   useEffect(() => {
     if (groups.length === 0) {
@@ -26,8 +28,19 @@ const GroupSelect: FC<SelectGroup> = ({ handleSelectGroup }) => {
     }
   }, [groups, fetchGroups]);
 
+  useEffect(() => {
+    if (value) {
+      setSelectedValue(value);
+    }
+  }, [value]);
+
+  const handleChange = (value: string) => {
+    setSelectedValue(value);
+    handleSelect(value);
+  };
+
   return (
-    <Select onValueChange={(value) => handleSelectGroup(value)}>
+    <Select onValueChange={handleChange} value={selectedValue}>
       <SelectTrigger>
         <SelectValue placeholder="Chọn nhóm học" />
       </SelectTrigger>

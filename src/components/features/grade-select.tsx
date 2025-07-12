@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useGrade } from '@/hooks/useGrade';
 
@@ -15,10 +15,12 @@ import {
 
 interface GradeSelectProps {
   handleSelect: (value: string) => void;
+  value?: string;
 }
 
-const GradeSelect: FC<GradeSelectProps> = ({ handleSelect: handleSelectGrade }) => {
+const GradeSelect: FC<GradeSelectProps> = ({ handleSelect, value }) => {
   const { grades, handleFetchGrades } = useGrade();
+  const [selectedValue, setSelectedValue] = useState<string>(value || '');
 
   useEffect(() => {
     if (grades.length === 0) {
@@ -26,8 +28,19 @@ const GradeSelect: FC<GradeSelectProps> = ({ handleSelect: handleSelectGrade }) 
     }
   }, [grades, handleFetchGrades]);
 
+  useEffect(() => {
+    if (value) {
+      setSelectedValue(value);
+    }
+  }, [value]);
+
+  const handleChange = (value: string) => {
+    setSelectedValue(value);
+    handleSelect(value);
+  };
+
   return (
-    <Select onValueChange={(value) => handleSelectGrade(value)}>
+    <Select onValueChange={handleChange} value={selectedValue}>
       <SelectTrigger>
         <SelectValue placeholder="Chọn khối lớp" />
       </SelectTrigger>
