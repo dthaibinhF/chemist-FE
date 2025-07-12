@@ -6,6 +6,7 @@ export interface DataSelectProps<T> {
   items: T[];
   valueKey?: keyof T;
   labelKey?: keyof T;
+  value?: string | number;
   defaultValue?: string | number;
   onChange: (value: number) => void;
   placeholder?: string;
@@ -16,6 +17,7 @@ export const DataSelect = <T,>({
   items,
   valueKey,
   labelKey,
+  value,
   defaultValue,
   onChange,
   placeholder,
@@ -27,6 +29,7 @@ export const DataSelect = <T,>({
   return (
     <Select
       onValueChange={(value) => onChange(Number(value))}
+      value={value !== undefined ? String(value) : undefined}
       defaultValue={defaultValue !== undefined ? String(defaultValue) : undefined}
     >
       <SelectTrigger className={cn(className)}>

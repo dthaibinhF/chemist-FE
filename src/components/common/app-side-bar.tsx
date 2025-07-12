@@ -40,6 +40,11 @@ const items = {
           url: '/group',
           isActive: false,
         },
+        {
+          title: 'Học phí',
+          url: '/fee',
+          isActive: false,
+        },
       ],
     },
   ],
@@ -59,7 +64,7 @@ const AppSideBar = () => {
     setRender(render + 1);
   }
 
-  useEffect(() => {}, [render]);
+  useEffect(() => { }, [render]);
 
   const setActive = (item: {
     title: string;
