@@ -38,6 +38,8 @@ type DataTableProps<TData, TValue> = {
   data: TData[];
   pagination?: boolean;
   ComponentForCreate?: React.ReactNode;
+  filterColumn?: string;
+  filterPlaceholder?: string;
 };
 
 export function DataTable<TData, TValue>({
@@ -45,6 +47,8 @@ export function DataTable<TData, TValue>({
   data,
   pagination = true,
   ComponentForCreate,
+  filterColumn = 'name',
+  filterPlaceholder = 'Name filter',
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -76,9 +80,9 @@ export function DataTable<TData, TValue>({
     <div className="rounded-md border p-4">
       <div className="flex items-center py-4 justify-between">
         <Input
-          placeholder="Name filter"
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-          onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
+          placeholder={filterPlaceholder}
+          value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ''}
+          onChange={(event) => table.getColumn(filterColumn)?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
 

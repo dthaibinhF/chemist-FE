@@ -1,0 +1,5 @@
+---
+description: using Yarn for package management
+globs:
+alwaysApply: false
+---
