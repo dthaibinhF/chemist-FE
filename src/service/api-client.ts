@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios from "axios";
 
 import {
   getAccessToken,
   getRefreshToken,
   storeTokens,
-} from '@/feature/auth/services/token-manager.ts';
+} from "@/feature/auth/services/token-manager.ts";
 
 const API_URL = import.meta.env.VITE_SERVER_ROOT_URL;
 
@@ -12,7 +12,10 @@ interface ApiOptions {
   auth: boolean;
 }
 
-export function createApiClient(resourceUrl: string, options: ApiOptions = { auth: true }) {
+export function createApiClient(
+  resourceUrl: string,
+  options: ApiOptions = { auth: true }
+) {
   const axiosInstance = axios.create({
     baseURL: `${API_URL}/${resourceUrl}`,
     withCredentials: true,
@@ -35,7 +38,11 @@ export function createApiClient(resourceUrl: string, options: ApiOptions = { aut
         // const accessToken = localStorage.getItem("access_token");
         const accessToken = getAccessToken();
         const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry && accessToken) {
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          accessToken
+        ) {
           originalRequest._retry = true;
           try {
             const refreshToken = getRefreshToken();
@@ -55,8 +62,8 @@ export function createApiClient(resourceUrl: string, options: ApiOptions = { aut
             storeTokens(newAccessToken, newRefreshToken);
             return axiosInstance(originalRequest);
           } catch (error) {
-            localStorage.removeItem('access_token');
-            window.location.href = '/login';
+            localStorage.removeItem("access_token");
+            window.location.href = "/login";
             return Promise.reject(error);
           }
         }

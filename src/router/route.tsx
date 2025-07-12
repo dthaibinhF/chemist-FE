@@ -2,12 +2,14 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import Dashboard from '@/pages/dashboard.tsx';
 import { ErrorPage } from '@/pages/error-page';
+import { FeeDetail } from '@/pages/fee-detail.tsx';
+import FeeManagement from '@/pages/fee.tsx';
 import FinanceManagement from '@/pages/finance.tsx';
-import GroupManagement from '@/pages/group.tsx';
 import { GroupDetail } from '@/pages/group-detail';
+import GroupManagement from '@/pages/group.tsx';
 import HomeLayout from '@/pages/layout/HomeLayout.tsx';
 import { LoginPage } from '@/pages/login-page.tsx';
-import { StudentDetail } from '@/pages/student-detail.tsx';
+import { StudentDetailPage } from '@/pages/student-detail.tsx';
 import { StudentManagement } from '@/pages/student-management.tsx';
 
 export const router = createBrowserRouter([
@@ -27,7 +29,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'student/:id',
-        Component: StudentDetail,
+        Component: StudentDetailPage,
         // errorElement: <ErrorPage />,
       },
       {
@@ -37,6 +39,14 @@ export const router = createBrowserRouter([
       {
         path: 'group',
         Component: GroupManagement,
+      },
+      {
+        path: 'fee',
+        Component: FeeManagement,
+      },
+      {
+        path: 'fee/:id',
+        Component: FeeDetail,
       },
       {
         path: 'group/:id',
