@@ -2,10 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { FinanceCalendar } from '@/components/common/finance-calendar';
-import { FinanceCharts } from '@/components/common/finance-charts';
 import { FinanceFilters } from '@/components/common/finance-filters';
-import { FinanceOverviewCards } from '@/components/common/finance-overview-cards';
-import { PaymentManagementTable } from '@/components/common/payment-management-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
@@ -133,7 +130,7 @@ export const FinanceManagement = () => {
   return (
     <div className="space-y-6">
       {/* Overview Cards */}
-      <FinanceOverviewCards stats={mockFinanceStats} />
+      {/* <FinanceOverviewCards stats={mockFinanceStats} /> */}
 
       {/* Filters */}
       <FinanceFilters onFiltersChange={handleFiltersChange} />
@@ -149,7 +146,7 @@ export const FinanceManagement = () => {
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <FinanceCharts
+            {/* <FinanceCharts
               monthlyRevenue={mockMonthlyRevenue}
               feeDistribution={mockFeeDistribution}
               paymentTrend={mockPaymentTrend}
@@ -159,11 +156,11 @@ export const FinanceManagement = () => {
               onEdit={handlePaymentEdit}
               onDelete={handlePaymentDelete}
               onView={handlePaymentView}
-            />
+            /> */}
           </div>
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-4">
+        {/* <TabsContent value="payments" className="space-y-4">
           <PaymentManagementTable
             payments={mockPayments}
             onEdit={handlePaymentEdit}
@@ -178,7 +175,7 @@ export const FinanceManagement = () => {
             feeDistribution={mockFeeDistribution}
             paymentTrend={mockPaymentTrend}
           />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="calendar" className="space-y-4">
           <FinanceCalendar
