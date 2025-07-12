@@ -2,7 +2,6 @@ import { StudentStatsCards, StudentTable } from '@/feature/student/components';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 export const StudentManagement = () => {
-  // const students: Student[] = useLoaderData();
   usePageTitle('Quản lý học sinh');
 
   return (

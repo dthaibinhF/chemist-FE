@@ -1,20 +1,23 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
-import { useAppDispatch, useAppSelector } from '@/redux/hook';
-import type { Student } from '@/types/api.types';
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import type { Student } from "@/types/api.types";
 
 import {
+  createMultipleStudents,
   createStudent,
   deleteStudent,
   fetchStudent,
   fetchStudents,
   setSelectedStudent,
   updateStudent,
-} from '../slice/studentSlice';
+} from "../slice/studentSlice";
 
 export const useStudent = () => {
   const dispatch = useAppDispatch();
-  const { students, selectedStudent, loading, error } = useAppSelector((state) => state.student);
+  const { students, selectedStudent, loading, error } = useAppSelector(
+    (state) => state.student
+  );
 
   const loadStudents = useCallback(() => {
     dispatch(fetchStudents());
@@ -38,6 +41,13 @@ export const useStudent = () => {
     return dispatch(deleteStudent(id));
   };
 
+  const addMultipleStudents = useCallback(
+    (students: Partial<Student>[]) => {
+      return dispatch(createMultipleStudents(students));
+    },
+    [dispatch]
+  );
+
   const selectStudent = useCallback(
     (student?: Student) => {
       dispatch(setSelectedStudent(student));
@@ -47,7 +57,6 @@ export const useStudent = () => {
 
   const loadStudent = useCallback(
     (id: number) => {
-      console.log('loadStudent called with ID:', id);
       dispatch(fetchStudent(id));
     },
     [dispatch]
@@ -64,5 +73,6 @@ export const useStudent = () => {
     editStudent,
     removeStudent,
     selectStudent,
+    addMultipleStudents,
   };
 };

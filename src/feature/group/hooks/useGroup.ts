@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
-import { useAppDispatch, useAppSelector } from '@/redux/hook';
-import type { Group } from '@/types/api.types';
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import type { Group } from "@/types/api.types";
 
 import {
   createGroup,
@@ -9,12 +9,16 @@ import {
   fetchGroup,
   fetchGroups,
   fetchGroupsWithDetail,
+  // fetchGroupStats, // Import the new thunk
+  // generateInvoices, // Import the new thunk
   updateGroup,
-} from '../slice/group.slice';
+} from "../slice/group.slice";
 
 export const useGroup = () => {
   const dispatch = useAppDispatch();
-  const { groups, group, loading, error } = useAppSelector((state) => state.group);
+  const { groups, group, stats, loading, error } = useAppSelector(
+    (state) => state.group
+  );
 
   const handleFetchGroups = useCallback(() => {
     dispatch(fetchGroups());
@@ -52,10 +56,22 @@ export const useGroup = () => {
     [dispatch]
   );
 
+  // const handleFetchGroupStats = useCallback(() => {
+  //   dispatch(fetchGroupStats());
+  // }, [dispatch]);
+
+  // const handleGenerateInvoices = useCallback(
+  //   (groupId: number) => {
+  //     return dispatch(generateInvoices(groupId));
+  //   },
+  //   [dispatch]
+  // );
+
   return {
     // Data
     groups,
     group,
+    stats,
     loading,
     error,
 
@@ -63,8 +79,10 @@ export const useGroup = () => {
     fetchGroupsWithDetail: handleFetchGroupWithDetaisl,
     fetchGroups: handleFetchGroups,
     fetchGroup: handleFetchGroup,
+    // fetchGroupStats: handleFetchGroupStats,
     createGroup: handleCreateGroup,
     updateGroup: handleUpdateGroup,
     deleteGroup: handleDeleteGroup,
+    // generateInvoices: handleGenerateInvoices,
   };
 };

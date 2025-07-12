@@ -41,8 +41,8 @@ export const updateFee = createAsyncThunk(
 );
 
 export const deleteFee = createAsyncThunk('fee/deleteFee', async (id: number) => {
-  const response = await feeService.deleteFee(id);
-  return response;
+  await feeService.deleteFee(id);
+  return id;
 });
 
 export const feeSlice = createSlice({
@@ -50,46 +50,70 @@ export const feeSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(fetchFees.fulfilled, (state, action) => {
-      state.fees = action.payload;
-      state.loading = false;
-    });
-    builder.addCase(fetchFee.fulfilled, (state, action) => {
-      state.fee = action.payload;
-      state.loading = false;
-    });
-    builder.addCase(createFee.fulfilled, (state, action) => {
-      state.fees.push(action.payload);
-      state.loading = false;
-    });
-    builder.addCase(updateFee.fulfilled, (state, action) => {
-      state.fee = action.payload;
-      state.loading = false;
-    });
-    builder.addCase(deleteFee.fulfilled, (state, action) => {
-      state.fees = state.fees.filter((fee) => fee.id !== action.payload);
-      state.loading = false;
-    });
-    builder.addCase(fetchFees.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message ?? 'Lỗi khi lấy dữ liệu';
-    });
-    builder.addCase(fetchFee.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message ?? 'Lỗi khi lấy dữ liệu';
-    });
-    builder.addCase(createFee.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message ?? 'Lỗi khi tạo dữ liệu';
-    });
-    builder.addCase(updateFee.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message ?? 'Lỗi khi cập nhật dữ liệu';
-    });
-    builder.addCase(deleteFee.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message ?? 'Lỗi khi xóa dữ liệu';
-    });
+    builder
+      .addCase(fetchFees.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchFee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createFee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateFee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteFee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchFees.fulfilled, (state, action) => {
+        state.loading = false;
+        state.fees = action.payload;
+      })
+      .addCase(fetchFee.fulfilled, (state, action) => {
+        state.loading = false;
+        state.fee = action.payload;
+      })
+      .addCase(createFee.fulfilled, (state, action) => {
+        state.loading = false;
+        state.fees.push(action.payload);
+      })
+      .addCase(updateFee.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.fees.findIndex((fee) => fee.id === action.payload.id);
+        if (index !== -1) {
+          state.fees[index] = action.payload;
+        }
+      })
+      .addCase(deleteFee.fulfilled, (state, action) => {
+        state.loading = false;
+        state.fees = state.fees.filter((fee) => fee.id !== action.payload);
+      })
+      .addCase(fetchFees.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to fetch fees';
+      })
+      .addCase(fetchFee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to fetch fee';
+      })
+      .addCase(createFee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to create fee';
+      })
+      .addCase(updateFee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to update fee';
+      })
+      .addCase(deleteFee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to delete fee';
+      });
   },
 });
 

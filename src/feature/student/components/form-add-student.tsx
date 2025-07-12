@@ -30,7 +30,12 @@ import { useStudent } from '../hooks';
 import type { StudentFormData } from '../schemas/student.schema';
 import { studentFormSchema } from '../schemas/student.schema';
 
-export const FormAddStudent = () => {
+interface FormAddStudentProps {
+  groupId?: number;
+  gradeId?: number;
+}
+
+export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
   const { addStudent } = useStudent();
   const [schools, setSchools] = useState<School[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -44,8 +49,8 @@ export const FormAddStudent = () => {
       name: '',
       parent_phone: '',
       school: '',
-      grade: '',
-      group: '',
+      grade: gradeId?.toString() || '',
+      group: groupId?.toString() || '',
     },
   });
 

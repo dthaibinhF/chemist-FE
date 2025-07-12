@@ -15,27 +15,32 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Student } from '@/types/api.types';
 
+interface StudentTableProps {
+  students?: Student[];
+}
+
 import { useStudent } from '../hooks';
 import type { StudentFormData } from '../schemas/student.schema';
 import { AddStudentTab } from './add-student-tab';
 import { EditStudentDialog } from './edit-student-dialog';
 
-export const StudentTable = memo(() => {
-  const { students, removeStudent, loadStudents, loading } = useStudent();
+export const StudentTable = memo(({ students: studentsProp }: StudentTableProps) => {
+  const { students: studentsFromHook, editStudent, removeStudent, loadStudents, loading } = useStudent();
+  const students = studentsProp || studentsFromHook;
   const navigate = useNavigate();
   const revalidate = useRevalidator();
 
   useEffect(() => {
-    loadStudents();
-  }, [loadStudents]);
+    if (!studentsProp) {
+      loadStudents();
+    }
+  }, [loadStudents, studentsProp]);
 
   const handleEditStudent = useCallback(
     async (id: number, formData: StudentFormData) => {
       try {
-        // TODO: Gọi API để cập nhật học sinh
-        console.log('Editing student:', id, formData);
+        await editStudent(id, formData);
         revalidate.revalidate();
-        await new Promise((resolve) => setTimeout(resolve, 1000));
         toast.success('Cập nhật học sinh thành công!');
       } catch (error) {
         console.error('Error editing student:', error);
@@ -43,7 +48,7 @@ export const StudentTable = memo(() => {
         throw error;
       }
     },
-    [revalidate]
+    [editStudent, revalidate],
   );
 
   // Memoize handlers để tránh re-render không cần thiết

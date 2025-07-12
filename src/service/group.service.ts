@@ -1,19 +1,19 @@
-import type { Group } from '@/types/api.types';
+import type { Group, GroupStats } from "@/types/api.types";
 
-import { createApiClient } from './api-client';
+import { createApiClient } from "./api-client";
 
-const apiClient = createApiClient('group');
+const apiClient = createApiClient("group");
 
 export const groupService = {
   // Lấy tất cả nhóm (danh sách)
   getAllGroups: async (): Promise<Group[]> => {
-    const response = await apiClient.get('');
+    const response = await apiClient.get("");
     return response.data;
   },
 
   // Lấy tất cả nhóm với chi tiết
   getAllGroupsWithDetail: async (): Promise<Group[]> => {
-    const response = await apiClient.get('/detail');
+    const response = await apiClient.get("/detail");
     return response.data;
   },
 
@@ -24,7 +24,9 @@ export const groupService = {
   },
 
   // Lấy nhóm theo năm học
-  getGroupsByAcademicYearId: async (academicYearId: number): Promise<Group[]> => {
+  getGroupsByAcademicYearId: async (
+    academicYearId: number
+  ): Promise<Group[]> => {
     const response = await apiClient.get(`/academic-year/${academicYearId}`);
     return response.data;
   },
@@ -37,7 +39,7 @@ export const groupService = {
 
   // Tạo nhóm mới
   createGroup: async (group: Group): Promise<Group> => {
-    const response = await apiClient.post('', group);
+    const response = await apiClient.post("", group);
     return response.data;
   },
 
@@ -50,5 +52,19 @@ export const groupService = {
   // Xóa nhóm
   deleteGroup: async (id: number): Promise<void> => {
     await apiClient.delete(`/${id}`);
+  },
+
+  // Lấy thống kê nhóm
+  getGroupStats: async (): Promise<GroupStats> => {
+    const response = await apiClient.get("/stats");
+    return response.data;
+  },
+
+  // Generate invoices for a group
+  generateInvoices: async (
+    groupId: number
+  ): Promise<{ message: string; invoices_created: number }> => {
+    const response = await apiClient.post(`/${groupId}/generate-invoices`);
+    return response.data;
   },
 };

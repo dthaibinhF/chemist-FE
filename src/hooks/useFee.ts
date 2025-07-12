@@ -1,8 +1,14 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
-import { useAppDispatch, useAppSelector } from '@/redux/hook';
-import { createFee, deleteFee, fetchFee, fetchFees, updateFee } from '@/redux/slice/fee.slice';
-import type { Fee } from '@/types/api.types';
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import {
+  createFee,
+  deleteFee,
+  fetchFee,
+  fetchFees,
+  updateFee,
+} from "@/redux/slice/fee.slice";
+import type { Fee } from "@/types/api.types";
 
 export const useFee = () => {
   const dispatch = useAppDispatch();

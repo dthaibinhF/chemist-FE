@@ -14,7 +14,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AddStudentCsvFile } from './add-student-cvs-file';
 import { FormAddStudent } from './form-add-student';
 
-export const AddStudentTab = () => {
+interface AddStudentTabProps {
+  groupId?: number;
+  gradeId?: number;
+}
+
+export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
   return (
     <div>
       <Dialog>
@@ -42,12 +47,12 @@ export const AddStudentTab = () => {
 
             <TabsContent value="manual">
               <div className="p-5 border rounded-lg shadow-sm w-full">
-                <FormAddStudent />
+                <FormAddStudent groupId={groupId} gradeId={gradeId} />
               </div>
             </TabsContent>
 
             <TabsContent value="csv" className="mt-1 w-full overflow-hidden">
-              <AddStudentCsvFile />
+              <AddStudentCsvFile groupId={groupId} gradeId={gradeId} />
             </TabsContent>
           </Tabs>
         </DialogContent>

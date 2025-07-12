@@ -6,50 +6,96 @@ import {
   Clock,
   GraduationCap,
   Loader2,
-  Mail,
-  MapPin,
   Phone,
   User,
-  Users,
+  Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useRevalidator } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useGroup } from '@/feature/group/hooks/useGroup';
+import { StudentPayment } from '@/feature/payment/components/student-payment';
 import { EditStudentDialog } from '@/feature/student/components';
 import { useStudent } from '@/feature/student/hooks/useStudent';
+import type { StudentFormData } from '@/feature/student/schemas/student.schema';
+import { useFee } from '@/hooks/useFee';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import type { Student, StudentDetail } from '@/types/api.types';
 
-export const StudentDetail = () => {
-  const { loadStudent, selectedStudent, loading } = useStudent();
+export const StudentDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const [openEdit, setOpenEdit] = useState(false);
+  const { loadStudent, selectedStudent, loading: studentLoading, editStudent } = useStudent();
+  const { group, loading: groupLoading, fetchGroup } = useGroup();
+  const { fee, loading: feeLoading, handleFetchFee } = useFee();
 
   // Đặt tiêu đề trang
   usePageTitle(`Chi tiết học sinh - ${selectedStudent?.name || 'Không xác định'}`);
 
+  const getCurrentStudentDetail = (studentDetails: StudentDetail[]) => {
+    return studentDetails[0];
+  }
+
+  // Load student data first
   useEffect(() => {
-    const fetchStudent = async () => {
-      if (id && !isNaN(Number(id))) {
-        loadStudent(Number(id));
-        console.log('selectedStudent', selectedStudent);
+    if (id && !isNaN(Number(id))) {
+      loadStudent(Number(id));
+    }
+  }, [id, loadStudent]);
+
+  // Load group and fee data after student is loaded
+  useEffect(() => {
+    if (selectedStudent && selectedStudent.student_details) {
+      const currentStudentDetail = getCurrentStudentDetail(selectedStudent.student_details);
+      if (currentStudentDetail?.group_id) {
+        fetchGroup(currentStudentDetail.group_id);
       }
-    };
-    fetchStudent();
-  }, [loadStudent]);
+    }
+  }, [selectedStudent, fetchGroup]);
+
+  // Load fee data after group is loaded
+  useEffect(() => {
+    if (group?.fee_id) {
+      handleFetchFee(group.fee_id);
+    }
+  }, [group, handleFetchFee]);
 
   // Hàm xử lý cập nhật học sinh
-  const handleEditStudent = async (id: number, formData: any) => {
-    // TODO: Gọi API cập nhật học sinh ở đây
-    console.log('formData', formData);
-    console.log('id', id);
-    setOpenEdit(false);
-    // window.location.reload(); // hoặc navigate(0) nếu muốn reload lại dữ liệu
+  const handleEditStudent = async (id: number, formData: StudentFormData) => {
+    try {
+      console.log('formData', formData);
+      // Gọi API cập nhật học sinh
+      await editStudent(id, formData as unknown as Student);
+
+      // Hiển thị thông báo thành công
+      toast.success('Cập nhật thông tin học sinh thành công!');
+
+      // Đóng dialog
+      setOpenEdit(false);
+      revalidator.revalidate();
+      // Reload lại thông tin học sinh để cập nhật UI
+      if (id && !isNaN(Number(id))) {
+        loadStudent(Number(id));
+      }
+    } catch (error) {
+      console.error('Error updating student:', error);
+      toast.error('Cập nhật thông tin học sinh thất bại!');
+    }
   };
+
+  const studentPaymentStatus = () => {
+    const studentPayment = selectedStudent?.payment_details?.filter((payment) => payment.fee_id === fee?.id);
+    const totalPayment = studentPayment?.reduce((acc, payment) => acc + payment.amount, 0);
+    return totalPayment;
+  }
+  const loading = studentLoading || groupLoading || feeLoading;
 
   if (!selectedStudent) {
     return (
@@ -73,258 +119,197 @@ export const StudentDetail = () => {
       </div>
     );
   }
+
+  const currentStudentDetail = getCurrentStudentDetail(selectedStudent?.student_details || []);
+
+
   return (
     <div className="space-y-6">
-      {/* Back Button */}
-      <div className="mb-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/student')}
-          className="rounded-full shadow hover:bg-accent transition-colors"
-          aria-label="Quay lại danh sách học sinh"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-      </div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <h1 className="text-3xl font-bold truncate">{selectedStudent.name}</h1>
-              {'email' in selectedStudent &&
-              typeof selectedStudent.email === 'string' &&
-              selectedStudent.email ? (
-                <div className="flex items-center gap-2 mt-1">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground text-sm truncate">
-                    {String(selectedStudent.email)}
-                  </span>
+      {/* Header với thông tin cơ bản */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Thông tin học sinh */}
+            <div className="flex-1 space-y-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-bold">{selectedStudent.name}</h1>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      {selectedStudent.parent_phone || 'Chưa cập nhật'} (phụ huynh)
+                    </span>
+                  </div>
                 </div>
-              ) : null}
-              <div className="flex items-center gap-2 mt-1">
-                {selectedStudent.student_details?.[0]?.group_name && (
-                  <Badge variant="outline">{selectedStudent.student_details[0].group_name}</Badge>
-                )}
+                <Button size="sm" onClick={() => setOpenEdit(true)}>
+                  <User className="mr-2 h-4 w-4" />
+                  Chỉnh sửa
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                {/* Nhóm hiện tại */}
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Nhóm:</span>
+                  <Badge variant="outline">
+                    {currentStudentDetail?.group_name || 'Chưa phân nhóm'}
+                  </Badge>
+                </div>
+
+                {/* Trạng thái học tập */}
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Trạng thái:</span>
+                  {!currentStudentDetail ? (
+                    <Badge variant="destructive">Đã nghỉ học</Badge>
+                  ) : (
+                    <Badge className="text-accent" variant="default">
+                      Đang học
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Tình trạng thanh toán */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Thanh toán:</span>
+                  {
+                    studentPaymentStatus() === fee?.amount ? (
+                      <Badge variant="default">Đã thanh toán</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-destructive">Chưa thanh toán</Badge>
+                    )
+                  }
+                </div>
               </div>
             </div>
-            <Button size="sm" onClick={() => setOpenEdit(true)}>
-              <User className="mr-2 h-4 w-4" />
-              Chỉnh sửa
-            </Button>
-            <EditStudentDialog
-              student={selectedStudent}
-              onEditStudent={handleEditStudent}
-              open={openEdit}
-              onOpenChange={setOpenEdit}
-            />
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
+
+      {/* Dialog chỉnh sửa */}
+      <EditStudentDialog
+        student={selectedStudent}
+        onEditStudent={handleEditStudent}
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+      />
+
       <Separator />
+
+      {/* Phần nội dung chính */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Info (2/3) */}
+        {/* Thông tin học tập (2/3) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
+          {/* Thông tin học tập chi tiết */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Thông tin cơ bản
+                <GraduationCap className="h-5 w-5" />
+                Thông tin học tập
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">Họ và tên</label>
-                  <p className="text-lg font-semibold">{selectedStudent.name}</p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Số điện thoại phụ huynh
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <p className="font-mono">{selectedStudent.parent_phone || 'Chưa cập nhật'}</p>
-                  </div>
-                </div>
-                {'address' in selectedStudent &&
-                typeof selectedStudent.address === 'string' &&
-                selectedStudent.address ? (
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground">Địa chỉ</label>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Nhóm học</label>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <p>{String(selectedStudent.address)}</p>
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <p className="font-semibold">
+                        {selectedStudent.student_details?.[0]?.group_name || 'Chưa cập nhật'}
+                      </p>
                     </div>
                   </div>
-                ) : null}
-              </div>
-              <div className="flex justify-end mt-2">
-                <Badge variant="outline" className="text-xs text-muted-foreground">
-                  ID: {selectedStudent.id}
-                </Badge>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Trường</label>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <p>
+                        {selectedStudent.student_details?.[0]?.school?.name || 'Chưa cập nhật'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Lớp</label>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <p>
+                        {selectedStudent.student_details?.[0]?.school_class?.name ||
+                          'Chưa cập nhật'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Khối</label>
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                      <p>
+                        {selectedStudent.student_details?.[0]?.grade?.name || 'Chưa cập nhật'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Năm học</label>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <p>
+                        {selectedStudent.student_details?.[0]?.academic_year?.year ||
+                          'Chưa cập nhật'}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedStudent.student_details?.[0] &&
+                    typeof (selectedStudent.student_details?.[0] as any).enrollmentDate ===
+                    'string' &&
+                    (selectedStudent.student_details?.[0] as any).enrollmentDate ? (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Ngày nhập học
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <p>
+                          {new Date(
+                            String((selectedStudent.student_details?.[0] as any).enrollmentDate)
+                          ).toLocaleDateString('vi-VN')}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </CardContent>
           </Card>
-          {/* Academic Information */}
-          {selectedStudent && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
-                  Thông tin học tập
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">Nhóm học</label>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-semibold">
-                          {selectedStudent.student_details?.[0]?.group_name}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">Trường</label>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <p>
-                          {selectedStudent.student_details?.[0]?.school?.name || 'Chưa cập nhật'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">Lớp</label>
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-muted-foreground" />
-                        <p>
-                          {selectedStudent.student_details?.[0]?.school_class?.name ||
-                            'Chưa cập nhật'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">Khối</label>
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                        <p>
-                          {selectedStudent.student_details?.[0]?.grade?.name || 'Chưa cập nhật'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">Năm học</label>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p>
-                          {selectedStudent.student_details?.[0]?.academic_year?.year ||
-                            'Chưa cập nhật'}
-                        </p>
-                      </div>
-                    </div>
-                    {selectedStudent.student_details?.[0] &&
-                    typeof (selectedStudent.student_details?.[0] as any).enrollmentDate ===
-                      'string' &&
-                    (selectedStudent.student_details?.[0] as any).enrollmentDate ? (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Ngày nhập học
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <p>
-                            {new Date(
-                              String((selectedStudent.student_details?.[0] as any).enrollmentDate)
-                            ).toLocaleDateString('vi-VN')}
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
+
         {/* Sidebar (1/3) */}
         <div className="space-y-6">
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Thao tác nhanh</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
-                <Phone className="mr-2 h-4 w-4" />
-                Gọi điện thoại
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Mail className="mr-2 h-4 w-4" />
-                Gửi email
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <GraduationCap className="mr-2 h-4 w-4" />
-                Xem điểm số
-              </Button>
-            </CardContent>
-          </Card>
           {/* Student Status */}
           <Card>
             <CardHeader>
-              <CardTitle>Trạng thái</CardTitle>
+              <CardTitle>Thống kê</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Trạng thái học tập</span>
-                  <Badge className="text-accent" variant="outline">
-                    Đang học
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Tình trạng thanh toán</span>
-                  <Badge variant="secondary">Đã thanh toán</Badge>
-                </div>
-                <div className="flex items-center justify-between">
                   <span className="text-sm">Số buổi học</span>
                   <span className="font-semibold">12/20</span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Liên hệ khẩn cấp</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">SĐT Phụ huynh</label>
-                <p className="font-mono text-sm">
-                  {selectedStudent.parent_phone || 'Chưa cập nhật'}
-                </p>
-              </div>
-              {selectedStudent.student_details?.[0] &&
-              typeof (selectedStudent.student_details?.[0] as any).emergencyContact === 'string' &&
-              (selectedStudent.student_details?.[0] as any).emergencyContact ? (
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Liên hệ khẩn cấp
-                  </label>
-                  <p className="font-mono text-sm">
-                    {String((selectedStudent.student_details?.[0] as any).emergencyContact)}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Điểm trung bình</span>
+                  <span className="font-semibold">8.5</span>
                 </div>
-              ) : null}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Tỷ lệ tham gia</span>
+                  <span className="font-semibold">85%</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
+
           {/* Additional Information */}
           <Card>
             <CardHeader>
@@ -332,24 +317,24 @@ export const StudentDetail = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {'createdAt' in selectedStudent && typeof selectedStudent.createdAt === 'string' ? (
+                {'create_at' in selectedStudent && typeof selectedStudent.create_at === 'string' ? (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Ngày tạo</label>
-                    <p>
-                      {selectedStudent.createdAt
-                        ? new Date(String(selectedStudent.createdAt)).toLocaleDateString('vi-VN')
+                    <span className="text-sm font-medium text-muted-foreground">Ngày tạo: </span>
+                    <span className="text-sm">
+                      {selectedStudent.create_at
+                        ? new Date(String(selectedStudent.create_at)).toLocaleDateString('vi-VN')
                         : 'Chưa cập nhật'}
-                    </p>
+                    </span>
                   </div>
                 ) : null}
-                {'updatedAt' in selectedStudent && typeof selectedStudent.updatedAt === 'string' ? (
+                {'update_at' in selectedStudent && typeof selectedStudent.update_at === 'string' ? (
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">
                       Cập nhật lần cuối
                     </label>
-                    <p>
-                      {selectedStudent.updatedAt
-                        ? new Date(String(selectedStudent.updatedAt)).toLocaleDateString('vi-VN')
+                    <p className="text-sm">
+                      {selectedStudent.update_at
+                        ? new Date(String(selectedStudent.update_at)).toLocaleDateString('vi-VN')
                         : 'Chưa cập nhật'}
                     </p>
                   </div>
@@ -359,6 +344,8 @@ export const StudentDetail = () => {
           </Card>
         </div>
       </div>
+      {/* Payment History */}
+      <StudentPayment studentId={Number(id)} />
     </div>
   );
 };

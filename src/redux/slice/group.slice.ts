@@ -1,19 +1,29 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { groupService } from '@/service/group.service';
-import type { Group, GroupStats } from '@/types/api.types';
+import type { Group } from '@/types/api.types';
 
 export interface GroupState {
   groups: Group[];
   group: Group | null;
-  stats: GroupStats | null;
   loading: boolean;
-  error?: string;
+  error: string | null;
 }
 
-// Async thunks
+export const initialState: GroupState = {
+  groups: [],
+  group: null,
+  loading: false,
+  error: null,
+};
+
 export const fetchGroups = createAsyncThunk('group/fetchGroups', async () => {
   const response = await groupService.getAllGroups();
+  return response;
+});
+
+export const fetchGroupsWithDetail = createAsyncThunk('group/fetchGroupsWithDetail', async () => {
+  const response = await groupService.getAllGroupsWithDetail();
   return response;
 });
 
@@ -22,15 +32,15 @@ export const fetchGroup = createAsyncThunk('group/fetchGroup', async (id: number
   return response;
 });
 
-export const createGroup = createAsyncThunk('group/createGroup', async (groupData: Group) => {
-  const response = await groupService.createGroup(groupData);
+export const createGroup = createAsyncThunk('group/createGroup', async (group: Group) => {
+  const response = await groupService.createGroup(group);
   return response;
 });
 
 export const updateGroup = createAsyncThunk(
   'group/updateGroup',
-  async ({ id, data }: { id: number; data: Group }) => {
-    const response = await groupService.updateGroup(id, data);
+  async ({ id, group }: { id: number; group: Group }) => {
+    const response = await groupService.updateGroup(id, group);
     return response;
   }
 );
@@ -38,16 +48,6 @@ export const updateGroup = createAsyncThunk(
 export const deleteGroup = createAsyncThunk('group/deleteGroup', async (id: number) => {
   await groupService.deleteGroup(id);
   return id;
-});
-
-export const fetchGroupsWithDetail = createAsyncThunk('group/fetchGroupsWithDetail', async () => {
-  const response = await groupService.getAllGroupsWithDetail();
-  return response;
-});
-
-export const fetchGroupStats = createAsyncThunk('group/fetchGroupStats', async () => {
-  const response = await groupService.getGroupStats();
-  return response;
 });
 
 export const generateInvoices = createAsyncThunk(
@@ -58,23 +58,15 @@ export const generateInvoices = createAsyncThunk(
   }
 );
 
-const initialState: GroupState = {
-  groups: [],
-  group: null,
-  stats: null,
-  loading: false,
-  error: undefined,
-};
-
 export const groupSlice = createSlice({
   name: 'group',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Fetch groups
+    // fetch groups
     builder.addCase(fetchGroups.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(fetchGroups.fulfilled, (state, action) => {
       state.loading = false;
@@ -84,11 +76,10 @@ export const groupSlice = createSlice({
       state.loading = false;
       state.error = action.error.message ?? 'Failed to fetch groups';
     });
-
-    // fetch groups with details
+    // fetch groups with detail
     builder.addCase(fetchGroupsWithDetail.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(fetchGroupsWithDetail.fulfilled, (state, action) => {
       state.loading = false;
@@ -96,13 +87,12 @@ export const groupSlice = createSlice({
     });
     builder.addCase(fetchGroupsWithDetail.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.error.message ?? 'Failed to fetch groups with details';
+      state.error = action.error.message ?? 'Failed to fetch groups with detail';
     });
-
-    // Fetch single group
+    // fetch group
     builder.addCase(fetchGroup.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(fetchGroup.fulfilled, (state, action) => {
       state.loading = false;
@@ -112,29 +102,27 @@ export const groupSlice = createSlice({
       state.loading = false;
       state.error = action.error.message ?? 'Failed to fetch group';
     });
-
-    // Create group
+    // create group
     builder.addCase(createGroup.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(createGroup.fulfilled, (state, action) => {
       state.loading = false;
-      state.groups = [...state.groups, action.payload];
+      state.groups.push(action.payload);
     });
     builder.addCase(createGroup.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message ?? 'Failed to create group';
     });
-
-    // Update group
+    // update group
     builder.addCase(updateGroup.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(updateGroup.fulfilled, (state, action) => {
       state.loading = false;
-      const index = state.groups.findIndex((g) => g.id === action.payload.id);
+      const index = state.groups.findIndex((group) => group.id === action.payload.id);
       if (index !== -1) {
         state.groups[index] = action.payload;
       }
@@ -143,39 +131,23 @@ export const groupSlice = createSlice({
       state.loading = false;
       state.error = action.error.message ?? 'Failed to update group';
     });
-
-    // Delete group
+    // delete group
     builder.addCase(deleteGroup.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(deleteGroup.fulfilled, (state, action) => {
       state.loading = false;
-      state.groups = state.groups.filter((g) => g.id !== action.payload);
+      state.groups = state.groups.filter((group) => group.id !== action.payload);
     });
     builder.addCase(deleteGroup.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message ?? 'Failed to delete group';
     });
-
-    // Fetch group stats
-    builder.addCase(fetchGroupStats.pending, (state) => {
-      state.loading = true;
-      state.error = undefined;
-    });
-    builder.addCase(fetchGroupStats.fulfilled, (state, action) => {
-      state.loading = false;
-      state.stats = action.payload;
-    });
-    builder.addCase(fetchGroupStats.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message ?? 'Failed to fetch group stats';
-    });
-
-    // Generate invoices
+    // generate invoices
     builder.addCase(generateInvoices.pending, (state) => {
       state.loading = true;
-      state.error = undefined;
+      state.error = null;
     });
     builder.addCase(generateInvoices.fulfilled, (state) => {
       state.loading = false;
@@ -190,7 +162,6 @@ export const groupSlice = createSlice({
 export default groupSlice.reducer;
 
 // Selectors
-export const selectGroupsWithDetail = (state: { group: GroupState }) => state.group.groups;
 export const selectGroups = (state: { group: GroupState }) => state.group.groups;
 export const selectGroup = (state: { group: GroupState }) => state.group.group;
 export const selectLoading = (state: { group: GroupState }) => state.group.loading;

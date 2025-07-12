@@ -55,7 +55,7 @@ const GroupSchema = z.object({
 export const FormCreateGroup = () => {
   const { createGroup, loading } = useGroup();
   const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
-  const { fees, handleFetchFees, loading: loadingFees, handleCreateFee } = useFee();
+  const { fees, handleFetchFees, loading: loadingFees } = useFee();
   const {
     academicYears,
     handleFetchAcademicYears,
@@ -96,13 +96,12 @@ export const FormCreateGroup = () => {
         grade_id: data.grade_id,
         group_schedules: data.group_schedules.map((schedule) => ({
           day_of_week: schedule.day_of_week,
-          start_time: new Date(schedule.start_time),
-          end_time: new Date(schedule.end_time),
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
         })),
       };
       await createGroup(newGroup as Group);
       toast.success('Tạo nhóm thành công');
-      form.reset();
     } catch (error) {
       toast.error('Tạo nhóm thất bại');
       console.log(error);
@@ -207,11 +206,8 @@ export const FormCreateGroup = () => {
                 <FormLabel>Học phí</FormLabel>
                 <FormControl>
                   <FeeSelect
-                    fees={fees}
                     onSelect={(fee) => field.onChange(fee.id)}
-                    value={fees.find((fee) => fee.id === field.value) || null}
-                    handleCreateFee={handleCreateFee}
-                    handleFetchFees={handleFetchFees}
+                    value={fees.find((fee) => fee.id === field.value)?.id?.toString()}
                   />
                 </FormControl>
                 <FormMessage />

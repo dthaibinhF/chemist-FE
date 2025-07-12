@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Loader2 } from 'lucide-react';
+import { BookOpen, Building, Calendar, Edit, GraduationCap, Loader2, Phone, User, Users } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
-import { DatePicker } from '@/components/ui/date-picker';
 import {
   Dialog,
   DialogContent,
@@ -30,21 +29,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import {
-  type Grade,
+  AcademicYear,
+  SchoolClass,
+  academicYearService,
   gradeService,
-  type GroupList,
   groupService,
-  type School,
+  schoolClassService,
   schoolService,
+  type Grade,
+  type GroupList,
+  type School,
 } from '@/service';
 
-import type { Student } from '../../../types/student.type';
-import { type StudentFormData, studentFormSchema } from '../schemas/student.schema';
+import type { Student } from '@/types/api.types';
+import { studentFormSchema, type StudentFormData } from '../schemas/student.schema';
+
+// Type for mapped data that matches API structure
+interface MappedStudentData extends Omit<StudentFormData, 'school' | 'grade' | 'academic_year' | 'school_class' | 'group'> {
+  student_details: Array<{
+    school?: School;
+    grade?: Grade;
+    group_id?: number;
+    academic_year?: AcademicYear;
+    school_class?: SchoolClass;
+  }>;
+}
 
 interface EditStudentDialogProps {
   student: Student;
-  onEditStudent: (id: number, formData: StudentFormData) => Promise<void>;
+  onEditStudent: (id: number, formData: MappedStudentData) => Promise<void>;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -58,6 +73,8 @@ export const EditStudentDialog = memo(
     const [schools, setSchools] = useState<School[]>([]);
     const [grades, setGrades] = useState<Grade[]>([]);
     const [groups, setGroups] = useState<GroupList[]>([]);
+    const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+    const [schoolClasses, setSchoolClasses] = useState<SchoolClass[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -65,11 +82,12 @@ export const EditStudentDialog = memo(
       resolver: zodResolver(studentFormSchema),
       defaultValues: {
         name: '',
-        parentPhone: '',
-        birthDate: undefined,
+        parent_phone: '',
         school: '',
         grade: '',
         group: '',
+        academic_year: '',
+        school_class: '',
       },
     });
 
@@ -77,14 +95,19 @@ export const EditStudentDialog = memo(
     const loadAllData = useCallback(async () => {
       try {
         setLoading(true);
-        const [schoolsData, gradesData, groupsData] = await Promise.all([
-          schoolService.getAllSchools(),
-          gradeService.getAllGrades(),
-          groupService.getAllGroups(),
-        ]);
+        const [schoolsData, gradesData, groupsData, academicYearsData, schoolClassesData] =
+          await Promise.all([
+            schoolService.getAllSchools(),
+            gradeService.getAllGrades(),
+            groupService.getAllGroups(),
+            academicYearService.getAllAcademicYears(),
+            schoolClassService.getAllSchoolClasses(),
+          ]);
         setSchools(schoolsData);
         setGrades(gradesData);
         setGroups(groupsData);
+        setAcademicYears(academicYearsData);
+        setSchoolClasses(schoolClassesData);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -102,14 +125,15 @@ export const EditStudentDialog = memo(
     // Cập nhật form khi student thay đổi
     useEffect(() => {
       if (student && dialogOpen) {
-        const studentDetail = student.studentDetails?.[0];
+        const studentDetail = student.student_details?.[0];
         form.reset({
           name: student.name ?? '',
-          parentPhone: student.parentPhone ?? '',
-          birthDate: undefined, // TODO: Thêm birthDate vào Student type
+          parent_phone: student.parent_phone ?? '',
           school: studentDetail?.school?.id?.toString() ?? '',
           grade: studentDetail?.grade?.id?.toString() ?? '',
           group: studentDetail?.group_id?.toString() ?? '',
+          academic_year: studentDetail?.academic_year?.id?.toString() ?? '',
+          school_class: studentDetail?.school_class?.id?.toString() ?? '',
         });
       }
     }, [student, dialogOpen, form]);
@@ -123,7 +147,23 @@ export const EditStudentDialog = memo(
       async (data: StudentFormData) => {
         try {
           setSubmitting(true);
-          await onEditStudent(student.id!, data);
+
+          // Map form data to match API structure
+          const mappedData: MappedStudentData = {
+            name: data.name,
+            parent_phone: data.parent_phone,
+            student_details: [{
+              ...student.student_details?.[0],
+              school: data.school ? schools.find(s => s.id?.toString() === data.school) : undefined,
+              grade: data.grade ? grades.find(g => g.id?.toString() === data.grade) : undefined,
+              group_id: data.group ? parseInt(data.group) : undefined,
+              academic_year: data.academic_year ? academicYears.find(ay => ay.id?.toString() === data.academic_year) : undefined,
+              school_class: data.school_class ? schoolClasses.find(sc => sc.id?.toString() === data.school_class) : undefined,
+            }]
+          };
+
+          console.log('mappedData', mappedData);
+          await onEditStudent(student.id!, mappedData);
           handleClose();
         } catch (error) {
           console.error('Error editing student:', error);
@@ -131,7 +171,7 @@ export const EditStudentDialog = memo(
           setSubmitting(false);
         }
       },
-      [onEditStudent, student.id, handleClose]
+      [onEditStudent, student.id, handleClose, schools, grades, groups, academicYears, schoolClasses]
     );
 
     return (
@@ -144,104 +184,121 @@ export const EditStudentDialog = memo(
             </Button>
           </DialogTrigger>
         )}
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa học sinh</DialogTitle>
-            <DialogDescription>Cập nhật thông tin học sinh {student.name}.</DialogDescription>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Chỉnh sửa học sinh
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Cập nhật thông tin học sinh <span className="font-medium">{student.name}</span>
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Họ tên *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Nhập họ tên học sinh"
-                          {...field}
-                          disabled={submitting}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="parentPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SĐT Phụ huynh *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nhập số điện thoại" {...field} disabled={submitting} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Personal Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <User className="h-4 w-4" />
+                  Thông tin cá nhân
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Họ tên *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Nhập họ tên học sinh"
+                            {...field}
+                            disabled={submitting}
+                            className="h-10"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="parent_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          SĐT Phụ huynh
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Nhập số điện thoại"
+                            {...field}
+                            disabled={submitting}
+                            className="h-10"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
-              <FormField
-                control={form.control}
-                name="birthDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ngày sinh</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Chọn ngày sinh"
-                        maxDate={new Date()}
-                        showLabel={false}
-                        disabled={submitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Separator />
 
+              {/* School Information Section */}
               <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="school"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trường</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger disabled={loading || submitting}>
-                            <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn trường'} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {schools.map((school) => (
-                            <SelectItem key={school.id} value={school.id?.toString() ?? ''}>
-                              {school.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Building className="h-4 w-4" />
+                  Thông tin trường học
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="school"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          Trường học
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger disabled={loading || submitting} className="h-10">
+                              <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn trường học'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {schools.map((school) => (
+                              <SelectItem key={school.id} value={school.id?.toString() ?? ''}>
+                                {school.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="grade"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Khối</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          Khối
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger disabled={loading || submitting}>
+                            <SelectTrigger disabled={loading || submitting} className="h-10">
                               <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn khối'} />
                             </SelectTrigger>
                           </FormControl>
@@ -260,13 +317,86 @@ export const EditStudentDialog = memo(
 
                   <FormField
                     control={form.control}
+                    name="school_class"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4" />
+                          Lớp
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger disabled={loading || submitting} className="h-10">
+                              <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn lớp'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {schoolClasses.map((sc) => (
+                              <SelectItem key={sc.id} value={sc.id?.toString() ?? ''}>
+                                {sc.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Academic Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  Thông tin học tập
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="academic_year"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Năm học
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger disabled={loading || submitting} className="h-10">
+                              <SelectValue
+                                placeholder={loading ? 'Đang tải...' : 'Chọn năm học'}
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {academicYears.map((ay) => (
+                              <SelectItem key={ay.id} value={ay.id?.toString() ?? ''}>
+                                {ay.year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="group"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nhóm học</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Nhóm học
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger disabled={loading || submitting}>
+                            <SelectTrigger disabled={loading || submitting} className="h-10">
                               <SelectValue
                                 placeholder={loading ? 'Đang tải...' : 'Chọn nhóm học'}
                               />
@@ -287,11 +417,23 @@ export const EditStudentDialog = memo(
                 </div>
               </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleClose} disabled={submitting}>
+              <Separator />
+
+              <DialogFooter className="gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={submitting}
+                  className="min-w-[100px]"
+                >
                   Hủy
                 </Button>
-                <Button type="submit" disabled={submitting || loading} className="min-w-[100px]">
+                <Button
+                  type="submit"
+                  disabled={submitting || loading}
+                  className="min-w-[120px]"
+                >
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

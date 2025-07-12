@@ -1,14 +1,15 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore } from "@reduxjs/toolkit";
 
-import authReducer from '@/feature/auth/slice/authSlice.ts';
-import groupReducer from '@/feature/group/slice/group.slice.ts';
-import studentReducer from '@/feature/student/slice/studentSlice.ts';
+import authReducer from "@/feature/auth/slice/authSlice.ts";
+import groupReducer from "@/feature/group/slice/group.slice";
+import studentReducer from "@/feature/student/slice/studentSlice.ts";
 
-import academicYearReducer from './slice/academic-year.slice';
-import feeReducer from './slice/fee.slice';
-import gradeReducer from './slice/grade.slice';
-import schoolReducer from './slice/school.slice';
-import schoolClassReducer from './slice/school-class.slice';
+import academicYearReducer from "./slice/academic-year.slice";
+import feeReducer from "./slice/fee.slice";
+import gradeReducer from "./slice/grade.slice";
+import paymentReducer from "./slice/payment.slice";
+import schoolClassReducer from "./slice/school-class.slice";
+import schoolReducer from "./slice/school.slice";
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     fee: feeReducer,
     school: schoolReducer,
     schoolClass: schoolClassReducer,
+    payment: paymentReducer,
   },
 });
 

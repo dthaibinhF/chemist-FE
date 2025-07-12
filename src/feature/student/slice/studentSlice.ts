@@ -1,9 +1,9 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import type { PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import type { Student } from '@/types/api.types';
+import type { Student } from "@/types/api.types";
 
-import * as studentApi from '../services/studentApi';
+import * as studentApi from "../services/student-service";
 
 export interface StudentState {
   students: Student[];
@@ -20,10 +20,9 @@ const initialState: StudentState = {
 };
 
 export const fetchStudent = createAsyncThunk(
-  'student/fetch',
+  "student/fetch",
   async (id: number, { rejectWithValue }) => {
     try {
-      console.log('Slice: Fetching student with ID:', id);
       return await studentApi.getStudentById(id);
     } catch (e: any) {
       return rejectWithValue(e.message);
@@ -32,7 +31,7 @@ export const fetchStudent = createAsyncThunk(
 );
 
 export const fetchStudents = createAsyncThunk(
-  'student/fetchAll',
+  "student/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
       const response = await studentApi.getAllStudents();
@@ -44,7 +43,7 @@ export const fetchStudents = createAsyncThunk(
 );
 
 export const createStudent = createAsyncThunk(
-  'student/create',
+  "student/create",
   async (student: Student, { rejectWithValue }) => {
     try {
       return await studentApi.createStudent(student);
@@ -55,8 +54,11 @@ export const createStudent = createAsyncThunk(
 );
 
 export const updateStudent = createAsyncThunk(
-  'student/update',
-  async ({ id, student }: { id: number; student: Student }, { rejectWithValue }) => {
+  "student/update",
+  async (
+    { id, student }: { id: number; student: Student },
+    { rejectWithValue }
+  ) => {
     try {
       return await studentApi.updateStudent(id, student);
     } catch (e: any) {
@@ -66,7 +68,7 @@ export const updateStudent = createAsyncThunk(
 );
 
 export const deleteStudent = createAsyncThunk(
-  'student/delete',
+  "student/delete",
   async (id: number, { rejectWithValue }) => {
     try {
       await studentApi.deleteStudent(id);
@@ -77,8 +79,19 @@ export const deleteStudent = createAsyncThunk(
   }
 );
 
+export const createMultipleStudents = createAsyncThunk(
+  "student/createMultiple",
+  async (students: Partial<Student>[], { rejectWithValue }) => {
+    try {
+      return await studentApi.createMultipleStudents(students);
+    } catch (e: any) {
+      return rejectWithValue(e.message);
+    }
+  }
+);
+
 const studentSlice = createSlice({
-  name: 'student',
+  name: "student",
   initialState,
   reducers: {
     setSelectedStudent(state, action: PayloadAction<Student | undefined>) {
@@ -120,6 +133,18 @@ const studentSlice = createSlice({
       })
       .addCase(deleteStudent.fulfilled, (state, action) => {
         state.students = state.students.filter((s) => s.id !== action.payload);
+      })
+      .addCase(createMultipleStudents.pending, (state) => {
+        state.loading = true;
+        state.error = undefined;
+      })
+      .addCase(createMultipleStudents.fulfilled, (state, action) => {
+        state.students.push(...action.payload);
+        state.loading = false;
+      })
+      .addCase(createMultipleStudents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

@@ -1,9 +1,26 @@
+import { useEffect, useState } from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import GroupTable from '@/feature/group/components/group-table';
+import { useGroup } from '@/feature/group/hooks/useGroup';
+import { useAcademicYear } from '@/hooks/useAcademicYear';
+import { useGrade } from '@/hooks/useGrade';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const GroupManagement = () => {
   usePageTitle('Quản lý nhóm học');
+  const { stats } = useGroup();
+  const { academicYears, handleFetchAcademicYears } = useAcademicYear();
+  const { grades, handleFetchGrades } = useGrade();
+
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('');
+
+  useEffect(() => {
+    handleFetchAcademicYears();
+    handleFetchGrades();
+  }, [handleFetchAcademicYears, handleFetchGrades]);
 
   return (
     <div className="space-y-6">
@@ -20,8 +37,8 @@ const GroupManagement = () => {
             <CardTitle className="text-sm font-medium">Tổng số nhóm</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">20</div>
-            <p className="text-xs text-muted-foreground">+2 nhóm trong tháng này</p>
+            <div className="text-2xl font-bold">{stats?.totalGroups ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Nhóm đang hoạt động</p>
           </CardContent>
         </Card>
 
@@ -30,8 +47,8 @@ const GroupManagement = () => {
             <CardTitle className="text-sm font-medium">Nhóm đang hoạt động</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15</div>
-            <p className="text-xs text-muted-foreground">80% tổng số nhóm</p>
+            <div className="text-2xl font-bold">{stats?.activeGroups ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Chiếm X% tổng số nhóm</p>
           </CardContent>
         </Card>
 
@@ -40,15 +57,43 @@ const GroupManagement = () => {
             <CardTitle className="text-sm font-medium">Học sinh đang học</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">150</div>
-            <p className="text-xs text-muted-foreground">Trung bình 10 học sinh/nhóm</p>
+            <div className="text-2xl font-bold">{stats?.totalStudents ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Học sinh trong các nhóm</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Filters */}
+      <div className="flex items-center space-x-4">
+        <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Năm học" />
+          </SelectTrigger>
+          <SelectContent>
+            {academicYears.map((year) => (
+              <SelectItem key={year.id} value={String(year.id)}>
+                {year.year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Khối" />
+          </SelectTrigger>
+          <SelectContent>
+            {grades.map((grade) => (
+              <SelectItem key={grade.id} value={String(grade.id)}>
+                {grade.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Group Table */}
       <div>
-        <GroupTable />
+        <GroupTable academicYearId={selectedAcademicYear} gradeId={selectedGrade} />
       </div>
     </div>
   );
