@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import SchoolSelect from '@/components/features/school-select';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,8 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { GroupList } from '@/service';
-import { gradeService, groupService, schoolService } from '@/service';
-import type { Grade, School, Student } from '@/types/api.types';
+import { gradeService, groupService } from '@/service';
+import type { Grade, Student } from '@/types/api.types';
 
 import { useStudent } from '../hooks';
 import type { StudentFormData } from '../schemas/student.schema';
@@ -37,7 +38,6 @@ interface FormAddStudentProps {
 
 export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
   const { addStudent } = useStudent();
-  const [schools, setSchools] = useState<School[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [groups, setGroups] = useState<GroupList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -57,12 +57,10 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
   const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [schoolsData, gradesData, groupsData] = await Promise.all([
-        schoolService.getAllSchools(),
+      const [gradesData, groupsData] = await Promise.all([
         gradeService.getAllGrades(),
         groupService.getAllGroups(),
       ]);
-      setSchools(schoolsData);
       setGrades(gradesData);
       setGroups(groupsData);
     } catch (error) {
@@ -91,6 +89,10 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
     },
     [addStudent, form]
   );
+
+  const handleSchoolSelect = (value: string) => {
+    form.setValue('school', value);
+  };
 
   return (
     <div className="w-full">
@@ -143,23 +145,9 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className="text-sm font-medium">Trường</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full h-10" disabled={loading || submitting}>
-                        <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn trường'} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Tên trường cấp 3 - nếu ôn thi thì chọn TSTD</SelectLabel>
-                        {schools.map((school) => (
-                          <SelectItem key={school.id} value={school.id?.toString() ?? ''}>
-                            {school.name}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <SchoolSelect value={field.value} handleSelect={handleSchoolSelect} />
+                  </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
               )}

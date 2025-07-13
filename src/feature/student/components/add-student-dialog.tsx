@@ -3,6 +3,7 @@ import { Loader2, Plus } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import SchoolSelect from '@/components/features/school-select';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,22 +31,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  type Grade,
   gradeService,
-  type GroupList,
   groupService,
-  type School,
-  schoolService,
+  type Grade,
+  type GroupList,
 } from '@/service';
 import type { Student } from '@/types/api.types';
 
 import { useStudent } from '../hooks';
-import { type StudentFormData, studentFormSchema } from '../schemas/student.schema';
+import { studentFormSchema, type StudentFormData } from '../schemas/student.schema';
 
 export const AddStudentDialog = memo(() => {
   const { addStudent } = useStudent();
   const [isOpen, setIsOpen] = useState(false);
-  const [schools, setSchools] = useState<School[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [groups, setGroups] = useState<GroupList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,12 +64,10 @@ export const AddStudentDialog = memo(() => {
   const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [schoolsData, gradesData, groupsData] = await Promise.all([
-        schoolService.getAllSchools(),
+      const [gradesData, groupsData] = await Promise.all([
         gradeService.getAllGrades(),
         groupService.getAllGroups(),
       ]);
-      setSchools(schoolsData);
       setGrades(gradesData);
       setGroups(groupsData);
     } catch (error) {
@@ -92,6 +88,10 @@ export const AddStudentDialog = memo(() => {
     setIsOpen(false);
     form.reset();
   }, [form]);
+
+  const handleSchoolSelect = (value: string) => {
+    form.setValue('school', value);
+  };
 
   const onSubmit = useCallback(
     async (data: StudentFormData) => {
@@ -165,20 +165,9 @@ export const AddStudentDialog = memo(() => {
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Trường</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full" disabled={loading || submitting}>
-                          <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn trường'} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {schools.map((school) => (
-                          <SelectItem key={school.id} value={school.id?.toString() ?? ''}>
-                            {school.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SchoolSelect value={field.value} handleSelect={handleSchoolSelect} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

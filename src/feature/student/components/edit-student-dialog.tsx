@@ -3,6 +3,7 @@ import { BookOpen, Building, Calendar, Edit, GraduationCap, Loader2, Phone, User
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import SchoolSelect from '@/components/features/school-select';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -37,7 +38,6 @@ import {
   gradeService,
   groupService,
   schoolClassService,
-  schoolService,
   type Grade,
   type GroupList,
   type School,
@@ -95,15 +95,13 @@ export const EditStudentDialog = memo(
     const loadAllData = useCallback(async () => {
       try {
         setLoading(true);
-        const [schoolsData, gradesData, groupsData, academicYearsData, schoolClassesData] =
+        const [gradesData, groupsData, academicYearsData, schoolClassesData] =
           await Promise.all([
-            schoolService.getAllSchools(),
             gradeService.getAllGrades(),
             groupService.getAllGroups(),
             academicYearService.getAllAcademicYears(),
             schoolClassService.getAllSchoolClasses(),
           ]);
-        setSchools(schoolsData);
         setGrades(gradesData);
         setGroups(groupsData);
         setAcademicYears(academicYearsData);
@@ -142,6 +140,10 @@ export const EditStudentDialog = memo(
       setDialogOpen(false);
       form.reset();
     }, [form, setDialogOpen]);
+
+    const handleSchoolSelect = (value: string) => {
+      form.setValue('school', value);
+    };
 
     const onSubmit = useCallback(
       async (data: StudentFormData) => {
@@ -268,20 +270,9 @@ export const EditStudentDialog = memo(
                           <Building className="h-4 w-4" />
                           Trường học
                         </FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger disabled={loading || submitting} className="h-10">
-                              <SelectValue placeholder={loading ? 'Đang tải...' : 'Chọn trường học'} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {schools.map((school) => (
-                              <SelectItem key={school.id} value={school.id?.toString() ?? ''}>
-                                {school.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <SchoolSelect value={field.value} handleSelect={handleSchoolSelect} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
