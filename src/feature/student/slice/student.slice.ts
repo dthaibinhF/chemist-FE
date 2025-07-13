@@ -90,6 +90,17 @@ export const createMultipleStudents = createAsyncThunk(
   }
 );
 
+export const getStudentsByGroupId = createAsyncThunk(
+  "student/getByGroupId",
+  async (groupId: number, { rejectWithValue }) => {
+    try {
+      return await studentApi.getStudentsByGroupId(groupId);
+    } catch (e: any) {
+      return rejectWithValue(e.message);
+    }
+  }
+);
+
 const studentSlice = createSlice({
   name: "student",
   initialState,
@@ -143,6 +154,18 @@ const studentSlice = createSlice({
         state.loading = false;
       })
       .addCase(createMultipleStudents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(getStudentsByGroupId.pending, (state) => {
+        state.loading = true;
+        state.error = undefined;
+      })
+      .addCase(getStudentsByGroupId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.students = action.payload;
+      })
+      .addCase(getStudentsByGroupId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

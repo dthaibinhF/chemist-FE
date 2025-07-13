@@ -31,7 +31,7 @@ import { useFee } from '@/hooks/useFee';
 import type { Group } from '@/types/api.types';
 import { Edit } from 'lucide-react';
 
-import { useGroup } from '../hooks/useGroup';
+import { useGroup } from '@/hooks/useGroup';
 import { FormAddGroupSchedule } from './form-add-group-schedule';
 
 // Days of the week for the select dropdown
@@ -60,7 +60,7 @@ interface GroupDialogEditProps {
 
 const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
     const [open, setOpen] = useState(false);
-    const { updateGroup, loading } = useGroup();
+    const { handleUpdateGroup, loading } = useGroup();
     const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
     const { fees, handleFetchFees, loading: loadingFees } = useFee();
     const {
@@ -118,7 +118,7 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
         }
     }, [open, group, handleFetchGrades, handleFetchAcademicYears, handleFetchFees, form]);
 
-    const handleUpdateGroup = async (data: z.infer<typeof GroupSchema>) => {
+    const handleUpdateGroupForm = async (data: z.infer<typeof GroupSchema>) => {
         try {
             const updatedGroup: Partial<Group> = {
                 ...group,
@@ -134,7 +134,7 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
                 })),
             };
 
-            await updateGroup(group.id as number, updatedGroup as Group);
+            await handleUpdateGroup(group.id as number, updatedGroup as Group);
             toast.success('Cập nhật nhóm thành công');
             setOpen(false);
         } catch (error) {
@@ -168,7 +168,7 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
                     </div>
                 ) : (
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleUpdateGroup)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(handleUpdateGroupForm)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

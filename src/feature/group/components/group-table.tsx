@@ -11,9 +11,9 @@ import type { Group } from '@/types/api.types';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { useGroup } from '../hooks/useGroup';
 import { DialogAddGroup } from './dialog-add-group';
 import GroupDialogEdit from './group-dialog-edit';
+import { useGroup } from '@/hooks/useGroup';
 // import { EditGroupDialog } from './edit-group-dialog';
 
 interface GroupTableProps {
@@ -22,7 +22,7 @@ interface GroupTableProps {
 }
 
 const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
-  const { groups, fetchGroupsWithDetail, loading, deleteGroup } = useGroup();
+  const { groups, handleFetchGroupsWithDetail, loading, handleDeleteGroup,  } = useGroup();
   const [sortedGroups, setSortedGroups] = useState<Group[]>([]);
   const navigate = useNavigate();
   const revalidate = useRevalidator();
@@ -31,15 +31,15 @@ const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
     navigate(`/group/${group.id}`);
   }, [navigate]);
 
-  const handleDeleteGroup = useCallback((group: Group) => {
-    deleteGroup(group.id as number);
+  const deleteGroup = useCallback((group: Group) => {
+    handleDeleteGroup(group.id as number);
     toast.success('Xóa nhóm thành công!');
     revalidate.revalidate();
-  }, [deleteGroup, revalidate]);
+  }, [handleDeleteGroup, revalidate]);
 
   useEffect(() => {
-    fetchGroupsWithDetail();
-  }, [fetchGroupsWithDetail]);
+    handleFetchGroupsWithDetail();
+  }, [handleFetchGroupsWithDetail]);
 
   useEffect(() => {
     let filteredGroups = [...groups];
@@ -151,7 +151,7 @@ const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => handleDeleteGroup(row.original)}
+              onClick={() => deleteGroup(row.original)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />

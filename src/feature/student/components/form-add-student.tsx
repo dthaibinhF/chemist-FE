@@ -82,6 +82,7 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
         setSubmitting(true);
         await addStudent(data as unknown as Student);
         form.reset();
+        // Success - Redux state will automatically trigger re-render
       } catch (error) {
         console.error('Error adding student:', error);
       } finally {

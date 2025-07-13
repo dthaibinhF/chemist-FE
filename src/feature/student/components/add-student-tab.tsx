@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,9 +21,21 @@ interface AddStudentTabProps {
 }
 
 export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('manual');
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    // // Reset tab to manual when dialog closes
+    // if (!open) {
+    //   // Reset tab to manual when dialog closes
+    //   setActiveTab('manual');
+    // }
+  };
+
   return (
     <div>
-      <Dialog>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex items-center gap-2 px-4 py-2">
             <PlusIcon className="w-4 h-4" />
@@ -35,7 +48,7 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
             <DialogDescription>Chọn thêm thủ công hoặc thêm bằng file CSV</DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="manual">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="">
               <TabsTrigger value="manual" className="py-2">
                 Thêm thủ công
@@ -47,12 +60,18 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
 
             <TabsContent value="manual">
               <div className="p-5 border rounded-lg shadow-sm w-full">
-                <FormAddStudent groupId={groupId} gradeId={gradeId} />
+                <FormAddStudent
+                  groupId={groupId}
+                  gradeId={gradeId}
+                />
               </div>
             </TabsContent>
 
             <TabsContent value="csv" className="mt-1 w-full overflow-hidden">
-              <AddStudentCsvFile groupId={groupId} gradeId={gradeId} />
+              <AddStudentCsvFile
+                groupId={groupId}
+                gradeId={gradeId}
+              />
             </TabsContent>
           </Tabs>
         </DialogContent>

@@ -4,28 +4,36 @@ import { useParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGroup } from '@/feature/group/hooks/useGroup';
 import { StudentTable } from '@/feature/student/components';
 import { AddStudentTab } from '@/feature/student/components/add-student-tab';
+import { useStudent } from '@/feature/student/hooks';
 import { useFee } from '@/hooks/useFee';
-import { Student } from '@/types/api.types';
+import { useGroup } from '@/hooks/useGroup';
 
 export const GroupDetail = () => {
   const { id } = useParams();
-  const { group, fetchGroup, loading } = useGroup();
+  const { group, loading, handleFetchGroup } = useGroup();
   const { fee, handleFetchFee } = useFee();
+  const { fetchStudentsByGroupId, students } = useStudent();
 
   useEffect(() => {
     if (id) {
-      fetchGroup(Number(id));
+      handleFetchGroup(Number(id));
     }
-  }, [id, fetchGroup]);
+  }, [id, handleFetchGroup]);
 
   useEffect(() => {
     if (group?.fee_id) {
       handleFetchFee(group.fee_id);
     }
   }, [group?.fee_id, handleFetchFee]);
+
+  // Re-fetch group data when student state changes (indicating new students were added)
+  useEffect(() => {
+    if (id) {
+      fetchStudentsByGroupId(Number(id));
+    }
+  }, [id, fetchStudentsByGroupId]);
 
   // Show loading state while data is being fetched
   if (loading || !group) {
@@ -39,14 +47,7 @@ export const GroupDetail = () => {
     );
   }
 
-  const groupStudents: Student[] = group.student_details?.map((student) => {
-    return {
-      ...student,
-      name: student.student_name,
-      id: student.student_id,
-      student_details: group.student_details,
-    }
-  }) || [];
+  console.log('students', students);
 
   return (
     <div className="space-y-6">
@@ -94,7 +95,7 @@ export const GroupDetail = () => {
             <CardTitle className="text-sm font-medium">Số học sinh</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{groupStudents.length}</div>
+            <div className="text-2xl font-bold">{students.length}</div>
           </CardContent>
         </Card>
 
@@ -118,7 +119,7 @@ export const GroupDetail = () => {
         <TabsContent value="students" className="space-y-4">
           <Card>
             <CardContent className="p-0">
-              <StudentTable students={groupStudents} />
+              <StudentTable students={students} />
             </CardContent>
           </Card>
         </TabsContent>

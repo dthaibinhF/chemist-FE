@@ -242,7 +242,7 @@ const StudentPreviewTable = ({ students, headers, onCellChange, onSave, hasError
                                         type="text"
                                         value={student.data[header] || ''}
                                         onChange={(e) => onCellChange(student.rowIndex, header, e.target.value)}
-                                        className="w-full bg-transparent p-1 border-none focus:ring-0 focus:ring-offset-0"
+                                        className="w-full bg-transparent p-1 border-none focus:ring-offset-0"
                                       />
                           }
                           {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
@@ -350,11 +350,11 @@ const validateStudentRow = (
   row: Record<string, any>,
   index: number,
   defaults: {
-    school: string | undefined;
-    grade: string | undefined;
-    schoolClass: string | undefined;
-    academicYear: string | undefined;
-    group: string | undefined;
+    school: string;
+    grade: string;
+    schoolClass: string;
+    academicYear: string;
+    group: string;
   },
 ): StudentPreview => {
   const dataWithDefaults = { ...row };
@@ -392,9 +392,10 @@ const validateStudentRow = (
 interface AddStudentCsvFileProps {
   groupId?: number;
   gradeId?: number;
+  onStudentAdded?: () => void;
 }
 
-export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) => {
+export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStudentCsvFileProps) => {
   const { addMultipleStudents } = useStudent();
   const { schools, handleFetchSchools } = useSchool();
   const { academicYears, handleFetchAcademicYears } = useAcademicYear();
@@ -408,11 +409,11 @@ export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) 
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
 
   // State for default selections
-  const [selectedGrade, setSelectedGrade] = useState<string | undefined>(gradeId?.toString() || undefined);
-  const [selectedSchool, setSelectedSchool] = useState<string | undefined>(undefined);
-  const [selectedSchoolClass, setSelectedSchoolClass] = useState<string | undefined>(undefined);
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string | undefined>(undefined);
-  const [selectedGroup, setSelectedGroup] = useState<string | undefined>(groupId?.toString() || undefined);
+  const [selectedGrade, setSelectedGrade] = useState<string>(gradeId?.toString() || '');
+  const [selectedSchool, setSelectedSchool] = useState<string>('');
+  const [selectedSchoolClass, setSelectedSchoolClass] = useState<string>('');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
+  const [selectedGroup, setSelectedGroup] = useState<string>(groupId?.toString() || '');
 
   useEffect(() => {
     if (schools.length === 0) {
@@ -511,11 +512,11 @@ export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) 
 
         const previewData = transformedData.map((row, index) =>
           validateStudentRow(row, index, {
-            school: selectedSchool,
-            grade: selectedGrade,
-            schoolClass: selectedSchoolClass,
-            academicYear: selectedAcademicYear,
-            group: selectedGroup,
+            school: selectedSchool || '',
+            grade: selectedGrade || '',
+            schoolClass: selectedSchoolClass || '',
+            academicYear: selectedAcademicYear || '',
+            group: selectedGroup || '',
           }),
         );
 
@@ -547,29 +548,42 @@ export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) 
     //convert studentsPreview to array of objects to Student interface
     const studentsToSave = studentsPreview.map((s) => {
 
+      let school = undefined;
       if (s.data.school) {
-        s.data.school = schools.find((school) => school.name === s.data.school);
+        school = schools.find((schoolItem) => schoolItem.name === s.data.school);
       }
+
+      let grade = undefined;
       if (s.data.grade) {
-        s.data.grade = grades.find((grade) => grade.name === s.data.grade);
+        grade = grades.find((gradeItem) => gradeItem.name === s.data.grade);
       }
+
+      let schoolClass = undefined;
       if (s.data.school_class) {
-        s.data.school_class = schoolClasses.find((schoolClass) => schoolClass.name === s.data.school_class);
+        schoolClass = schoolClasses.find((schoolClassItem) => schoolClassItem.name === s.data.school_class);
       }
+
+      let academicYear = undefined;
       if (s.data.academic_year) {
-        s.data.academic_year = academicYears.find((academicYear) => Number(academicYear.id) === Number(s.data.academic_year));
+        academicYear = academicYears.find((academicYearItem) => Number(academicYearItem.id) === Number(s.data.academic_year));
       }
+
+      let groupId = undefined;
+      if (s.data.group_id) {
+        groupId = s.data.group_id;
+      }
+
       return {
         name: s.data.name,
-        parent_phone: s.data.parent_phone,
+        parent_phone: s.data.parent_phone || undefined,
         student_details: [
           {
-            school: s.data.school,
-            school_class: s.data.school_class,
-            academic_year: s.data.academic_year,
-            group_id: s.data.group_id,
-            grade: s.data.grade,
-            student_id: s.data.id,
+            school: school,
+            school_class: schoolClass,
+            academic_year: academicYear,
+            group_id: groupId,
+            grade: grade,
+            student_id: s.data.id || undefined,
             student_name: s.data.name,
           } as StudentDetail,
         ],
@@ -586,6 +600,9 @@ export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) 
         setTableHeaders([]);
         form.reset();
         revalidate.revalidate();
+        if (onStudentAdded) {
+          onStudentAdded();
+        }
         return 'Đã lưu học sinh thành công!';
       },
       error: 'Đã xảy ra lỗi khi lưu.',
@@ -598,15 +615,17 @@ export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) 
     setStudentsPreview((currentPreview) => {
       const newPreview = [...currentPreview];
       const studentToUpdate = { ...newPreview[rowIndex] };
+
+      // Store the value directly
       studentToUpdate.data[header] = value;
 
       // Re-validate the row after edit
       const revalidatedStudent = validateStudentRow(studentToUpdate.data, rowIndex, {
-        school: selectedSchool,
-        grade: selectedGrade,
-        schoolClass: selectedSchoolClass,
-        academicYear: selectedAcademicYear,
-        group: selectedGroup,
+        school: selectedSchool || '',
+        grade: selectedGrade || '',
+        schoolClass: selectedSchoolClass || '',
+        academicYear: selectedAcademicYear || '',
+        group: selectedGroup || '',
       });
 
       newPreview[rowIndex] = revalidatedStudent;
@@ -625,10 +644,10 @@ export const AddStudentCsvFile = ({ groupId, gradeId }: AddStudentCsvFileProps) 
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <SchoolSelect handleSelect={setSelectedSchool} />
-          <GradeSelect handleSelect={setSelectedGrade} />
-          <SchoolClassSelect grade={gradeValue} handleSelect={setSelectedSchoolClass} />
-          <AcademicYearSelect handleSelect={setSelectedAcademicYear} />
+          <SchoolSelect value={selectedSchool} handleSelect={setSelectedSchool} />
+          <GradeSelect value={selectedGrade} handleSelect={setSelectedGrade} />
+          <SchoolClassSelect grade={gradeValue} value={selectedSchoolClass} handleSelect={setSelectedSchoolClass} />
+          <AcademicYearSelect value={selectedAcademicYear} handleSelect={setSelectedAcademicYear} />
           <GroupSelect value={selectedGroup} handleSelect={setSelectedGroup} />
         </CardContent>
       </Card>

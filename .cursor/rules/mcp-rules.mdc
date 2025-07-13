@@ -1,0 +1,5 @@
+---
+description: With mcp connect to database, agent have permission to read, only edit when user ask. If user ask for task, first check todoist. When dowload mcp using mcp install, only dowload mcp with js base, and use npx to install
+globs:
+alwaysApply: false
+---

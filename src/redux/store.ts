@@ -1,8 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "@/feature/auth/slice/authSlice.ts";
-import groupReducer from "@/feature/group/slice/group.slice";
-import studentReducer from "@/feature/student/slice/studentSlice.ts";
+import studentReducer from "@/feature/student/slice/student.slice";
+import groupReducer from "./slice/group.slice";
 
 import academicYearReducer from "./slice/academic-year.slice";
 import feeReducer from "./slice/fee.slice";

@@ -9,9 +9,10 @@ import {
   deleteStudent,
   fetchStudent,
   fetchStudents,
+  getStudentsByGroupId,
   setSelectedStudent,
   updateStudent,
-} from "../slice/studentSlice";
+} from "../slice/student.slice";
 
 export const useStudent = () => {
   const dispatch = useAppDispatch();
@@ -62,6 +63,13 @@ export const useStudent = () => {
     [dispatch]
   );
 
+  const fetchStudentsByGroupId = useCallback(
+    (groupId: number) => {
+      dispatch(getStudentsByGroupId(groupId));
+    },
+    [dispatch]
+  );
+
   return {
     loadStudent,
     students,
@@ -74,5 +82,6 @@ export const useStudent = () => {
     removeStudent,
     selectStudent,
     addMultipleStudents,
+    fetchStudentsByGroupId,
   };
 };

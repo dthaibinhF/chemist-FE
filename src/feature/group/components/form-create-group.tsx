@@ -29,7 +29,7 @@ import { useAcademicYear } from '@/hooks/useAcademicYear';
 import { useFee } from '@/hooks/useFee';
 import type { Group } from '@/types/api.types';
 
-import { useGroup } from '../hooks/useGroup';
+import { useGroup } from '@/hooks/useGroup';
 import { FormAddGroupSchedule } from './form-add-group-schedule';
 
 // Days of the week for the select dropdown
@@ -53,7 +53,7 @@ const GroupSchema = z.object({
 });
 
 export const FormCreateGroup = () => {
-  const { createGroup, loading } = useGroup();
+  const { handleCreateGroup, loading } = useGroup();
   const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
   const { fees, handleFetchFees, loading: loadingFees } = useFee();
   const {
@@ -86,7 +86,7 @@ export const FormCreateGroup = () => {
     },
   });
 
-  const handleCreateGroup = async (data: z.infer<typeof GroupSchema>) => {
+  const handleCreateGroupForm = async (data: z.infer<typeof GroupSchema>) => {
     try {
       const newGroup: Partial<Group> = {
         name: data.name,
@@ -100,7 +100,7 @@ export const FormCreateGroup = () => {
           end_time: schedule.end_time,
         })),
       };
-      await createGroup(newGroup as Group);
+      await handleCreateGroup(newGroup as Group);
       toast.success('Tạo nhóm thành công');
     } catch (error) {
       toast.error('Tạo nhóm thất bại');
@@ -116,7 +116,7 @@ export const FormCreateGroup = () => {
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleCreateGroup)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleCreateGroupForm)} className="space-y-4">
           <FormField
             control={form.control}
             name="name"

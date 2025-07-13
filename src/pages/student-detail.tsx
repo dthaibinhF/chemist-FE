@@ -18,12 +18,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useGroup } from '@/feature/group/hooks/useGroup';
 import { StudentPayment } from '@/feature/payment/components/student-payment';
 import { EditStudentDialog } from '@/feature/student/components';
 import { useStudent } from '@/feature/student/hooks/useStudent';
 import type { StudentFormData } from '@/feature/student/schemas/student.schema';
 import { useFee } from '@/hooks/useFee';
+import { useGroup } from '@/hooks/useGroup';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import type { Student, StudentDetail } from '@/types/api.types';
 
@@ -33,14 +33,14 @@ export const StudentDetailPage = () => {
   const revalidator = useRevalidator();
   const [openEdit, setOpenEdit] = useState(false);
   const { loadStudent, selectedStudent, loading: studentLoading, editStudent } = useStudent();
-  const { group, loading: groupLoading, fetchGroup } = useGroup();
+  const { group, loading: groupLoading, handleFetchGroup } = useGroup();
   const { fee, loading: feeLoading, handleFetchFee } = useFee();
 
   // Đặt tiêu đề trang
   usePageTitle(`Chi tiết học sinh - ${selectedStudent?.name || 'Không xác định'}`);
 
   const getCurrentStudentDetail = (studentDetails: StudentDetail[]) => {
-    return studentDetails[0];
+    return studentDetails.filter((detail) => detail.end_at === null || (detail?.end_at && detail?.end_at > new Date()))[0];
   }
 
   // Load student data first
@@ -50,27 +50,26 @@ export const StudentDetailPage = () => {
     }
   }, [id, loadStudent]);
 
-  // Load group and fee data after student is loaded
+  const currentStudentDetail = selectedStudent?.student_details ? getCurrentStudentDetail(selectedStudent.student_details) : undefined;
+  const groupId = currentStudentDetail?.group_id;
+  const feeId = group?.fee_id;
+
+  // Load group data after student is loaded
   useEffect(() => {
-    if (selectedStudent && selectedStudent.student_details) {
-      const currentStudentDetail = getCurrentStudentDetail(selectedStudent.student_details);
-      if (currentStudentDetail?.group_id) {
-        fetchGroup(currentStudentDetail.group_id);
-      }
+    if (groupId) {
+      handleFetchGroup(groupId);
     }
-  }, [selectedStudent, fetchGroup]);
+  }, [groupId]);
 
   // Load fee data after group is loaded
   useEffect(() => {
-    if (group?.fee_id) {
-      handleFetchFee(group.fee_id);
+    if (feeId) {
+      handleFetchFee(feeId);
     }
-  }, [group, handleFetchFee]);
-
+  }, [feeId]);
   // Hàm xử lý cập nhật học sinh
   const handleEditStudent = async (id: number, formData: StudentFormData) => {
     try {
-      console.log('formData', formData);
       // Gọi API cập nhật học sinh
       await editStudent(id, formData as unknown as Student);
 
@@ -119,9 +118,6 @@ export const StudentDetailPage = () => {
       </div>
     );
   }
-
-  const currentStudentDetail = getCurrentStudentDetail(selectedStudent?.student_details || []);
-
 
   return (
     <div className="space-y-6">

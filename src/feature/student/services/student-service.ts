@@ -40,3 +40,10 @@ export const createMultipleStudents = async (
   });
   return res.data;
 };
+
+export const getStudentsByGroupId = async (
+  groupId: number
+): Promise<Student[]> => {
+  const res = await apiClient.get(`/by-group/${groupId}`);
+  return res.data;
+};

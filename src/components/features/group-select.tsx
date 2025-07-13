@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useGroup } from '@/hooks/useGroup';
 
-import { useGroup } from '../../feature/group/hooks/useGroup';
 
 interface GroupSelectProps {
   handleSelect: (value: string) => void;
@@ -19,14 +19,14 @@ interface GroupSelectProps {
 }
 
 const GroupSelect: FC<GroupSelectProps> = ({ handleSelect, value }) => {
-  const { groups, fetchGroups } = useGroup();
+  const { groups, handleFetchGroups } = useGroup();
   const [selectedValue, setSelectedValue] = useState<string>(value || '');
 
   useEffect(() => {
     if (groups.length === 0) {
-      fetchGroups();
+      handleFetchGroups();
     }
-  }, [groups, fetchGroups]);
+  }, [groups, handleFetchGroups]);
 
   useEffect(() => {
     if (value) {

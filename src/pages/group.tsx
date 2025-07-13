@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import GroupTable from '@/feature/group/components/group-table';
-import { useGroup } from '@/feature/group/hooks/useGroup';
 import { useAcademicYear } from '@/hooks/useAcademicYear';
 import { useGrade } from '@/hooks/useGrade';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const GroupManagement = () => {
   usePageTitle('Quản lý nhóm học');
-  const { stats } = useGroup();
   const { academicYears, handleFetchAcademicYears } = useAcademicYear();
   const { grades, handleFetchGrades } = useGrade();
 
@@ -28,39 +25,6 @@ const GroupManagement = () => {
       <div className="flex items-center gap-4">
         {/* Add your filter components here */}
         {/* Example: Academic Year filter, Grade filter, Status filter */}
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng số nhóm</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalGroups ?? 0}</div>
-            <p className="text-xs text-muted-foreground">Nhóm đang hoạt động</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nhóm đang hoạt động</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeGroups ?? 0}</div>
-            <p className="text-xs text-muted-foreground">Chiếm X% tổng số nhóm</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Học sinh đang học</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalStudents ?? 0}</div>
-            <p className="text-xs text-muted-foreground">Học sinh trong các nhóm</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filters */}
