@@ -2,6 +2,7 @@ import { RouterProvider } from 'react-router-dom';
 
 import { ThemeProvider } from '@/context/theme-provider.tsx';
 import { router } from '@/router/route.tsx';
+import './styles/pages.css';
 
 const App = () => {
   return (

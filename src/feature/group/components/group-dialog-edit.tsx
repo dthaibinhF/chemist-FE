@@ -48,8 +48,8 @@ const GroupSchema = z.object({
     group_schedules: z.array(
         z.object({
             day_of_week: z.enum(daysOfWeek, { message: 'Hãy chọn ngày trong tuần' }),
-            start_time: z.iso.time({ precision: -1 }),
-            end_time: z.iso.time({ precision: -1 }),
+            start_time: z.iso.time({ precision: 0 }),
+            end_time: z.iso.time({ precision: 0 }),
         })
     ),
 });
@@ -69,14 +69,15 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
         loading: loadingAcademicYears,
     } = useAcademicYear();
 
+
     // Convert group schedules to form format
     const convertSchedulesToForm = (schedules?: any[]) => {
         if (!schedules || schedules.length === 0) {
             return [
                 {
                     day_of_week: 'MONDAY',
-                    start_time: '00:00',
-                    end_time: '00:00',
+                    start_time: '00:00:00',
+                    end_time: '00:00:00',
                 },
             ];
         }
@@ -148,8 +149,8 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
     return (
         <Dialog >
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2" >
-                    <Edit className="h-4 w-full mr-2" />
+                <Button variant="outline" className="flex items-center gap-2 px-4 py-2" >
+                    <Edit className="size-4" />
                     Chỉnh sửa
                 </Button>
             </DialogTrigger>

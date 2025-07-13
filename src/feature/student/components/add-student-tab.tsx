@@ -1,5 +1,4 @@
 import { PlusIcon } from 'lucide-react';
-import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -21,21 +20,9 @@ interface AddStudentTabProps {
 }
 
 export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('manual');
-
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    // // Reset tab to manual when dialog closes
-    // if (!open) {
-    //   // Reset tab to manual when dialog closes
-    //   setActiveTab('manual');
-    // }
-  };
-
   return (
     <div>
-      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex items-center gap-2 px-4 py-2">
             <PlusIcon className="w-4 h-4" />
@@ -48,13 +35,13 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
             <DialogDescription>Chọn thêm thủ công hoặc thêm bằng file CSV</DialogDescription>
           </DialogHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs>
             <TabsList className="">
               <TabsTrigger value="manual" className="py-2">
                 Thêm thủ công
               </TabsTrigger>
               <TabsTrigger value="csv" className="py-2">
-                Thêm bằng CSV
+                Thêm bằng file CSV
               </TabsTrigger>
             </TabsList>
 

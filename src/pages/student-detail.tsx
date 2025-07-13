@@ -25,7 +25,8 @@ import type { StudentFormData } from '@/feature/student/schemas/student.schema';
 import { useFee } from '@/hooks/useFee';
 import { useGroup } from '@/hooks/useGroup';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import type { Student, StudentDetail } from '@/types/api.types';
+import { getCurrentStudentDetail } from '@/lib/student-utils';
+import type { Student } from '@/types/api.types';
 
 export const StudentDetailPage = () => {
   const { id } = useParams();
@@ -38,10 +39,6 @@ export const StudentDetailPage = () => {
 
   // Đặt tiêu đề trang
   usePageTitle(`Chi tiết học sinh - ${selectedStudent?.name || 'Không xác định'}`);
-
-  const getCurrentStudentDetail = (studentDetails: StudentDetail[]) => {
-    return studentDetails.filter((detail) => detail.end_at === null || (detail?.end_at && detail?.end_at > new Date()))[0];
-  }
 
   // Load student data first
   useEffect(() => {

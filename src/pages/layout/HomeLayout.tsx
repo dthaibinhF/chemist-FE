@@ -36,12 +36,12 @@ const HomeLayout = () => {
   }, [accessToken, dispatch, navigate]);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center ">
+    <div className="flex min-h-svh flex-col items-center justify-center no-scrollbar overflow-x-hidden">
       <SidebarProvider>
         <AppSideBar />
         <SidebarInset>
           <SiteHeader />
-          <div className="p-4">
+          <div className="p-4 no-scrollbar overflow-x-hidden">
             <Outlet />
           </div>
         </SidebarInset>

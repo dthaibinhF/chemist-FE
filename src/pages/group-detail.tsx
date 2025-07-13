@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import GroupDialogEdit from '@/feature/group/components/group-dialog-edit';
 import { StudentTable } from '@/feature/student/components';
 import { AddStudentTab } from '@/feature/student/components/add-student-tab';
 import { useStudent } from '@/feature/student/hooks';
@@ -47,8 +48,6 @@ export const GroupDetail = () => {
     );
   }
 
-  console.log('students', students);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -59,7 +58,10 @@ export const GroupDetail = () => {
             <Badge variant='outline'>{group.level}</Badge>
           </div>
         </div>
-        <AddStudentTab groupId={group.id} gradeId={group.grade_id} />
+        <div className='flex items-center gap-2'>
+          <GroupDialogEdit group={group} />
+          <AddStudentTab groupId={group.id} gradeId={group.grade_id} />
+        </div>
 
       </div>
 

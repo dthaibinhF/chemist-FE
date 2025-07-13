@@ -141,6 +141,13 @@ const studentSlice = createSlice({
       .addCase(updateStudent.fulfilled, (state, action) => {
         const idx = state.students.findIndex((s) => s.id === action.payload.id);
         if (idx !== -1) state.students[idx] = action.payload;
+        // Update selectedStudent if it matches the updated student
+        if (
+          state.selectedStudent &&
+          state.selectedStudent.id === action.payload.id
+        ) {
+          state.selectedStudent = action.payload;
+        }
       })
       .addCase(deleteStudent.fulfilled, (state, action) => {
         state.students = state.students.filter((s) => s.id !== action.payload);

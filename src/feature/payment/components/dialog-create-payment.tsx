@@ -27,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useStudent } from '@/feature/student/hooks/useStudent';
 import { useFee } from '@/hooks/useFee';
 import { usePayment } from '@/hooks/usePayment';
+import { getCurrentStudentDetail } from '@/lib/student-utils';
 import type { PaymentDetail } from '@/types/api.types';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Plus } from 'lucide-react';
@@ -50,15 +51,17 @@ type PaymentFormData = {
     have_discount: number;
 };
 
+
 interface DialogCreatePaymentProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentProps) => {
-    const { handleCreatePaymentDetail, loading } = usePayment();
+    const { handleCreatePaymentDetail, loading, paymentDetails } = usePayment();
     const { fees, handleFetchFees } = useFee();
     const { students, loadStudents } = useStudent();
+
 
     const form = useForm<PaymentFormData>({
         resolver: zodResolver(PaymentSchema),
@@ -80,8 +83,49 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         }
     }, [open, handleFetchFees, loadStudents]);
 
+    // Add validation function to check if student has already paid enough
+    const validatePaymentAmount = (studentId: number, feeId: number, newAmount: number, haveDiscount: number) => {
+        const selectedFee = fees.find(fee => fee.id === feeId);
+        if (!selectedFee) return { isValid: false, message: 'Không tìm thấy thông tin phí' };
+
+        // Get all payments for this student and fee
+        const existingPayments = paymentDetails.filter(
+            payment => payment.student_id === studentId && payment.fee_id === feeId
+        );
+
+        // Calculate total amount already paid (including discounts)
+        const totalPaid = existingPayments.reduce((sum, payment) => {
+            return sum + payment.amount - haveDiscount;
+        }, 0);
+
+        const feeAmount = selectedFee.amount;
+        const remainingAmount = feeAmount - totalPaid;
+
+        if (remainingAmount <= 0) {
+            return {
+                isValid: false,
+                message: `Học sinh đã đóng đủ tiền cho loại phí này (${selectedFee.name})`
+            };
+        }
+
+        if (newAmount > remainingAmount) {
+            return {
+                isValid: false,
+                message: `Số tiền vượt quá mức cần thiết. Còn thiếu: ${remainingAmount.toLocaleString('vi-VN')} VNĐ`
+            };
+        }
+
+        return { isValid: true, remainingAmount };
+    };
+
     const onSubmit = async (data: PaymentFormData) => {
         try {
+            // Validate payment amount
+            const validation = validatePaymentAmount(data.student_id, data.fee_id, data.amount, data.have_discount);
+            if (!validation.isValid) {
+                toast.error(validation.message);
+                return;
+            }
             const selectedFee = fees.find(fee => fee.id === data.fee_id);
             const selectedStudent = students.find(student => student.id === data.student_id);
 
@@ -95,12 +139,10 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 description: data.description || '',
                 have_discount: data.have_discount,
             };
-            console.log('paymentDetail', paymentDetail);
 
             await handleCreatePaymentDetail(paymentDetail);
             if (paymentDetail.id) {
                 toast.success('Tạo thanh toán thành công');
-                onOpenChange(false);
             }
         } catch (error) {
             toast.error('Tạo thanh toán thất bại');
@@ -108,10 +150,22 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
     };
 
     const handleOpenChange = (newOpen: boolean) => {
-        if (!newOpen) {
-            form.reset();
+        onOpenChange?.(newOpen);
+    };
+
+    // Add real-time validation for amount field
+    const handleAmountChange = (value: number, studentId: number, feeId: number, haveDiscount: number) => {
+        if (studentId && feeId && value > 0) {
+            const validation = validatePaymentAmount(studentId, feeId, value, haveDiscount);
+            if (!validation.isValid) {
+                form.setError('amount', {
+                    type: 'manual',
+                    message: validation.message
+                });
+            } else {
+                form.clearErrors('amount');
+            }
         }
-        onOpenChange(newOpen);
     };
 
     return (
@@ -143,11 +197,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                                 value: student.id?.toString() || '',
                                                 label: student.name + ' - ' +
                                                     (() => {
-                                                        const detail = student.student_details?.filter(
-                                                            detail =>
-                                                                detail.end_at === undefined ||
-                                                                (detail.end_at && detail.end_at > new Date())
-                                                        )[0];
+                                                        const detail = getCurrentStudentDetail(student.student_details || []);
                                                         const schoolName = detail?.school?.name ?? '';
                                                         // Remove "Trường", "THPT", etc., then take first letter of each remaining word
                                                         const words = schoolName
@@ -180,7 +230,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                                 <SelectValue placeholder="Chọn học phí" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent>
+                                        <SelectContent >
                                             {fees.map((fee) => (
                                                 <SelectItem key={fee.id} value={fee.id?.toString() || ''}>
                                                     {fee.name} - {fee.amount?.toLocaleString('vi-VN')} VNĐ
@@ -205,7 +255,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                                 <SelectValue placeholder="Chọn phương thức thanh toán" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent defaultValue="CASH">
+                                        <SelectContent>
                                             <SelectItem value="CASH">Tiền mặt</SelectItem>
                                             <SelectItem value="BANK_TRANSFER">Chuyển khoản</SelectItem>
                                         </SelectContent>
@@ -225,7 +275,11 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                         <Input
                                             type="number"
                                             {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
+                                            onChange={(e) => {
+                                                const value = Number(e.target.value);
+                                                field.onChange(value);
+                                                handleAmountChange(value, form.getValues('student_id'), form.getValues('fee_id'), form.getValues('have_discount'));
+                                            }}
                                             placeholder="Nhập số tiền"
                                         />
                                     </FormControl>
@@ -244,7 +298,11 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                         <Input
                                             type="number"
                                             {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
+                                            onChange={(e) => {
+                                                const value = Number(e.target.value);
+                                                field.onChange(value);
+                                                handleAmountChange(form.getValues('amount'), form.getValues('student_id'), form.getValues('fee_id'), value);
+                                            }}
                                             placeholder="Nhập số tiền giảm giá"
                                         />
                                     </FormControl>
@@ -268,7 +326,14 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                         />
 
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    form.reset();
+                                    handleOpenChange(false);
+                                }}
+                            >
                                 Hủy
                             </Button>
                             <Button type="submit" disabled={loading}>

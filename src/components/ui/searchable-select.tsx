@@ -63,9 +63,7 @@ function SearchableSelect({
 
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
-        if (!open) {
-            setSearchValue('');
-        }
+        setSearchValue('');
     };
 
     // Don't auto-focus the search input - let user control focus manually
@@ -73,6 +71,7 @@ function SearchableSelect({
 
     return (
         <SelectPrimitive.Root
+            open={isOpen}
             value={value}
             onValueChange={onValueChange}
             onOpenChange={handleOpenChange}
@@ -123,14 +122,13 @@ function SearchableSelect({
                                             if (['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
                                                 e.stopPropagation();
                                             }
-                                            // Allow normal typing behavior without focus issues
                                             if (e.key.length === 1) {
                                                 e.stopPropagation();
                                             }
-                                        }}
-                                        onFocus={(e) => {
-                                            // Prevent focus from bubbling up to the select trigger
-                                            e.stopPropagation();
+                                            // Giữ focus cho input search
+                                            setTimeout(() => {
+                                                searchInputRef.current?.focus();
+                                            }, 0);
                                         }}
                                     />
                                 </div>

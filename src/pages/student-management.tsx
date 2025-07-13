@@ -5,11 +5,13 @@ export const StudentManagement = () => {
   usePageTitle('Quản lý học sinh');
 
   return (
-    <div className="grid grid-cols-[2fr_1fr] gap-4 h-full">
-      <div className="min-h-0 space-y-4">
+    <div className="grid grid-cols-[2fr_1fr] gap-4 overflow-hidden">
+      <div className="space-y-4 min-w-0">
         <StudentTable />
       </div>
-      <StudentStatsCards students={[]} />
+      <div className="min-w-0">
+        <StudentStatsCards students={[]} />
+      </div>
     </div>
   );
 };

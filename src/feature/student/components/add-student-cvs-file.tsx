@@ -415,23 +415,44 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>(groupId?.toString() || '');
 
+  const [isInitializing, setIsInitializing] = useState(true);
+
   useEffect(() => {
-    if (schools.length === 0) {
-      handleFetchSchools();
-    }
-    if (academicYears.length === 0) {
-      handleFetchAcademicYears();
-    }
-    if (grades.length === 0) {
-      handleFetchGrades();
-    }
-    if (schoolClasses.length === 0) {
-      handleFetchSchoolClasses();
-    }
-    if (groups.length === 0) {
-      handleFetchGroups();
-    }
-  }, [schools, academicYears, grades, schoolClasses, groups]);
+    const initializeData = async () => {
+      try {
+        setIsInitializing(true);
+
+        // Fetch data only if not already loaded
+        const promises = [];
+
+        if (schools.length === 0) {
+          promises.push(handleFetchSchools());
+        }
+        if (academicYears.length === 0) {
+          promises.push(handleFetchAcademicYears());
+        }
+        if (grades.length === 0) {
+          promises.push(handleFetchGrades());
+        }
+        if (schoolClasses.length === 0) {
+          promises.push(handleFetchSchoolClasses());
+        }
+        if (groups.length === 0) {
+          promises.push(handleFetchGroups());
+        }
+
+        // Wait for all promises to resolve or reject
+        await Promise.allSettled(promises);
+      } catch (error) {
+        console.error('Error initializing data:', error);
+        // Don't show error toast here to avoid dialog closing
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeData();
+  }, []); // Only run once on mount
 
   // Form for file upload
   const form = useForm<z.infer<typeof fileSchema>>({
@@ -519,9 +540,6 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
             group: selectedGroup || '',
           }),
         );
-
-        console.log('previewData', previewData);
-
         setTableHeaders(originalHeaders);
         setStudentsPreview(previewData);
         toast.success(`Đã tải ${previewData.length} dòng để xem trước.`);
@@ -590,8 +608,6 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
       };
     });
 
-    console.log('studentsToSave', studentsToSave);
-
     toast.promise(addMultipleStudents(studentsToSave), {
       loading: 'Đang lưu danh sách học sinh...',
       success: () => {
@@ -632,6 +648,25 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
       return newPreview;
     });
   };
+
+  // Show loading state while initializing
+  if (isInitializing) {
+    return (
+      <div className="space-y-6 max-h-[500px] overflow-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Đang tải dữ liệu...</CardTitle>
+            <CardDescription>Vui lòng đợi trong giây lát</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-h-[500px] overflow-auto">
@@ -691,7 +726,7 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
             </div>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-end gap-4">
+            <form id="form-add-student-csv-file" onSubmit={form.handleSubmit(onSubmit)} className="flex items-end gap-4">
               <FormField
                 control={form.control}
                 name="file"

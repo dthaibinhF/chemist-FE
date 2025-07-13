@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
+import { DialogCreatePayment } from '@/feature/payment/components/dialog-create-payment';
 import { Fee, PaymentDetail } from '@/types/api.types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
@@ -9,6 +10,8 @@ interface FeeHistoryTableProps {
     fee?: Fee;
     paymentDetails: PaymentDetail[];
     isLoading?: boolean;
+    openCreatePayment: boolean;
+    setOpenCreatePayment: (open: boolean) => void;
 }
 
 const getPaymentMethodLabel = (method: string) => {
@@ -24,14 +27,6 @@ const getPaymentMethodLabel = (method: string) => {
     }
 };
 
-const getPaymentStatusBadge = (amount: number, haveDiscount: number, feeAmount: number) => {
-    const totalAmount = amount + haveDiscount;
-    if (totalAmount === feeAmount) {
-        return <Badge variant="default" className="bg-green-500 w-full">Đã thanh toán đủ</Badge>;
-    }
-    return <Badge variant="secondary" className="w-full bg-red-100">Chưa thanh toán đủ</Badge>;
-};
-
 const formatDate = (dateString: string | Date | undefined) => {
     if (!dateString) return 'N/A';
 
@@ -44,7 +39,18 @@ const formatDate = (dateString: string | Date | undefined) => {
     }
 };
 
-export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false }: FeeHistoryTableProps) => {
+export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false, openCreatePayment, setOpenCreatePayment }: FeeHistoryTableProps) => {
+    const getPaymentStatusBadge = (student_id: number, fee_id: number, paymentDetails: PaymentDetail[]) => {
+        //find payment detail by student_id and payment_id
+        const detail = paymentDetails.filter(payment => payment.student_id === student_id && payment.fee_id === fee_id);
+        //count amount student have paid
+        const amount = detail.reduce((acc, curr) => acc + curr.amount + curr.have_discount, 0);
+        if (amount === fee?.amount) {
+            return <Badge variant="default" className="bg-green-500 w-full">Đã thanh toán đủ</Badge>;
+        }
+        return <Badge variant="secondary" className="w-full bg-red-100">Chưa thanh toán đủ</Badge>;
+    };
+
     const columns: ColumnDef<PaymentDetail>[] = [
         {
             accessorKey: 'student_name',
@@ -97,9 +103,9 @@ export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false }: FeeH
             accessorKey: 'status',
             header: () => <div className='w-full text-center font-bold'>Trạng thái</div>,
             cell: ({ row }) => {
-                const amount = row.getValue('amount') as number;
-                const discount = row.getValue('have_discount') as number;
-                return getPaymentStatusBadge(amount, discount, fee?.amount ?? 0);
+                const student_id = row.original.student_id;
+                const fee_id = row.original.fee_id;
+                return getPaymentStatusBadge(student_id, fee_id, paymentDetails);
             },
         },
         {
@@ -152,6 +158,7 @@ export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false }: FeeH
         <DataTable
             columns={columns}
             data={paymentDetails}
+            ComponentForCreate={<DialogCreatePayment open={openCreatePayment} onOpenChange={setOpenCreatePayment} />}
             pagination={true}
             filterColumn="student_name"
             filterPlaceholder="Tìm kiếm học sinh..."

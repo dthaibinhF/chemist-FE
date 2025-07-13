@@ -35,17 +35,6 @@ const getPaymentStatusBadge = (amount: number, haveDiscount: number) => {
   return <Badge variant="secondary">Chưa thanh toán đủ</Badge>;
 };
 
-const formatDate = (dateString: string | Date | undefined) => {
-  if (!dateString) return 'N/A';
-
-  try {
-    const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
-    return format(date, 'dd/MM/yyyy HH:mm', { locale: vi });
-  } catch (error) {
-    console.error('Error formatting date:', dateString, error);
-    return 'Invalid date';
-  }
-};
 
 export const PaymentHistoryTable = ({
   studentId,
@@ -80,6 +69,19 @@ export const PaymentHistoryTable = ({
       }
     }
   }, [studentId, feeId, isExternalData, handleFetchPaymentDetails, handleFetchPaymentDetailByStudentId, handleFetchPaymentDetailByFeeId, handleFetchPaymentDetailByStudentIdAndFeeId]);
+
+
+  const formatDate = (dateString: string | Date | undefined) => {
+    if (!dateString) return 'N/A';
+
+    try {
+      const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
+      return format(date, 'dd/MM/yyyy', { locale: vi });
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
+      return 'Invalid date';
+    }
+  };
 
   const columns: ColumnDef<PaymentDetail>[] = [
     {
@@ -141,10 +143,10 @@ export const PaymentHistoryTable = ({
       },
     },
     {
-      accessorKey: 'created_at',
+      accessorKey: 'create_at',
       header: 'Ngày thanh toán',
       cell: ({ row }) => {
-        const date = row.getValue('created_at') as string | Date;
+        const date = row.getValue('create_at') as Date;
         return (
           <div className="text-muted-foreground">
             {formatDate(date)}

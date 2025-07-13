@@ -22,7 +22,6 @@ export function createApiClient(
   });
   if (options.auth) {
     axiosInstance.interceptors.request.use((config) => {
-      // const accessToken = localStorage.getItem("access_token");
       const accessToken = getAccessToken();
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -35,7 +34,6 @@ export function createApiClient(
         return response;
       },
       async (error) => {
-        // const accessToken = localStorage.getItem("access_token");
         const accessToken = getAccessToken();
         const originalRequest = error.config;
         if (
@@ -48,17 +46,16 @@ export function createApiClient(
             const refreshToken = getRefreshToken();
             const response = await axios.post(
               `${API_URL}/auth/refresh-token`,
+              {},
               {
                 headers: {
                   Authorization: `Bearer ${refreshToken}`,
                 },
-              },
-              {
                 withCredentials: true,
               }
             );
-            const newAccessToken = response.data.payload.accessToken;
-            const newRefreshToken = response.data.payload.refreshToken;
+            const newAccessToken = response.data.access_token;
+            const newRefreshToken = response.data.refresh_token;
             storeTokens(newAccessToken, newRefreshToken);
             return axiosInstance(originalRequest);
           } catch (error) {
