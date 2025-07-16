@@ -18,7 +18,7 @@ export function streamGeminiChat({
   history: GeminiChatHistoryItem[];
   systemPrompt: string;
   onAnswer: (text: string) => void;
-  onReasoning: (text: string) => void;
+  onReasoning: (reasoning: string) => void;
   onDone: () => void;
   onError: (err: any) => void;
 }) {
@@ -32,15 +32,14 @@ export function streamGeminiChat({
         history,
         config: {
           systemInstruction: systemPrompt,
-          thinkingConfig: {
-            includeThoughts: true,
-          },
+          thinkingConfig: { includeThoughts: true },
         },
       });
       let answer = "";
       let reasoning = "";
       const stream = await chat.sendMessageStream({ message: prompt });
       for await (const chunk of stream) {
+        // Gemini chunk may have parts: [{text, thought}]
         const parts = chunk.candidates?.[0]?.content?.parts ?? [];
         for (const part of parts) {
           if (part.thought) {
