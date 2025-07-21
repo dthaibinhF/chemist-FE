@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button.tsx';
-import { useAuth } from '@/feature/auth/hooks/useAuth.ts';
+import { Button } from "@/components/ui/button.tsx";
+import { useAuth } from "@/feature/auth/hooks/useAuth.ts";
 
 const LogOutButton = () => {
   const { logout } = useAuth();

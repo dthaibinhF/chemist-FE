@@ -57,6 +57,7 @@ export function createApiClient(
             const newAccessToken = response.data.access_token;
             const newRefreshToken = response.data.refresh_token;
             storeTokens(newAccessToken, newRefreshToken);
+
             return axiosInstance(originalRequest);
           } catch (error) {
             localStorage.removeItem("access_token");

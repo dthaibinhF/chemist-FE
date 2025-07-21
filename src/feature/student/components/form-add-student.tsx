@@ -27,9 +27,9 @@ import type { GroupList } from '@/service';
 import { gradeService, groupService } from '@/service';
 import type { Grade, Student } from '@/types/api.types';
 
+import { toast } from 'sonner';
 import { useStudent } from '../hooks';
-import type { StudentFormData } from '../schemas/student.schema';
-import { studentFormSchema } from '../schemas/student.schema';
+import { StudentFormData, studentFormSchema } from '../schemas/student.schema';
 
 interface FormAddStudentProps {
   groupId?: number;
@@ -51,6 +51,8 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
       school: '',
       grade: gradeId?.toString() || '',
       group: groupId?.toString() || '',
+      academic_year: '',
+      school_class: '',
     },
   });
 
@@ -78,16 +80,30 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
     async (data: StudentFormData) => {
       try {
         setSubmitting(true);
-        await addStudent(data as unknown as Student);
-        form.reset();
-        // Success - Redux state will automatically trigger re-render
+        // Map form data to match API structure (student_details)
+        const mappedStudent: Student = {
+          name: data.name,
+          parent_phone: data.parent_phone,
+          student_details: [
+            {
+              ...(data.school ? { school: grades.find(g => g.id?.toString() === data.school) } : {}),
+              ...(data.grade ? { grade: grades.find(g => g.id?.toString() === data.grade) } : {}),
+              ...(data.group ? { group_id: Number(data.group) } : {}),
+              ...(data.academic_year ? { academic_year: grades.find(g => g.id?.toString() === data.academic_year) } : {}),
+              ...(data.school_class ? { school_class: grades.find(g => g.id?.toString() === data.school_class) } : {}),
+            },
+          ] as Partial<import('@/types/api.types').StudentDetail>[],
+        };
+        await addStudent(mappedStudent);
+        toast.success('Thêm học sinh thành công');
+        // form.reset();
       } catch (error) {
-        console.error('Error adding student:', error);
+        toast.error('Thêm học sinh thất bại');
       } finally {
         setSubmitting(false);
       }
     },
-    [addStudent, form]
+    [addStudent, form, grades]
   );
 
   const handleSchoolSelect = (value: string) => {

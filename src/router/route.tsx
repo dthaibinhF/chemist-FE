@@ -1,61 +1,71 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter } from "react-router-dom";
 
-import Dashboard from '@/pages/dashboard.tsx';
-import { ErrorPage } from '@/pages/error-page';
-import { FeeDetail } from '@/pages/fee-detail.tsx';
-import FeeManagement from '@/pages/fee.tsx';
-import FinanceManagement from '@/pages/finance.tsx';
-import { GroupDetail } from '@/pages/group-detail';
-import GroupManagement from '@/pages/group.tsx';
-import HomeLayout from '@/pages/layout/HomeLayout.tsx';
-import { LoginPage } from '@/pages/login-page.tsx';
-import { StudentDetailPage } from '@/pages/student-detail.tsx';
-import { StudentManagement } from '@/pages/student-management.tsx';
+import AiAssistantPage from "@/pages/ai-assistant";
+import Dashboard from "@/pages/dashboard.tsx";
+import { ErrorPage } from "@/pages/error-page";
+import { FeeDetail } from "@/pages/fee-detail.tsx";
+import FeeManagement from "@/pages/fee.tsx";
+import FinanceManagement from "@/pages/finance.tsx";
+import { GroupDetail } from "@/pages/group-detail";
+import GroupManagement from "@/pages/group.tsx";
+import HomeLayout from "@/pages/layout/HomeLayout.tsx";
+import { LoginPage } from "@/pages/login-page.tsx";
+import { StudentDetailPage } from "@/pages/student-detail.tsx";
+import { StudentManagement } from "@/pages/student-management.tsx";
+import TimeTable from "@/pages/TimeTable";
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     Component: HomeLayout,
     children: [
       {
         index: true,
-        path: 'dashboard',
+        path: "dashboard",
         Component: Dashboard,
       },
       {
-        path: 'student',
+        path: "student",
         Component: StudentManagement,
         errorElement: <ErrorPage />,
       },
       {
-        path: 'student/:id',
+        path: "student/:id",
         Component: StudentDetailPage,
         // errorElement: <ErrorPage />,
       },
       {
-        path: 'finance',
+        path: "finance",
         Component: FinanceManagement,
       },
       {
-        path: 'group',
+        path: "group",
         Component: GroupManagement,
       },
       {
-        path: 'fee',
+        path: "fee",
         Component: FeeManagement,
       },
       {
-        path: 'fee/:id',
+        path: "fee/:id",
         Component: FeeDetail,
       },
       {
-        path: 'group/:id',
+        path: "group/:id",
         Component: GroupDetail,
+      },
+      {
+        path: "ai-assistant",
+        Component: AiAssistantPage,
+      },
+      {
+        path: "time-table",
+        Component: TimeTable,
       },
     ],
   },
   {
-    path: '/login',
+    path: "/login",
     Component: LoginPage,
   },
 ]);

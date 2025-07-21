@@ -14,7 +14,8 @@ export const getStudentById = async (id: number): Promise<Student> => {
 };
 
 export const createStudent = async (student: Student): Promise<Student> => {
-  const res = await apiClient.post("/", student);
+  console.log(student);
+  const res = await apiClient.post("", student);
   return res.data;
 };
 

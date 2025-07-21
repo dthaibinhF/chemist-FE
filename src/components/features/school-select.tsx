@@ -78,7 +78,6 @@ const SchoolSelect: FC<SchoolSelectProps> = ({ handleSelect, value }) => {
       await handleFetchSchools();
     } catch (error) {
       toast.error('Không thể tạo trường mới');
-      console.error(error);
     } finally {
       setCreatingSchool(false);
     }

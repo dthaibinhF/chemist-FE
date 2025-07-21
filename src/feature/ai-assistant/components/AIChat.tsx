@@ -13,7 +13,7 @@ import {
   AIReasoningTrigger,
 } from "@/components/ui/kibo-ui/ai/reasoning";
 import { Loader2 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   GeminiChatHistoryItem,
@@ -43,6 +43,15 @@ const AIChat: React.FC<AIChatProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const answerRef = useRef("");
   const reasoningRef = useRef("");
+  const conversationEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [history, isLoading]);
 
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -191,6 +200,14 @@ const AIChat: React.FC<AIChatProps> = ({
           placeholder="Nhập tin nhắn..."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage(
+                e as unknown as React.FormEvent<HTMLFormElement>
+              );
+            }
+          }}
           disabled={isLoading}
         />
       </AIInput>

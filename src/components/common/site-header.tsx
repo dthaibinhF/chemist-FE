@@ -1,7 +1,7 @@
-import LogOutButton from '@/components/common/logout-button.tsx';
-import { ModeToggle } from '@/components/common/mode-toggle.tsx';
-import { SidebarTrigger } from '@/components/ui/sidebar.tsx';
-import { useCurrentPageTitle } from '@/hooks/usePageTitle.tsx';
+import LogOutButton from "@/components/common/logout-button.tsx";
+import { ModeToggle } from "@/components/common/mode-toggle.tsx";
+import { SidebarTrigger } from "@/components/ui/sidebar.tsx";
+import { useCurrentPageTitle } from "@/hooks/usePageTitle.tsx";
 
 const SiteHeader = () => {
   const pageTitle = useCurrentPageTitle();

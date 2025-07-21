@@ -15,9 +15,9 @@ export const clearTokens = () => {
 };
 
 export const getAccessToken = (): string | null => {
-  const cookies = document.cookie.split(';').reduce(
+  const cookies = document.cookie.split(";").reduce(
     (acc, cookie) => {
-      const [name, value] = cookie.trim().split('=');
+      const [name, value] = cookie.trim().split("=");
       acc[name] = value;
       return acc;
     },
@@ -27,9 +27,9 @@ export const getAccessToken = (): string | null => {
 };
 
 export const getRefreshToken = (): string | null => {
-  const cookies = document.cookie.split(';').reduce(
+  const cookies = document.cookie.split(";").reduce(
     (acc, cookie) => {
-      const [name, value] = cookie.trim().split('=');
+      const [name, value] = cookie.trim().split("=");
       acc[name] = value;
       return acc;
     },

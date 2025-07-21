@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-import UserItem from '@/components/common/user-item.tsx';
+import UserItem from "@/components/common/user-item.tsx";
 import {
   Sidebar,
   SidebarContent,
@@ -12,37 +12,47 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar.tsx';
+} from "@/components/ui/sidebar.tsx";
 
 const items = {
   navMain: [
     {
-      title: 'Quản lý',
-      url: '#',
+      title: "Quản lý",
+      url: "#",
       items: [
         {
-          title: 'Dashboard',
-          url: 'dashboard',
+          title: "Dashboard",
+          url: "dashboard",
           isActive: false,
         },
         {
-          title: 'Học sinh',
-          url: '/student',
+          title: "Học sinh",
+          url: "/student",
           isActive: false,
         },
         {
-          title: 'Tài chính',
-          url: '/finance',
+          title: "Tài chính",
+          url: "/finance",
           isActive: false,
         },
         {
-          title: 'Nhóm học',
-          url: '/group',
+          title: "Nhóm học",
+          url: "/group",
           isActive: false,
         },
         {
-          title: 'Học phí',
-          url: '/fee',
+          title: "Học phí",
+          url: "/fee",
+          isActive: false,
+        },
+        {
+          title: "AI Assistant",
+          url: "/ai-assistant",
+          isActive: false,
+        },
+        {
+          title: "Lịch học",
+          url: "/time-table",
           isActive: false,
         },
       ],
@@ -64,7 +74,7 @@ const AppSideBar = () => {
     setRender(render + 1);
   }
 
-  useEffect(() => { }, [render]);
+  useEffect(() => {}, [render]);
 
   const setActive = (item: {
     title: string;

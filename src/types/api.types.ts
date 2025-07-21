@@ -86,6 +86,7 @@ export interface Teacher extends BaseDTO {
   account: Account;
   teacher_details: TeacherDetail[];
 }
+
 export interface Schedule extends BaseDTO {
   group_id: number;
   group_name: string;
@@ -147,14 +148,14 @@ export interface Student extends BaseDTO {
 }
 
 export interface StudentDetail extends BaseDTO {
-  group_id: number;
-  group_name: string;
-  school: School;
-  school_class: SchoolClass;
-  academic_year: AcademicYear;
-  grade: Grade;
-  student_id: number;
-  student_name: string;
+  group_id?: number;
+  group_name?: string;
+  school?: School;
+  school_class?: SchoolClass;
+  academic_year?: AcademicYear;
+  grade?: Grade;
+  student_id?: number;
+  student_name?: string;
 }
 
 export interface GroupSession extends BaseDTO {

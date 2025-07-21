@@ -1,15 +1,21 @@
 // src/features/auth/hooks/useAuth.ts
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
 import {
   clearTokens,
   getRefreshToken,
   storeTokens,
-} from '@/feature/auth/services/token-manager.ts';
-import type { TAuthResponse, TCredentials } from '@/feature/auth/types/auth.type.ts';
-import { useAppDispatch, useAppSelector } from '@/redux/hook.ts';
+} from "@/feature/auth/services/token-manager.ts";
+import type {
+  TAuthResponse,
+  TCredentials,
+} from "@/feature/auth/types/auth.type.ts";
+import { useAppDispatch, useAppSelector } from "@/redux/hook.ts";
 
-import { loginWithEmailAndPassword, refreshToken as refreshTokenApi } from '../services/authApi';
+import {
+  loginWithEmailAndPassword,
+  refreshToken as refreshTokenApi,
+} from "../services/authApi";
 import {
   loginFailure,
   loginStart,
@@ -17,24 +23,30 @@ import {
   logout,
   refreshTokenFailure,
   refreshTokenSuccess,
-} from '../slice/authSlice';
+} from "../slice/authSlice";
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
-  const { account, isAuthenticated, isLoading, error, accessToken, refreshToken } = useAppSelector(
-    (state) => state.auth
-  );
+  const {
+    account,
+    isAuthenticated,
+    isLoading,
+    error,
+    accessToken,
+    refreshToken,
+  } = useAppSelector((state) => state.auth);
 
   const login = useCallback(
     async (credentials: TCredentials) => {
       dispatch(loginStart());
       try {
-        const response: TAuthResponse = await loginWithEmailAndPassword(credentials);
+        const response: TAuthResponse =
+          await loginWithEmailAndPassword(credentials);
         const { access_token, refresh_token } = response;
         storeTokens(access_token, refresh_token); // Store server-provided tokens
         dispatch(loginSuccess({ access_token, refresh_token }));
       } catch (err) {
-        dispatch(loginFailure('Login failed. Please check your credentials.'));
+        dispatch(loginFailure("Login failed. Please check your credentials."));
         throw err;
       }
     },
@@ -46,7 +58,7 @@ export const useAuth = () => {
       clearTokens();
       dispatch(logout());
     } catch (err) {
-      dispatch(loginFailure('Logout failed.'));
+      dispatch(loginFailure("Logout failed."));
       throw err;
     }
   }, [dispatch]);
@@ -55,14 +67,14 @@ export const useAuth = () => {
     dispatch(loginStart());
     try {
       const currentRefreshToken = getRefreshToken();
-      if (!currentRefreshToken) throw new Error('No refresh token');
+      if (!currentRefreshToken) throw new Error("No refresh token");
       const response = await refreshTokenApi(currentRefreshToken);
       const { access_token, refresh_token } = response;
       storeTokens(access_token, refresh_token);
       dispatch(refreshTokenSuccess({ access_token, refresh_token }));
       return access_token;
     } catch (err) {
-      dispatch(refreshTokenFailure('Token refresh failed.'));
+      dispatch(refreshTokenFailure("Token refresh failed."));
       logoutAction();
       throw err;
     }

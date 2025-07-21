@@ -8,8 +8,10 @@ import academicYearReducer from "./slice/academic-year.slice";
 import feeReducer from "./slice/fee.slice";
 import gradeReducer from "./slice/grade.slice";
 import paymentReducer from "./slice/payment.slice";
+import roomReducer from "./slice/room.slice";
 import schoolClassReducer from "./slice/school-class.slice";
 import schoolReducer from "./slice/school.slice";
+import timeTableReducer from "./slice/time-table.slice";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +24,8 @@ export const store = configureStore({
     school: schoolReducer,
     schoolClass: schoolClassReducer,
     payment: paymentReducer,
+    timeTable: timeTableReducer,
+    room: roomReducer,
   },
 });
 
