@@ -5,9 +5,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { Clock, MapPin, Users, Video } from "lucide-react";
 import type { Schedule } from "../../../types/api.types";
+import { displayTime, displayTimeRange } from "@/utils/date-formatters";
 
 interface TimeTableEventCardProps {
   schedule: Schedule;
@@ -46,8 +46,7 @@ const TimeTableEventCard = ({ schedule, onClick }: TimeTableEventCardProps) => {
             <div className="flex items-center text-xs text-muted-foreground mt-1">
               <Clock className="h-3 w-3 mr-1" />
               <span>
-                {schedule.start_time &&
-                  format(new Date(schedule.start_time), "HH:mm")}
+                {schedule.start_time && displayTime(schedule.start_time)}
               </span>
             </div>
           </div>
@@ -58,11 +57,8 @@ const TimeTableEventCard = ({ schedule, onClick }: TimeTableEventCardProps) => {
             <div className="flex items-center text-sm text-muted-foreground">
               <Clock className="h-4 w-4 mr-2" />
               <span>
-                {schedule.start_time &&
-                  format(new Date(schedule.start_time), "HH:mm")}{" "}
-                -{" "}
-                {schedule.end_time &&
-                  format(new Date(schedule.end_time), "HH:mm")}
+                {schedule.start_time && schedule.end_time &&
+                  displayTimeRange(schedule.start_time, schedule.end_time)}
               </span>
             </div>
             {schedule.teacher?.account?.name && (

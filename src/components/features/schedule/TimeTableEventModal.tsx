@@ -34,6 +34,7 @@ import type { Room, Schedule, Teacher } from "@/types/api.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { utcToVietnamTime, formatUtcToVietnamTime, getCurrentVietnamTime } from "@/utils/timezone-utils";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -74,7 +75,7 @@ const TimeTableEventModal = ({
   const { schedules } = useTimeTable();
   const { rooms, handleFetchRooms } = useRoom();
   const [date, setDate] = useState<Date | undefined>(
-    event?.start_time ? new Date(event.start_time) : undefined
+    event?.start_time ? utcToVietnamTime(event.start_time) : undefined
   );
 
   useEffect(() => {
@@ -93,12 +94,12 @@ const TimeTableEventModal = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       group_id: event?.group_id ? Number(event.group_id) : 0,
-      date: event?.start_time ? new Date(event.start_time) : new Date(),
+      date: event?.start_time ? utcToVietnamTime(event.start_time) : getCurrentVietnamTime(),
       start_time: event?.start_time
-        ? format(new Date(event.start_time), "HH:mm")
+        ? formatUtcToVietnamTime(event.start_time, "HH:mm")
         : "",
       end_time: event?.end_time
-        ? format(new Date(event.end_time), "HH:mm")
+        ? formatUtcToVietnamTime(event.end_time, "HH:mm")
         : "",
       delivery_mode: event?.delivery_mode || "OFFLINE",
       meeting_link: event?.meeting_link || "",

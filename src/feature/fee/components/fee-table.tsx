@@ -9,6 +9,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useFee } from '@/hooks/useFee';
 import type { Fee } from '@/types/api.types';
+import { displayDate } from '@/utils/date-formatters';
 import { LoaderCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { DialogAddFee } from './dialog-add-fee';
 import { DialogEditFee } from './dialog-edit-fee';
@@ -50,14 +51,14 @@ const FeeTable = () => {
       accessorKey: 'start_time',
       header: 'Ngày bắt đầu',
       cell: ({ row }) => {
-        return new Date(row.original.start_time).toLocaleDateString('vi-VN');
+        return displayDate(row.original.start_time);
       }
     },
     {
       accessorKey: 'end_time',
       header: 'Ngày kết thúc',
       cell: ({ row }) => {
-        return new Date(row.original.end_time).toLocaleDateString('vi-VN');
+        return displayDate(row.original.end_time);
       }
     },
     {

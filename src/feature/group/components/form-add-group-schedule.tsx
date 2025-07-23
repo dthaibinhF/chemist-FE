@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Control } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';
 
@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { useRoom } from '@/hooks/useRoom';
+import { convertUtcTimeToVietnamString, convertVietnamTimeToUtcString } from '@/utils/timezone-utils';
 
 const Days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
@@ -27,10 +29,15 @@ interface FormAddGroupSchedule {
 export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) => {
   const [mousePosition, setMousePosition] = useState({ x: 0 });
   const [isHover, setIsHover] = useState(false);
+  const { rooms, handleFetchRooms, loading: roomsLoading } = useRoom();
   const { fields, append, remove } = useFieldArray({
     control,
     name,
   });
+
+  useEffect(() => {
+    handleFetchRooms();
+  }, [handleFetchRooms]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -41,8 +48,9 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
   const handleAddSchedule = () => {
     append({
       day_of_week: 'MONDAY',
-      start_time: '00:00',
-      end_time: '00:00',
+      start_time: '08:00:00', // Default to 8 AM Vietnam time
+      end_time: '10:00:00',   // Default to 10 AM Vietnam time
+      room_id: 0,
     });
   };
 
@@ -103,7 +111,7 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
             </div>
 
             {/* Form Fields */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               <FormField
                 control={control}
                 name={`${name}[${index}].day_of_week`}
@@ -134,25 +142,86 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
               <FormField
                 control={control}
                 name={`${name}[${index}].start_time`}
-                render={(field) => (
-                  <FormItem>
-                    <FormLabel>Thời gian bắt đầu</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field.field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Convert UTC time from server to local time for display
+                  const displayValue = field.value ? 
+                    convertUtcTimeToVietnamString(field.value).substring(0, 5) : // HH:mm format for input
+                    '08:00';
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Thời gian bắt đầu (GMT+7)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          value={displayValue}
+                          onChange={(e) => {
+                            // Convert local Vietnam time to UTC for storage
+                            const utcTime = convertVietnamTimeToUtcString(e.target.value + ':00');
+                            field.onChange(utcTime);
+                          }} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
 
               <FormField
                 control={control}
                 name={`${name}[${index}].end_time`}
-                render={(field) => (
+                render={({ field }) => {
+                  // Convert UTC time from server to local time for display
+                  const displayValue = field.value ? 
+                    convertUtcTimeToVietnamString(field.value).substring(0, 5) : // HH:mm format for input
+                    '10:00';
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Thời gian tan học (GMT+7)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          value={displayValue}
+                          onChange={(e) => {
+                            // Convert local Vietnam time to UTC for storage
+                            const utcTime = convertVietnamTimeToUtcString(e.target.value + ':00');
+                            field.onChange(utcTime);
+                          }} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={control}
+                name={`${name}[${index}].room_id`}
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thời gian tan học</FormLabel>
+                    <FormLabel>Phòng học</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field.field} />
+                      <Select
+                        onValueChange={(value) => field.onChange(value ? Number(value) : '')}
+                        value={field.value?.toString() || ''}
+                        disabled={roomsLoading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={roomsLoading ? "Đang tải..." : "Chọn phòng học"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {rooms.map((room) => (
+                              <SelectItem key={room.id} value={room.id?.toString() || ''}>
+                                {room.name} - {room.location}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

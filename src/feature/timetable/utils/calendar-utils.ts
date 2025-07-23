@@ -1,5 +1,6 @@
 import type { Schedule } from "@/types/api.types";
 import type { CalendarEvent, TimeSlot, WeekData } from "../types/timetable.types";
+import { utcToVietnamTime, getCurrentVietnamTime, formatUtcToVietnamTime, formatUtcToVietnamDate } from "@/utils/timezone-utils";
 
 // Generate color palette for group color-coding
 const GROUP_COLORS = [
@@ -22,7 +23,7 @@ export const getGroupColor = (groupId: number): typeof GROUP_COLORS[0] => {
   if (groupColorCache.has(groupId)) {
     return groupColorCache.get(groupId)!;
   }
-  
+
   const color = GROUP_COLORS[groupId % GROUP_COLORS.length];
   groupColorCache.set(groupId, color);
   return color;
@@ -30,12 +31,13 @@ export const getGroupColor = (groupId: number): typeof GROUP_COLORS[0] => {
 
 export const convertScheduleToEvent = (schedule: Schedule): CalendarEvent => {
   const color = getGroupColor(schedule.group_id);
-  
+
   return {
     id: schedule.id || 0,
     title: schedule.group_name,
-    start: new Date(schedule.start_time),
-    end: new Date(schedule.end_time),
+    // Convert UTC times from server to Vietnam local time for display
+    start: utcToVietnamTime(schedule.start_time),
+    end: utcToVietnamTime(schedule.end_time),
     group_name: schedule.group_name,
     teacher_name: schedule.teacher?.account?.name || "Chưa có giáo viên",
     room_name: schedule.room?.name || "Chưa có phòng",
@@ -46,7 +48,7 @@ export const convertScheduleToEvent = (schedule: Schedule): CalendarEvent => {
   };
 };
 
-export const getWeekStart = (date: Date): Date => {
+export const getWeekStart = (date: Date | string): Date => {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
@@ -60,6 +62,7 @@ export const getWeekEnd = (weekStart: Date): Date => {
 };
 
 export const formatTime = (date: Date): string => {
+  // Date object is already in Vietnam timezone from our conversion
   return date.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -68,6 +71,7 @@ export const formatTime = (date: Date): string => {
 };
 
 export const formatDate = (date: Date): string => {
+  // Date object is already in Vietnam timezone from our conversion
   return date.toLocaleDateString("vi-VN", {
     weekday: "short",
     day: "2-digit",
@@ -85,8 +89,9 @@ export const formatDateFull = (date: Date): string => {
 };
 
 export const isToday = (date: Date): boolean => {
-  const today = new Date();
-  return date.toDateString() === today.toDateString();
+  // Use Vietnam current time for today comparison
+  const vietnamToday = getCurrentVietnamTime();
+  return date.toDateString() === vietnamToday.toDateString();
 };
 
 export const isSameWeek = (date1: Date, date2: Date): boolean => {
@@ -98,39 +103,39 @@ export const isSameWeek = (date1: Date, date2: Date): boolean => {
 export const generateWeekData = (weekStart: Date, events: CalendarEvent[]): WeekData => {
   const weekEnd = getWeekEnd(weekStart);
   const days = [];
-  
+
   for (let i = 0; i < 7; i++) {
     const date = new Date(weekStart);
     date.setDate(date.getDate() + i);
-    
+
     const dayEvents = events.filter(event => {
       const eventDate = new Date(event.start);
       return eventDate.toDateString() === date.toDateString();
     });
-    
+
     days.push({ date, events: dayEvents });
   }
-  
+
   return { weekStart, weekEnd, days };
 };
 
 export const generateTimeSlots = (events: CalendarEvent[], startHour = 7, endHour = 22): TimeSlot[] => {
   const slots: TimeSlot[] = [];
-  
+
   for (let hour = startHour; hour <= endHour; hour++) {
     const timeString = `${hour.toString().padStart(2, '0')}:00`;
-    
+
     const slotEvents = events.filter(event => {
       const eventHour = event.start.getHours();
       return eventHour === hour;
     });
-    
+
     slots.push({
       time: timeString,
       events: slotEvents,
     });
   }
-  
+
   return slots;
 };
 
@@ -139,7 +144,7 @@ export const getEventDuration = (event: CalendarEvent): string => {
   const durationMinutes = Math.floor(durationMs / (1000 * 60));
   const hours = Math.floor(durationMinutes / 60);
   const minutes = durationMinutes % 60;
-  
+
   if (hours > 0) {
     return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
   }
@@ -147,13 +152,14 @@ export const getEventDuration = (event: CalendarEvent): string => {
 };
 
 export const isEventActive = (event: CalendarEvent): boolean => {
-  const now = new Date();
-  return now >= event.start && now <= event.end;
+  // Use Vietnam current time for active event comparison
+  const vietnamNow = getCurrentVietnamTime();
+  return vietnamNow >= event.start && vietnamNow <= event.end;
 };
 
 export const getWeekRange = (weekStart: Date): string => {
   const weekEnd = getWeekEnd(weekStart);
-  
+
   if (weekStart.getMonth() === weekEnd.getMonth()) {
     return `${weekStart.getDate()}-${weekEnd.getDate()} tháng ${weekStart.getMonth() + 1}, ${weekStart.getFullYear()}`;
   } else {
@@ -168,5 +174,6 @@ export const navigateWeek = (currentWeek: Date, direction: 'prev' | 'next'): Dat
 };
 
 export const goToToday = (): Date => {
-  return getWeekStart(new Date());
+  // Use Vietnam current time for "today" navigation
+  return getWeekStart(getCurrentVietnamTime());
 };

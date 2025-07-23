@@ -17,13 +17,13 @@ export interface TimetableState {
   loading: boolean;
   error: string | null;
   viewMode: TimetableViewMode;
-  selectedDate: Date;
+  selectedDate: string;
   filters: {
     group_id?: number;
     teacher_id?: number;
     room_id?: number;
-    start_date?: Date;
-    end_date?: Date;
+    start_date?: string;
+    end_date?: string;
     delivery_mode?: string;
   };
   searchQuery: string;

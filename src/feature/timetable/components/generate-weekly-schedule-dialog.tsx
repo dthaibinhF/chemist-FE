@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -113,6 +114,9 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Tạo lịch học tuần</DialogTitle>
+          <DialogDescription>
+            Tạo lịch học tuần dựa trên lịch trình template của nhóm trong khoảng thời gian đã chọn.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

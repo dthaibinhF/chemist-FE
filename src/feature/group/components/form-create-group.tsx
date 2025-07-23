@@ -31,6 +31,7 @@ import type { Group } from '@/types/api.types';
 
 import { useGroup } from '@/hooks/useGroup';
 import { FormAddGroupSchedule } from './form-add-group-schedule';
+import { convertVietnamTimeToUtcString } from '@/utils/timezone-utils';
 
 // Days of the week for the select dropdown
 const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -46,13 +47,18 @@ const GroupSchema = z.object({
   group_schedules: z.array(
     z.object({
       day_of_week: z.enum(daysOfWeek, { message: 'Hãy chọn ngày trong tuần' }),
-      start_time: z.iso.time({ precision: -1 }),
-      end_time: z.iso.time({ precision: -1 }),
+      start_time: z.string().min(1, { message: 'Hãy chọn thời gian bắt đầu' }),
+      end_time: z.string().min(1, { message: 'Hãy chọn thời gian kết thúc' }),
+      room_id: z.number().min(1, { message: 'Hãy chọn phòng học' }),
     })
   ),
 });
 
-export const FormCreateGroup = () => {
+interface FormCreateGroupProps {
+  onSuccess?: () => void;
+}
+
+export const FormCreateGroup = ({ onSuccess }: FormCreateGroupProps) => {
   const { handleCreateGroup, loading } = useGroup();
   const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
   const { fees, handleFetchFees, loading: loadingFees } = useFee();
@@ -79,8 +85,9 @@ export const FormCreateGroup = () => {
       group_schedules: [
         {
           day_of_week: 'MONDAY',
-          start_time: '00:00',
-          end_time: '00:00',
+          start_time: '08:00:00',
+          end_time: '10:00:00',
+          room_id: 0,
         },
       ],
     },
@@ -96,12 +103,16 @@ export const FormCreateGroup = () => {
         grade_id: data.grade_id,
         group_schedules: data.group_schedules.map((schedule) => ({
           day_of_week: schedule.day_of_week,
-          start_time: schedule.start_time,
-          end_time: schedule.end_time,
+          // Convert Vietnam local times from form to UTC for server
+          start_time: convertVietnamTimeToUtcString(schedule.start_time),
+          end_time: convertVietnamTimeToUtcString(schedule.end_time),
+          room_id: schedule.room_id,
         })),
       };
       await handleCreateGroup(newGroup as Group);
       toast.success('Tạo nhóm thành công');
+      form.reset();
+      onSuccess?.();
     } catch (error) {
       toast.error('Tạo nhóm thất bại');
       console.log(error);
@@ -130,7 +141,7 @@ export const FormCreateGroup = () => {
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <FormField
               control={form.control}
               name="level"

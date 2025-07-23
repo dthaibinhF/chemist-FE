@@ -5,6 +5,28 @@ export interface BaseDTO {
   end_at?: Date;
 }
 
+// Timezone-aware type definitions
+// All dates from API are in UTC and should be converted to local Vietnam time (GMT+7) for display
+// All dates sent to API should be converted from local Vietnam time to UTC
+
+/**
+ * UTC date string - dates from server in ISO format (e.g., "2024-01-15T08:00:00Z")
+ * Should be converted to local time for display using timezone utilities
+ */
+export type UTCDateString = string;
+
+/**
+ * UTC time string - time from server in HH:mm:ss format (e.g., "08:00:00")  
+ * Represents time in UTC timezone, should be converted to local time for display
+ */
+export type UTCTimeString = string;
+
+/**
+ * Local time string - time in HH:mm:ss format for form inputs
+ * Represents time in local Vietnam timezone (GMT+7)
+ */
+export type LocalTimeString = string;
+
 export interface Account extends BaseDTO {
   name: string;
   email: string;
@@ -62,8 +84,18 @@ export interface GroupSchedule extends BaseDTO {
   group_id?: number;
   group_name?: string;
   day_of_week: string;
-  start_time: string;
-  end_time: string;
+  /** 
+   * Start time in UTC format (HH:mm:ss) from server
+   * Use convertUtcTimeToVietnamString() to display in local time
+   */
+  start_time: UTCTimeString;
+  /** 
+   * End time in UTC format (HH:mm:ss) from server
+   * Use convertUtcTimeToVietnamString() to display in local time
+   */
+  end_time: UTCTimeString;
+  room_id?: number;
+  room?: Room;
 }
 
 export interface Attendance extends BaseDTO {
@@ -170,4 +202,63 @@ export interface GroupStats {
   totalGroups: number;
   activeGroups: number;
   totalStudents: number;
+}
+
+// Dashboard Statistics
+export interface DashboardStats {
+  total_students: number;
+  active_students: number;
+  total_teachers: number;
+  active_teachers: number;
+  total_groups: number;
+  active_groups: number;
+  total_schedules: number;
+  this_week_schedules: number;
+  total_attendances: number;
+  attendance_rate_percentage: number;
+}
+
+// Search Parameters
+export interface StudentSearchParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  studentName?: string;
+  groupName?: string;
+  schoolName?: string;
+  className?: string;
+  parentPhone?: string;
+}
+
+export interface TeacherSearchParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  teacherName?: string;
+  phone?: string;
+  email?: string;
+  specialization?: string;
+}
+
+// Bulk Attendance Operations
+export interface AttendanceRecord {
+  student_id: number;
+  status: "PRESENT" | "ABSENT" | "LATE";
+  description?: string;
+}
+
+export interface BulkAttendanceDTO {
+  schedule_id: number;
+  attendance_records: AttendanceRecord[];
+}
+
+// Pagination Response
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }

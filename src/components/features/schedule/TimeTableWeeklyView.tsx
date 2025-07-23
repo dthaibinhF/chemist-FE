@@ -1,5 +1,6 @@
 import type { Schedule } from "../../../types/api.types";
 import TimeTableEventCard from "./TimeTableEventCard";
+import { utcToVietnamTime } from "@/utils/timezone-utils";
 
 interface TimeTableWeeklyViewProps {
   schedules: Schedule[];
@@ -44,7 +45,8 @@ const TimeTableWeeklyView = ({
 
   schedules.forEach((s) => {
     if (!s.start_time) return;
-    const start = new Date(s.start_time);
+    // Convert UTC time to Vietnam time for proper day/time slot placement
+    const start = utcToVietnamTime(s.start_time);
     const day = getDayOfWeek(start);
     const slot = TIME_SLOTS.find((ts) => isSameTimeSlot(start, ts));
     if (slot) grid[day][slot].push(s);

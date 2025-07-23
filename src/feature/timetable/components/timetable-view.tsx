@@ -13,6 +13,7 @@ import { TimetableFilters } from "./timetable-filters";
 import { GenerateWeeklyScheduleDialog } from "./generate-weekly-schedule-dialog";
 import { convertScheduleToEvent, getWeekStart } from "../utils/calendar-utils";
 import type { CalendarEvent } from "../types/timetable.types";
+import { format } from "date-fns";
 
 interface TimetableViewProps {
   className?: string;
@@ -115,10 +116,13 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
       // Format dates to start/end of day for OffsetDateTime compatibility
       const startDate = new Date(data.start_date);
       startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = new Date(data.end_date);
       endDate.setHours(23, 59, 59, 999);
-      
+
+      console.log('startDate', startDate.toISOString());
+      console.log('endDate', endDate.toISOString());
+
       await handleGenerateWeeklySchedule(
         data.group_id,
         startDate.toISOString(),
@@ -235,10 +239,12 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
         <TabsContent value="daily" className="space-y-4">
           <DailyCalendar
             events={events.filter(event => {
-              const eventDate = new Date(event.start);
-              return eventDate.toDateString() === selectedDate.toDateString();
+              // Use Vietnam timezone for date comparison
+              const eventDateVN = format(event.start, 'yyyy-MM-dd');
+              const selectedDateVN = format(new Date(selectedDate), 'yyyy-MM-dd');
+              return eventDateVN === selectedDateVN;
             })}
-            selectedDate={selectedDate}
+            selectedDate={new Date(selectedDate)}
             onDateChange={handleDateChange}
             onEventClick={handleEventClick}
             loading={loading}

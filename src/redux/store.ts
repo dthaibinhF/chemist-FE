@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import authReducer from "@/feature/auth/slice/authSlice.ts";
+import authReducer from "@/feature/auth/slice/auth.slice";
 import studentReducer from "@/feature/student/slice/student.slice";
 import groupReducer from "./slice/group.slice";
 

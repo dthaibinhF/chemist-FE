@@ -11,7 +11,7 @@ const initialState: TimetableState = {
   loading: false,
   error: null,
   viewMode: "weekly",
-  selectedDate: new Date(),
+  selectedDate: new Date().toISOString(),
   filters: {},
   searchQuery: "",
 };
@@ -30,7 +30,7 @@ export const fetchSchedules = createAsyncThunk(
 );
 
 export const fetchWeeklySchedules = createAsyncThunk(
-  "timetable/fetchWeeklySchedules", 
+  "timetable/fetchWeeklySchedules",
   async ({ startDate, endDate }: { startDate: string; endDate: string }, { rejectWithValue }) => {
     try {
       const schedules = await timeTableService.getWeeklySchedules(startDate, endDate);
@@ -80,7 +80,7 @@ export const createSchedule = createAsyncThunk(
 );
 
 export const updateSchedule = createAsyncThunk(
-  "timetable/updateSchedule", 
+  "timetable/updateSchedule",
   async ({ id, data }: { id: number; data: Partial<Schedule> }, { rejectWithValue }) => {
     try {
       const updatedSchedule = await timeTableService.updateSchedule(id, data);
@@ -114,11 +114,17 @@ const timetableSlice = createSlice({
     setViewMode: (state, action: PayloadAction<TimetableViewMode>) => {
       state.viewMode = action.payload;
     },
-    setSelectedDate: (state, action: PayloadAction<Date>) => {
+    setSelectedDate: (state, action: PayloadAction<string>) => {
       state.selectedDate = action.payload;
     },
     setFilters: (state, action: PayloadAction<TimetableFilterData>) => {
-      state.filters = action.payload;
+      // Convert any Date objects in filters to ISO strings
+      const serializedFilters = {
+        ...action.payload,
+        start_date: action.payload.start_date,
+        end_date: action.payload.end_date,
+      };
+      state.filters = serializedFilters;
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
@@ -143,7 +149,7 @@ const timetableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch weekly schedules
       .addCase(fetchWeeklySchedules.pending, (state) => {
         state.loading = true;
@@ -157,7 +163,7 @@ const timetableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Fetch filtered schedules
       .addCase(fetchFilteredSchedules.pending, (state) => {
         state.loading = true;
@@ -171,7 +177,7 @@ const timetableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Search schedules
       .addCase(searchSchedules.pending, (state) => {
         state.loading = true;
@@ -185,7 +191,7 @@ const timetableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Create schedule
       .addCase(createSchedule.pending, (state) => {
         state.loading = true;
@@ -199,7 +205,7 @@ const timetableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Update schedule
       .addCase(updateSchedule.pending, (state) => {
         state.loading = true;
@@ -216,7 +222,7 @@ const timetableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Delete schedule
       .addCase(deleteSchedule.pending, (state) => {
         state.loading = true;

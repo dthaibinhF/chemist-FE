@@ -106,8 +106,9 @@ export const useTimetable = () => {
   );
 
   const handleSetSelectedDate = useCallback(
-    (date: Date) => {
-      dispatch(setSelectedDate(date));
+    (date: Date | string) => {
+      const dateString = date instanceof Date ? date.toISOString() : date;
+      dispatch(setSelectedDate(dateString));
     },
     [dispatch]
   );
@@ -153,7 +154,7 @@ export const useTimetable = () => {
     (date: Date) => {
       const targetDate = new Date(date);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       return schedules.filter(schedule => {
         const scheduleDate = new Date(schedule.start_time);
         scheduleDate.setHours(0, 0, 0, 0);

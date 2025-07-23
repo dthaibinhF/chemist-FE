@@ -12,7 +12,7 @@ interface TimeTableState {
   loading: boolean;
   error: string | null;
   viewMode: "weekly" | "daily";
-  selectedDate: Date;
+  selectedDate: string;
   filters: TimetableFilterData;
   searchQuery: string;
 }
@@ -23,7 +23,7 @@ const initialState: TimeTableState = {
   loading: false,
   error: null,
   viewMode: "weekly",
-  selectedDate: new Date(),
+  selectedDate: new Date().toISOString(),
   filters: {},
   searchQuery: "",
 };
@@ -152,7 +152,7 @@ export const timeTableSlice = createSlice({
     setViewMode: (state, action: PayloadAction<"weekly" | "daily">) => {
       state.viewMode = action.payload;
     },
-    setSelectedDate: (state, action: PayloadAction<Date>) => {
+    setSelectedDate: (state, action: PayloadAction<string>) => {
       state.selectedDate = action.payload;
     },
     setFilters: (state, action: PayloadAction<TimetableFilterData>) => {

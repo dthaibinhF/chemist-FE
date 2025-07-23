@@ -8,6 +8,7 @@ import { DataSelect } from '@/components/common/data-select';
 import { FeeSelect } from '@/components/features/fee-select';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
     Form,
     FormControl,
@@ -28,11 +29,12 @@ import {
 import { useGrade } from '@/hooks';
 import { useAcademicYear } from '@/hooks/useAcademicYear';
 import { useFee } from '@/hooks/useFee';
-import type { Group } from '@/types/api.types';
+import type { Group, GroupSchedule } from '@/types/api.types';
 import { Edit } from 'lucide-react';
 
 import { useGroup } from '@/hooks/useGroup';
 import { FormAddGroupSchedule } from './form-add-group-schedule';
+import { convertUtcTimeToVietnamString, convertVietnamTimeToUtcString } from '@/utils/timezone-utils';
 
 // Days of the week for the select dropdown
 const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -48,17 +50,19 @@ const GroupSchema = z.object({
     group_schedules: z.array(
         z.object({
             day_of_week: z.enum(daysOfWeek, { message: 'Hãy chọn ngày trong tuần' }),
-            start_time: z.iso.time({ precision: 0 }),
-            end_time: z.iso.time({ precision: 0 }),
+            start_time: z.string().min(1, { message: 'Hãy chọn thời gian bắt đầu' }),
+            end_time: z.string().min(1, { message: 'Hãy chọn thời gian kết thúc' }),
+            room_id: z.number().min(1, { message: 'Hãy chọn phòng học' }),
         })
     ),
 });
 
 interface GroupDialogEditProps {
     group: Group;
+    variant?: 'button' | 'dropdown';
 }
 
-const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
+const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) => {
     const [open, setOpen] = useState(false);
     const { handleUpdateGroup, loading } = useGroup();
     const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
@@ -71,24 +75,26 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
 
 
     // Convert group schedules to form format
-    const convertSchedulesToForm = (schedules?: any[]) => {
+    const convertSchedulesToForm = (schedules?: GroupSchedule[]) => {
         if (!schedules || schedules.length === 0) {
             return [
                 {
-                    day_of_week: 'MONDAY',
-                    start_time: '00:00:00',
-                    end_time: '00:00:00',
+                    day_of_week: 'MONDAY' as const,
+                    start_time: '08:00:00',
+                    end_time: '10:00:00',
+                    room_id: 0,
                 },
             ];
         }
 
         return schedules.map((schedule) => ({
             day_of_week: schedule.day_of_week,
-            start_time: schedule.start_time,
-            end_time: schedule.end_time,
+            // Convert UTC times from server to Vietnam local time for form display
+            start_time: convertUtcTimeToVietnamString(schedule.start_time),
+            end_time: convertUtcTimeToVietnamString(schedule.end_time),
+            room_id: schedule.room_id || 0,
         }));
     };
-
     const form = useForm<z.infer<typeof GroupSchema>>({
         resolver: zodResolver(GroupSchema),
         defaultValues: {
@@ -130,8 +136,10 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
                 grade_id: data.grade_id,
                 group_schedules: data.group_schedules.map((schedule) => ({
                     day_of_week: schedule.day_of_week,
-                    start_time: schedule.start_time,
-                    end_time: schedule.end_time,
+                    // Convert Vietnam local times from form to UTC for server
+                    start_time: convertVietnamTimeToUtcString(schedule.start_time),
+                    end_time: convertVietnamTimeToUtcString(schedule.end_time),
+                    room_id: schedule.room_id,
                 })),
             };
 
@@ -147,14 +155,21 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
     const isLoading = loading || loadingGrades || loadingAcademicYears || loadingFees;
 
     return (
-        <Dialog >
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2 px-4 py-2" >
-                    <Edit className="size-4" />
-                    Chỉnh sửa
-                </Button>
+                {variant === 'dropdown' ? (
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Chỉnh sửa
+                    </DropdownMenuItem>
+                ) : (
+                    <Button variant="outline" className="flex items-center gap-2 px-4 py-2" >
+                        <Edit className="size-4" />
+                        Chỉnh sửa
+                    </Button>
+                )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Chỉnh sửa nhóm</DialogTitle>
                     <DialogDescription>Cập nhật thông tin nhóm {group.name}.</DialogDescription>
@@ -184,7 +199,7 @@ const GroupDialogEdit = ({ group }: GroupDialogEditProps) => {
                                 )}
                             />
 
-                            <div className="grid grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                 <FormField
                                     control={form.control}
                                     name="level"

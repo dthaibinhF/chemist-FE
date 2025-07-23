@@ -146,9 +146,7 @@ const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
               <Eye className="mr-2 h-4 w-4" />
               Xem chi tiết
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <GroupDialogEdit group={row.original} />
-            </DropdownMenuItem>
+            <GroupDialogEdit group={row.original} variant="dropdown" />
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => deleteGroup(row.original)}

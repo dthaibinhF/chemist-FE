@@ -19,10 +19,10 @@ export type ScheduleFormData = z.infer<typeof scheduleFormSchema>;
 // Timetable filter schema
 export const timetableFilterSchema = z.object({
   group_id: z.number().optional(),
-  teacher_id: z.number().optional(), 
+  teacher_id: z.number().optional(),
   room_id: z.number().optional(),
-  start_date: z.coerce.date().optional(),
-  end_date: z.coerce.date().optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
   delivery_mode: z.string().optional(),
 });
 
