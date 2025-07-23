@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 
 import { useTimetable } from "../hooks/useTimetable";
-import { usePermissions } from "../hooks/usePermissions";
 import { ScheduleForm } from "./schedule-form";
 import type { ScheduleFormData } from "../schemas/timetable.schema";
 
@@ -29,7 +28,6 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
     schedule, 
     loading 
   } = useTimetable();
-  const { checkScheduleAccess } = usePermissions();
 
   // Load schedule data when dialog opens
   useEffect(() => {
@@ -65,25 +63,6 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
     onOpenChange(false);
   };
 
-  // Check permissions for this specific schedule
-  const scheduleAccess = checkScheduleAccess(schedule);
-  
-  if (!scheduleAccess.canEdit) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Không có quyền truy cập</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
-              Bạn không có quyền chỉnh sửa lịch học này.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

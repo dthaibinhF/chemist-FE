@@ -13,6 +13,7 @@ import {
   createSchedule,
   updateSchedule,
   deleteSchedule,
+  generateWeeklySchedule,
   setViewMode,
   setSelectedDate,
   setFilters,
@@ -85,6 +86,13 @@ export const useTimetable = () => {
   const handleDeleteSchedule = useCallback(
     (id: number) => {
       return dispatch(deleteSchedule(id));
+    },
+    [dispatch]
+  );
+
+  const handleGenerateWeeklySchedule = useCallback(
+    (groupId: number, startDate: string, endDate: string) => {
+      return dispatch(generateWeeklySchedule({ groupId, startDate, endDate }));
     },
     [dispatch]
   );
@@ -191,6 +199,7 @@ export const useTimetable = () => {
     handleCreateSchedule,
     handleUpdateSchedule,
     handleDeleteSchedule,
+    handleGenerateWeeklySchedule,
 
     // UI state actions
     handleSetViewMode,

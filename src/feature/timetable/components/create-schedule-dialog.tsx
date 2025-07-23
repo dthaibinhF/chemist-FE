@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 
 import { useTimetable } from "../hooks/useTimetable";
-import { usePermissions } from "../hooks/usePermissions";
 import { ScheduleForm } from "./schedule-form";
 import type { ScheduleFormData } from "../schemas/timetable.schema";
 
@@ -22,7 +21,6 @@ export const CreateScheduleDialog: React.FC<CreateScheduleDialogProps> = ({
   onOpenChange,
 }) => {
   const { handleCreateSchedule, loading } = useTimetable();
-  const { hasPermission } = usePermissions();
 
   const handleSubmit = async (data: ScheduleFormData) => {
     try {
@@ -46,10 +44,6 @@ export const CreateScheduleDialog: React.FC<CreateScheduleDialogProps> = ({
     }
   };
 
-  // Check if user has permission to create schedules
-  if (!hasPermission('canCreate')) {
-    return null;
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

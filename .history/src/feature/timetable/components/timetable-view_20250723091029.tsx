@@ -112,17 +112,10 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     end_date: Date;
   }) => {
     try {
-      // Format dates to start/end of day for OffsetDateTime compatibility
-      const startDate = new Date(data.start_date);
-      startDate.setHours(0, 0, 0, 0);
-      
-      const endDate = new Date(data.end_date);
-      endDate.setHours(23, 59, 59, 999);
-      
       await handleGenerateWeeklySchedule(
         data.group_id,
-        startDate.toISOString(),
-        endDate.toISOString()
+        data.start_date.toISOString(),
+        data.end_date.toISOString()
       );
       // Refresh schedules after generation
       handleFetchSchedules();

@@ -1,6 +1,7 @@
 export { ScheduleForm } from "./schedule-form";
 export { CreateScheduleDialog } from "./create-schedule-dialog";
 export { EditScheduleDialog } from "./edit-schedule-dialog";
+export { GenerateWeeklyScheduleDialog } from "./generate-weekly-schedule-dialog";
 export { PermissionGuard, AdminOnly, TeacherAndAdminOnly, ViewOnlyGuard } from "./permission-guard";
 export { EventCard } from "./event-card";
 export { WeeklyCalendar } from "./weekly-calendar";

@@ -42,7 +42,7 @@ export const fetchSchedules = createAsyncThunk(
 );
 
 export const fetchWeeklySchedules = createAsyncThunk(
-  "timeTable/fetchWeeklySchedules",
+  "timeTable/fetchWeeklySchedules", 
   async ({ startDate, endDate }: { startDate: string; endDate: string }, { rejectWithValue }) => {
     try {
       const schedules = await timeTableService.getWeeklySchedules(startDate, endDate);
@@ -104,7 +104,7 @@ export const createSchedule = createAsyncThunk(
 );
 
 export const updateSchedule = createAsyncThunk(
-  "timeTable/updateSchedule",
+  "timeTable/updateSchedule", 
   async ({ id, data }: { id: number; data: Partial<Schedule> }, { rejectWithValue }) => {
     try {
       const updatedSchedule = await timeTableService.updateSchedule(id, data);
@@ -181,7 +181,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Fetch weekly schedules
       .addCase(fetchWeeklySchedules.pending, (state) => {
         state.loading = true;
@@ -195,7 +195,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Fetch filtered schedules
       .addCase(fetchFilteredSchedules.pending, (state) => {
         state.loading = true;
@@ -209,7 +209,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Search schedules
       .addCase(searchSchedules.pending, (state) => {
         state.loading = true;
@@ -223,7 +223,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Fetch single schedule
       .addCase(fetchSchedule.pending, (state) => {
         state.loading = true;
@@ -237,7 +237,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Create schedule
       .addCase(createSchedule.pending, (state) => {
         state.loading = true;
@@ -251,7 +251,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Update schedule
       .addCase(updateSchedule.pending, (state) => {
         state.loading = true;
@@ -268,7 +268,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Delete schedule
       .addCase(deleteSchedule.pending, (state) => {
         state.loading = true;
@@ -282,7 +282,7 @@ export const timeTableSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
+      
       // Generate weekly schedule
       .addCase(generateWeeklySchedule.pending, (state) => {
         state.loading = true;
