@@ -2,24 +2,12 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import { toast } from "sonner";
 
 import type { Schedule } from "@/types/api.types";
-import type { TimetableFilterData, TimetableSearchData } from "@/feature/timetable/schemas/timetable.schema";
+import type { TimetableFilterData, TimetableSearchData } from "../schemas/timetable.schema";
+import type { TimetableState, TimetableViewMode } from "../types/timetable.types";
 import { timeTableService } from "@/service/time-table.service";
 
-// Extended state interface with timetable-specific features
-interface TimeTableState {
-  schedules: Schedule[];
-  schedule: Schedule | null;
-  loading: boolean;
-  error: string | null;
-  viewMode: "weekly" | "daily";
-  selectedDate: Date;
-  filters: TimetableFilterData;
-  searchQuery: string;
-}
-
-const initialState: TimeTableState = {
+const initialState: TimetableState = {
   schedules: [],
-  schedule: null,
   loading: false,
   error: null,
   viewMode: "weekly",
@@ -28,9 +16,9 @@ const initialState: TimeTableState = {
   searchQuery: "",
 };
 
-// Enhanced async thunks
+// Async thunks
 export const fetchSchedules = createAsyncThunk(
-  "timeTable/fetchSchedules",
+  "timetable/fetchSchedules",
   async (_, { rejectWithValue }) => {
     try {
       const schedules = await timeTableService.getAllSchedules();
@@ -42,7 +30,7 @@ export const fetchSchedules = createAsyncThunk(
 );
 
 export const fetchWeeklySchedules = createAsyncThunk(
-  "timeTable/fetchWeeklySchedules", 
+  "timetable/fetchWeeklySchedules", 
   async ({ startDate, endDate }: { startDate: string; endDate: string }, { rejectWithValue }) => {
     try {
       const schedules = await timeTableService.getWeeklySchedules(startDate, endDate);
@@ -54,7 +42,7 @@ export const fetchWeeklySchedules = createAsyncThunk(
 );
 
 export const fetchFilteredSchedules = createAsyncThunk(
-  "timeTable/fetchFilteredSchedules",
+  "timetable/fetchFilteredSchedules",
   async (filters: TimetableFilterData, { rejectWithValue }) => {
     try {
       const schedules = await timeTableService.getFilteredSchedules(filters);
@@ -66,7 +54,7 @@ export const fetchFilteredSchedules = createAsyncThunk(
 );
 
 export const searchSchedules = createAsyncThunk(
-  "timeTable/searchSchedules",
+  "timetable/searchSchedules",
   async (searchData: TimetableSearchData, { rejectWithValue }) => {
     try {
       const schedules = await timeTableService.searchSchedules(searchData);
@@ -77,20 +65,8 @@ export const searchSchedules = createAsyncThunk(
   }
 );
 
-export const fetchSchedule = createAsyncThunk(
-  "timeTable/fetchSchedule",
-  async (id: number, { rejectWithValue }) => {
-    try {
-      const schedule = await timeTableService.getScheduleById(id);
-      return schedule;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Không thể tải lịch học");
-    }
-  }
-);
-
 export const createSchedule = createAsyncThunk(
-  "timeTable/createSchedule",
+  "timetable/createSchedule",
   async (schedule: Omit<Schedule, 'id' | 'create_at' | 'update_at' | 'end_at'>, { rejectWithValue }) => {
     try {
       const newSchedule = await timeTableService.createSchedule(schedule);
@@ -104,7 +80,7 @@ export const createSchedule = createAsyncThunk(
 );
 
 export const updateSchedule = createAsyncThunk(
-  "timeTable/updateSchedule", 
+  "timetable/updateSchedule", 
   async ({ id, data }: { id: number; data: Partial<Schedule> }, { rejectWithValue }) => {
     try {
       const updatedSchedule = await timeTableService.updateSchedule(id, data);
@@ -118,7 +94,7 @@ export const updateSchedule = createAsyncThunk(
 );
 
 export const deleteSchedule = createAsyncThunk(
-  "timeTable/deleteSchedule",
+  "timetable/deleteSchedule",
   async (id: number, { rejectWithValue }) => {
     try {
       await timeTableService.deleteSchedule(id);
@@ -131,11 +107,11 @@ export const deleteSchedule = createAsyncThunk(
   }
 );
 
-export const timeTableSlice = createSlice({
-  name: "timeTable",
+const timetableSlice = createSlice({
+  name: "timetable",
   initialState,
   reducers: {
-    setViewMode: (state, action: PayloadAction<"weekly" | "daily">) => {
+    setViewMode: (state, action: PayloadAction<TimetableViewMode>) => {
       state.viewMode = action.payload;
     },
     setSelectedDate: (state, action: PayloadAction<Date>) => {
@@ -210,20 +186,6 @@ export const timeTableSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Fetch single schedule
-      .addCase(fetchSchedule.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchSchedule.fulfilled, (state, action) => {
-        state.loading = false;
-        state.schedule = action.payload;
-      })
-      .addCase(fetchSchedule.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      
       // Create schedule
       .addCase(createSchedule.pending, (state) => {
         state.loading = true;
@@ -278,24 +240,6 @@ export const {
   setSearchQuery,
   clearError,
   resetState,
-} = timeTableSlice.actions;
+} = timetableSlice.actions;
 
-export default timeTableSlice.reducer;
-
-// Enhanced selectors
-export const selectSchedules = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.schedules;
-export const selectSchedule = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.schedule;
-export const selectLoading = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.loading;
-export const selectError = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.error;
-export const selectViewMode = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.viewMode;
-export const selectSelectedDate = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.selectedDate;
-export const selectFilters = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.filters;
-export const selectSearchQuery = (state: { timeTable: TimeTableState }) =>
-  state.timeTable.searchQuery;
+export default timetableSlice.reducer;
