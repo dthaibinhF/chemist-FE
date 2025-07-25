@@ -9,6 +9,7 @@ export { groupSessionsService } from "./group-sessions.service";
 export { paymentService } from "./payment.service";
 export { roleService } from "./role.service";
 export { roomService } from "./room.service";
+export { salaryService } from "./salary.service";
 export { schoolClassService } from "./school-class.service";
 export { schoolService } from "./school.service";
 export { studentService } from "./student.service";
@@ -28,11 +29,17 @@ export type {
   PaginatedResponse,
   Role,
   Room,
+  SalaryConfigurationDTO,
+  SalaryCalculationParams,
+  SalaryHistoryParams,
+  SalarySummariesParams,
+  SalaryType,
   Schedule,
   School,
   SchoolClass,
   Student,
   StudentSearchParams,
   Teacher,
+  TeacherMonthlySummary,
   TeacherSearchParams,
 } from "@/types/api.types";

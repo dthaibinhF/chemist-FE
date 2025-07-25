@@ -275,16 +275,47 @@ export interface PaginatedResponse<T> {
 }
 
 
-export interface TeacherMonthlySummary {
+// Salary System Types
+export enum SalaryType {
+  PER_LESSON = "PER_LESSON",
+  FIXED = "FIXED"
+}
+
+export interface TeacherMonthlySummary extends BaseDTO {
   teacher_id: number;
   teacher_name: string;
-  month: number;
-  year: number;
+  month: number; // 1-12
+  year: number; // 2020-2100
   scheduled_lessons: number;
   completed_lessons: number;
-  completion_rate: number;
+  completion_rate: number; // 0.0000-1.0000
   rate_per_lesson: number;
   base_salary: number;
   performance_bonus: number;
   total_salary: number;
+  created_at: string; // ISO datetime
+  updated_at: string; // ISO datetime
+}
+
+export interface SalaryConfigurationDTO {
+  salaryType: SalaryType;
+  baseRate: number;
+}
+
+export interface SalaryCalculationParams {
+  month: number; // 1-12
+  year: number; // 2020-2100
+}
+
+export interface SalaryHistoryParams {
+  fromYear: number;
+  fromMonth: number;
+  toYear: number;
+  toMonth: number;
+}
+
+export interface SalarySummariesParams {
+  page?: number;
+  size?: number;
+  sort?: string[];
 }

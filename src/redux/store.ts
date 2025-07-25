@@ -9,6 +9,7 @@ import feeReducer from "./slice/fee.slice";
 import gradeReducer from "./slice/grade.slice";
 import paymentReducer from "./slice/payment.slice";
 import roomReducer from "./slice/room.slice";
+import salaryReducer from "./slice/salary.slice";
 import schoolClassReducer from "./slice/school-class.slice";
 import schoolReducer from "./slice/school.slice";
 import teacherReducer from "./slice/teacher.slice";
@@ -25,9 +26,10 @@ export const store = configureStore({
     school: schoolReducer,
     schoolClass: schoolClassReducer,
     payment: paymentReducer,
+    room: roomReducer,
+    salary: salaryReducer,
     teacher: teacherReducer,
     timeTable: timeTableReducer,
-    room: roomReducer,
   },
 });
 
