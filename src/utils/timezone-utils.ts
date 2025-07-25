@@ -223,3 +223,86 @@ export const parseDateTimeLocalToUtc = (dateTimeLocalValue: string): Date => {
   const localDate = parseISO(dateTimeLocalValue);
   return fromZonedTime(localDate, VIETNAM_TIMEZONE);
 };
+
+/**
+ * Parse API OffsetDateTime (with +07:00 timezone) to JavaScript Date
+ * @param apiDateTime - API datetime string (e.g., "2025-07-25T08:00:00+07:00")
+ * @returns JavaScript Date object
+ */
+export const parseApiDateTime = (apiDateTime: string): Date => {
+  try {
+    if (!apiDateTime || typeof apiDateTime !== 'string') {
+      console.warn('Invalid API datetime provided:', apiDateTime);
+      return new Date(); // Fallback to current time
+    }
+
+    // Parse ISO string with timezone offset
+    return parseISO(apiDateTime);
+  } catch (error) {
+    console.error('Error parsing API datetime:', error, 'Input:', apiDateTime);
+    return new Date(); // Safe fallback
+  }
+};
+
+/**
+ * Format JavaScript Date for API submission (will be converted to +07:00 by server)
+ * @param date - JavaScript Date object
+ * @returns ISO string for API submission
+ */
+export const formatDateTimeForApi = (date: Date): string => {
+  try {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      console.warn('Invalid date provided to formatDateTimeForApi:', date);
+      return new Date().toISOString(); // Fallback to current time
+    }
+
+    return date.toISOString();
+  } catch (error) {
+    console.error('Error formatting date for API:', error, 'Input:', date);
+    return new Date().toISOString(); // Safe fallback
+  }
+};
+
+/**
+ * Convert API OffsetDateTime to datetime-local input format
+ * @param apiDateTime - API datetime string (e.g., "2025-07-25T08:00:00+07:00")
+ * @returns datetime-local compatible string (YYYY-MM-DDTHH:mm)
+ */
+export const formatApiDateTimeForInput = (apiDateTime: string): string => {
+  try {
+    if (!apiDateTime || typeof apiDateTime !== 'string') {
+      console.warn('Invalid API datetime provided to formatApiDateTimeForInput:', apiDateTime);
+      return format(new Date(), "yyyy-MM-dd'T'HH:mm"); // Fallback to current time
+    }
+
+    // Parse the API datetime (which includes timezone offset)
+    const date = parseApiDateTime(apiDateTime);
+
+    // Since the API already sends Vietnam time (+07:00), we just need to format it
+    // for the datetime-local input without further timezone conversion
+    return format(date, "yyyy-MM-dd'T'HH:mm");
+  } catch (error) {
+    console.error('Error formatting API datetime for input:', error, 'Input:', apiDateTime);
+    return format(new Date(), "yyyy-MM-dd'T'HH:mm"); // Safe fallback
+  }
+};
+
+/**
+ * Check if a datetime string is in API OffsetDateTime format
+ * @param dateTimeString - String to check
+ * @returns true if string appears to be API OffsetDateTime format
+ */
+export const isApiDateTimeFormat = (dateTimeString: string): boolean => {
+  try {
+    if (!dateTimeString || typeof dateTimeString !== 'string') {
+      return false;
+    }
+
+    // Check for timezone offset pattern (+XX:XX or Z)
+    const offsetPattern = /(\+\d{2}:\d{2}|Z)$/;
+    return offsetPattern.test(dateTimeString);
+  } catch (error) {
+    console.error('Error checking API datetime format:', error);
+    return false;
+  }
+};

@@ -29,12 +29,12 @@ import {
 import { useGrade } from '@/hooks';
 import { useAcademicYear } from '@/hooks/useAcademicYear';
 import { useFee } from '@/hooks/useFee';
+import { useRoom } from '@/hooks/useRoom';
 import type { Group, GroupSchedule } from '@/types/api.types';
 import { Edit } from 'lucide-react';
 
 import { useGroup } from '@/hooks/useGroup';
 import { FormAddGroupSchedule } from './form-add-group-schedule';
-import { convertUtcTimeToVietnamString, convertVietnamTimeToUtcString } from '@/utils/timezone-utils';
 
 // Days of the week for the select dropdown
 const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -67,6 +67,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
     const { handleUpdateGroup, loading } = useGroup();
     const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
     const { fees, handleFetchFees, loading: loadingFees } = useFee();
+    const { rooms, handleFetchRooms, loading: loadingRooms } = useRoom();
     const {
         academicYears,
         handleFetchAcademicYears,
@@ -87,13 +88,30 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
             ];
         }
 
-        return schedules.map((schedule) => ({
-            day_of_week: schedule.day_of_week,
-            // Convert UTC times from server to Vietnam local time for form display
-            start_time: convertUtcTimeToVietnamString(schedule.start_time),
-            end_time: convertUtcTimeToVietnamString(schedule.end_time),
-            room_id: schedule.room_id || 0,
-        }));
+        return schedules.map((schedule) => {
+            // Properly handle room_id - use room_id first, then fallback to room.id
+            let roomId = 0;
+            if (schedule.room_id) {
+                roomId = schedule.room_id;
+            } else if (schedule.room_name) {
+                roomId = schedule?.room_id || 0;
+            }
+
+            console.log('Converting schedule:', {
+                scheduleRoomId: schedule.room_id,
+                scheduleRoom: schedule.room_name,
+                finalRoomId: roomId
+            });
+
+            return {
+                day_of_week: schedule.day_of_week,
+                // GroupSchedule times are already in Vietnam local time (LocalTimeString)
+                // No conversion needed - use as-is
+                start_time: schedule.start_time,
+                end_time: schedule.end_time,
+                room_id: roomId,
+            };
+        });
     };
     const form = useForm<z.infer<typeof GroupSchema>>({
         resolver: zodResolver(GroupSchema),
@@ -109,21 +127,30 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
 
     useEffect(() => {
         if (open) {
+            // Load all required data first
             handleFetchGrades();
             handleFetchAcademicYears();
             handleFetchFees();
+            handleFetchRooms();
+        }
+    }, [open, handleFetchGrades, handleFetchAcademicYears, handleFetchFees, handleFetchRooms]);
 
-            // Reset form with current group data when dialog opens
-            form.reset({
+    // Reset form only after all data is loaded
+    useEffect(() => {
+        if (open && !loadingGrades && !loadingAcademicYears && !loadingFees && !loadingRooms) {
+            const formData = {
                 name: group.name || '',
                 level: group.level || 'REGULAR',
                 fee_id: group.fee_id || 0,
                 academic_year_id: group.academic_year_id || 0,
                 grade_id: group.grade_id || 0,
                 group_schedules: convertSchedulesToForm(group.group_schedules),
-            });
+            };
+
+            console.log('Resetting form with data:', formData);
+            form.reset(formData);
         }
-    }, [open, group, handleFetchGrades, handleFetchAcademicYears, handleFetchFees, form]);
+    }, [open, group, loadingGrades, loadingAcademicYears, loadingFees, loadingRooms, form]);
 
     const handleUpdateGroupForm = async (data: z.infer<typeof GroupSchema>) => {
         try {
@@ -136,9 +163,10 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
                 grade_id: data.grade_id,
                 group_schedules: data.group_schedules.map((schedule) => ({
                     day_of_week: schedule.day_of_week,
-                    // Convert Vietnam local times from form to UTC for server
-                    start_time: convertVietnamTimeToUtcString(schedule.start_time),
-                    end_time: convertVietnamTimeToUtcString(schedule.end_time),
+                    // GroupSchedule times should remain in Vietnam local time (LocalTimeString)
+                    // No conversion needed - send as-is
+                    start_time: schedule.start_time,
+                    end_time: schedule.end_time,
                     room_id: schedule.room_id,
                 })),
             };
@@ -152,7 +180,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
         }
     };
 
-    const isLoading = loading || loadingGrades || loadingAcademicYears || loadingFees;
+    const isLoading = loading || loadingGrades || loadingAcademicYears || loadingFees || loadingRooms;
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

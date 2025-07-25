@@ -16,6 +16,19 @@ export interface BaseDTO {
 export type UTCDateString = string;
 
 /**
+ * Local date string - dates from server in ISO format (e.g., "2024-01-15T08:00:00+07:00")
+ * Represents date in local Vietnam timezone (GMT+7)
+ */
+export type LocalDateString = string;
+
+/**
+ * API OffsetDateTime string - datetime from Schedule API with timezone offset
+ * Format: "2025-07-25T08:00:00+07:00" (ISO 8601 with timezone offset)
+ * Used for Schedule API which sends dates with explicit timezone information
+ */
+export type ApiOffsetDateTime = string;
+
+/**
  * UTC time string - time from server in HH:mm:ss format (e.g., "08:00:00")  
  * Represents time in UTC timezone, should be converted to local time for display
  */
@@ -84,18 +97,10 @@ export interface GroupSchedule extends BaseDTO {
   group_id?: number;
   group_name?: string;
   day_of_week: string;
-  /** 
-   * Start time in UTC format (HH:mm:ss) from server
-   * Use convertUtcTimeToVietnamString() to display in local time
-   */
-  start_time: UTCTimeString;
-  /** 
-   * End time in UTC format (HH:mm:ss) from server
-   * Use convertUtcTimeToVietnamString() to display in local time
-   */
-  end_time: UTCTimeString;
+  start_time: LocalTimeString;
+  end_time: LocalTimeString;
   room_id?: number;
-  room?: Room;
+  room_name?: string;
 }
 
 export interface Attendance extends BaseDTO {
@@ -122,8 +127,8 @@ export interface Teacher extends BaseDTO {
 export interface Schedule extends BaseDTO {
   group_id: number;
   group_name: string;
-  start_time: Date;
-  end_time: Date;
+  start_time: LocalDateString;
+  end_time: LocalDateString;
   delivery_mode: string;
   meeting_link: string;
   attendances: Attendance[];

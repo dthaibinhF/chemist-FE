@@ -4,12 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Calendar, MapPin, User, Clock } from "lucide-react";
 
 import type { CalendarEvent, WeekData } from "../types/timetable.types";
-import { 
-  generateWeekData, 
-  formatDate, 
-  formatTime, 
-  isToday, 
-  getWeekRange, 
+import {
+  generateWeekData,
+  formatDate,
+  formatTime,
+  isToday,
+  getWeekRange,
   navigateWeek,
   goToToday,
   isEventActive,
@@ -31,10 +31,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   onEventClick,
   loading = false,
 }) => {
+  // console.log(events);
+
   const weekData: WeekData = useMemo(
     () => generateWeekData(selectedWeek, events),
     [selectedWeek, events]
   );
+  console.log('weekData:', weekData);
 
   const handlePrevWeek = () => {
     onWeekChange(navigateWeek(selectedWeek, 'prev'));
@@ -82,7 +85,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       {/* Week Navigation */}
@@ -90,7 +92,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
         <h2 className="text-xl font-semibold text-gray-900">
           {getWeekRange(selectedWeek)}
         </h2>
-        
+
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={handleToday} size="sm">
             <Calendar className="w-4 h-4 mr-1" />
@@ -107,16 +109,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-2">
-        {weekData.days.map(({ date, events: dayEvents }, index) => (
-          <Card 
-            key={index} 
+        {weekData.days.map(({ date, events: dayEvents }, index) => {
+          return <Card
+            key={index}
             className={`min-h-[400px] ${isToday(date) ? 'ring-2 ring-blue-500' : ''}`}
           >
             <CardContent className="p-3">
               {/* Day Header */}
-              <div className={`text-center mb-3 pb-2 border-b ${
-                isToday(date) ? 'text-blue-600 font-semibold' : 'text-gray-600'
-              }`}>
+              <div className={`text-center mb-3 pb-2 border-b ${isToday(date) ? 'text-blue-600 font-semibold' : 'text-gray-600'
+                }`}>
                 <div className="text-sm font-medium">
                   {formatDate(date)}
                 </div>
@@ -126,6 +127,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                   </div>
                 )}
               </div>
+
 
               {/* Events */}
               <div className="space-y-2">
@@ -137,18 +139,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                   dayEvents.map((event) => (
                     <div
                       key={event.id}
-                      className={`p-2 rounded-md cursor-pointer transition-all hover:shadow-md ${
-                        event.color
-                      } ${
-                        isEventActive(event) ? 'ring-2 ring-green-400 shadow-lg' : ''
-                      }`}
+                      className={`p-2 rounded-md cursor-pointer transition-all hover:shadow-md ${event.color
+                        } ${isEventActive(event) ? 'ring-2 ring-green-400 shadow-lg' : ''
+                        }`}
                       onClick={() => handleEventClick(event)}
                     >
                       {/* Event Title */}
                       <div className="font-medium text-sm truncate mb-1">
                         {event.group_name}
                       </div>
-                      
+
                       {/* Event Time */}
                       <div className="flex items-center text-xs mb-1">
                         <Clock className="w-3 h-3 mr-1" />
@@ -174,15 +174,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
 
                       {/* Delivery Mode Indicator */}
                       <div className="mt-1 text-right">
-                        <span className={`text-xs px-1 py-0.5 rounded ${
-                          event.delivery_mode === 'ONLINE' 
-                            ? 'bg-green-100 text-green-800' 
-                            : event.delivery_mode === 'HYBRID'
+                        <span className={`text-xs px-1 py-0.5 rounded ${event.delivery_mode === 'ONLINE'
+                          ? 'bg-green-100 text-green-800'
+                          : event.delivery_mode === 'HYBRID'
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {event.delivery_mode === 'ONLINE' ? 'Online' : 
-                           event.delivery_mode === 'HYBRID' ? 'Hybrid' : 'Offline'}
+                          }`}>
+                          {event.delivery_mode === 'ONLINE' ? 'Online' :
+                            event.delivery_mode === 'HYBRID' ? 'Hybrid' : 'Offline'}
                         </span>
                       </div>
                     </div>
@@ -191,7 +190,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
               </div>
             </CardContent>
           </Card>
-        ))}
+        })}
       </div>
     </div>
   );

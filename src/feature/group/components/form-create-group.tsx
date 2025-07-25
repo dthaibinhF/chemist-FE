@@ -31,7 +31,6 @@ import type { Group } from '@/types/api.types';
 
 import { useGroup } from '@/hooks/useGroup';
 import { FormAddGroupSchedule } from './form-add-group-schedule';
-import { convertVietnamTimeToUtcString } from '@/utils/timezone-utils';
 
 // Days of the week for the select dropdown
 const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -103,9 +102,10 @@ export const FormCreateGroup = ({ onSuccess }: FormCreateGroupProps) => {
         grade_id: data.grade_id,
         group_schedules: data.group_schedules.map((schedule) => ({
           day_of_week: schedule.day_of_week,
-          // Convert Vietnam local times from form to UTC for server
-          start_time: convertVietnamTimeToUtcString(schedule.start_time),
-          end_time: convertVietnamTimeToUtcString(schedule.end_time),
+          // GroupSchedule times should remain in Vietnam local time (LocalTimeString)
+          // No conversion needed - send as-is
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
           room_id: schedule.room_id,
         })),
       };

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -27,6 +32,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 import { groupService } from "@/service/group.service";
 import type { Group } from "@/types/api.types";
@@ -34,11 +43,13 @@ import type { Group } from "@/types/api.types";
 // Schema for weekly schedule generation
 const generateWeeklyScheduleSchema = z.object({
   group_id: z.number().min(1, "Vui lòng chọn nhóm học"),
-  start_date: z.coerce.date(),
-  end_date: z.coerce.date(),
-}).refine((data) => data.end_date >= data.start_date, {
-  message: "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu",
-  path: ["end_date"],
+  date_range: z.object({
+    from: z.date({ required_error: "Vui lòng chọn ngày bắt đầu" }),
+    to: z.date({ required_error: "Vui lòng chọn ngày kết thúc" }),
+  }).refine((data) => data.to >= data.from, {
+    message: "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu",
+    path: ["to"],
+  }),
 });
 
 type GenerateWeeklyScheduleData = z.infer<typeof generateWeeklyScheduleSchema>;
@@ -46,7 +57,11 @@ type GenerateWeeklyScheduleData = z.infer<typeof generateWeeklyScheduleSchema>;
 interface GenerateWeeklyScheduleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGenerate: (data: GenerateWeeklyScheduleData) => Promise<void>;
+  onGenerate: (data: {
+    group_id: number;
+    start_date: Date;
+    end_date: Date;
+  }) => Promise<void>;
   loading?: boolean;
 }
 
@@ -63,12 +78,14 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
     resolver: zodResolver(generateWeeklyScheduleSchema),
     defaultValues: {
       group_id: 0,
-      start_date: new Date(),
-      end_date: (() => {
-        const date = new Date();
-        date.setDate(date.getDate() + 6); // Default to one week
-        return date;
-      })(),
+      date_range: {
+        from: new Date(),
+        to: (() => {
+          const date = new Date();
+          date.setDate(date.getDate() + 6); // Default to one week
+          return date;
+        })(),
+      },
     },
   });
 
@@ -92,7 +109,11 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
 
   const handleSubmit = async (data: GenerateWeeklyScheduleData) => {
     try {
-      await onGenerate(data);
+      await onGenerate({
+        group_id: data.group_id,
+        start_date: data.date_range.from,
+        end_date: data.date_range.to,
+      });
       onOpenChange(false);
       form.reset();
     } catch (error) {
@@ -105,13 +126,14 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
     form.reset();
   };
 
-  const formatDateForInput = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+  const formatDateDisplay = (date: Date | undefined): string => {
+    if (!date) return "Chọn ngày";
+    return format(date, "dd/MM/yyyy", { locale: vi });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Tạo lịch học tuần</DialogTitle>
           <DialogDescription>
@@ -154,43 +176,52 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
             />
 
             {/* Date Range */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="start_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ngày bắt đầu</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={formatDateForInput(field.value)}
-                        onChange={(e) => field.onChange(new Date(e.target.value))}
+            <FormField
+              control={form.control}
+              name="date_range"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Khoảng thời gian</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value?.from && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value?.from ? (
+                            field.value.to ? (
+                              `${formatDateDisplay(field.value.from)} - ${formatDateDisplay(field.value.to)}`
+                            ) : (
+                              formatDateDisplay(field.value.from)
+                            )
+                          ) : (
+                            "Chọn khoảng thời gian"
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        defaultMonth={field.value?.from}
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        numberOfMonths={2}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="end_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ngày kết thúc</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={formatDateForInput(field.value)}
-                        onChange={(e) => field.onChange(new Date(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Info Message */}
             <div className="bg-blue-50 p-3 rounded-md">

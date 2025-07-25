@@ -1,6 +1,6 @@
 import type { Schedule } from "@/types/api.types";
 import type { CalendarEvent, TimeSlot, WeekData } from "../types/timetable.types";
-import { utcToVietnamTime, getCurrentVietnamTime, formatUtcToVietnamTime, formatUtcToVietnamDate } from "@/utils/timezone-utils";
+import { utcToVietnamTime, getCurrentVietnamTime } from "@/utils/timezone-utils";
 
 // Generate color palette for group color-coding
 const GROUP_COLORS = [
@@ -31,13 +31,13 @@ export const getGroupColor = (groupId: number): typeof GROUP_COLORS[0] => {
 
 export const convertScheduleToEvent = (schedule: Schedule): CalendarEvent => {
   const color = getGroupColor(schedule.group_id);
-
+  console.log('schedule:', schedule);
   return {
     id: schedule.id || 0,
     title: schedule.group_name,
     // Convert UTC times from server to Vietnam local time for display
-    start: utcToVietnamTime(schedule.start_time),
-    end: utcToVietnamTime(schedule.end_time),
+    start: new Date(schedule.start_time),
+    end: new Date(schedule.end_time),
     group_name: schedule.group_name,
     teacher_name: schedule.teacher?.account?.name || "Chưa có giáo viên",
     room_name: schedule.room?.name || "Chưa có phòng",
@@ -101,6 +101,7 @@ export const isSameWeek = (date1: Date, date2: Date): boolean => {
 };
 
 export const generateWeekData = (weekStart: Date, events: CalendarEvent[]): WeekData => {
+  console.log('events in generateWeekData:', events);
   const weekEnd = getWeekEnd(weekStart);
   const days = [];
 

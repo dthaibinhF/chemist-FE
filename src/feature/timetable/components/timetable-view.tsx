@@ -39,6 +39,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
   } = useTimetable();
 
 
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [generateWeeklyDialogOpen, setGenerateWeeklyDialogOpen] = useState(false);
@@ -49,7 +50,6 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     () => schedules.map(convertScheduleToEvent),
     [schedules]
   );
-
   // Load schedules on component mount
   useEffect(() => {
     handleFetchSchedules();
@@ -113,20 +113,15 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     end_date: Date;
   }) => {
     try {
-      // Format dates to start/end of day for OffsetDateTime compatibility
-      const startDate = new Date(data.start_date);
-      startDate.setHours(0, 0, 0, 0);
-
-      const endDate = new Date(data.end_date);
-      endDate.setHours(23, 59, 59, 999);
-
-      console.log('startDate', startDate.toISOString());
-      console.log('endDate', endDate.toISOString());
+      // Format dates as YYYY-MM-DD for LocalDate backend compatibility
+      const formatDateForApi = (date: Date): string => {
+        return format(date, 'yyyy-MM-dd');
+      };
 
       await handleGenerateWeeklySchedule(
         data.group_id,
-        startDate.toISOString(),
-        endDate.toISOString()
+        formatDateForApi(data.start_date),
+        formatDateForApi(data.end_date)
       );
       // Refresh schedules after generation
       handleFetchSchedules();

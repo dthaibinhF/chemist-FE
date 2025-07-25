@@ -19,7 +19,6 @@ import { Search, Filter, X, Users, MapPin, User } from "lucide-react";
 
 import { groupService } from "@/service/group.service";
 import { roomService } from "@/service/room.service";
-import type { Group, Room } from "@/types/api.types";
 import type { TimetableFilterData } from "../schemas/timetable.schema";
 import type { FilterOptions } from "../types/timetable.types";
 
@@ -122,8 +121,11 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
   // Count active filters
   const activeFiltersCount = Object.values(filters).filter(Boolean).length + (searchQuery ? 1 : 0);
 
-  const formatDateForInput = (date?: Date): string => {
-    if (!date) return "";
+  const formatDateForInput = (date?: Date | string): string => {
+  if (!date) return "";
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
     return date.toISOString().split('T')[0];
   };
 
@@ -159,7 +161,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
       {activeFiltersCount > 0 && (
         <div className="flex items-center space-x-2 mb-4 flex-wrap gap-2">
           <span className="text-sm font-medium text-gray-700">Đang lọc:</span>
-          
+
           {searchQuery && (
             <Badge variant="secondary" className="flex items-center">
               <Search className="w-3 h-3 mr-1" />
@@ -174,7 +176,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
               </Button>
             </Badge>
           )}
-          
+
           {filters.group_id && (
             <Badge variant="secondary" className="flex items-center">
               <Users className="w-3 h-3 mr-1" />
@@ -189,7 +191,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
               </Button>
             </Badge>
           )}
-          
+
           {filters.room_id && (
             <Badge variant="secondary" className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />

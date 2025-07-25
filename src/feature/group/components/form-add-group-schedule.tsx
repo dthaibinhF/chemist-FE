@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Control } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';
 
@@ -15,8 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useRoom } from '@/hooks/useRoom';
-import { convertUtcTimeToVietnamString, convertVietnamTimeToUtcString } from '@/utils/timezone-utils';
+import RoomSelect from '@/components/features/room-select';
 
 const Days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
@@ -29,15 +28,10 @@ interface FormAddGroupSchedule {
 export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) => {
   const [mousePosition, setMousePosition] = useState({ x: 0 });
   const [isHover, setIsHover] = useState(false);
-  const { rooms, handleFetchRooms, loading: roomsLoading } = useRoom();
   const { fields, append, remove } = useFieldArray({
     control,
     name,
   });
-
-  useEffect(() => {
-    handleFetchRooms();
-  }, [handleFetchRooms]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -48,8 +42,8 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
   const handleAddSchedule = () => {
     append({
       day_of_week: 'MONDAY',
-      start_time: '08:00:00', // Default to 8 AM Vietnam time
-      end_time: '10:00:00',   // Default to 10 AM Vietnam time
+      start_time: '07:00:00', // Default to 7 AM Vietnam time
+      end_time: '09:00:00',   // Default to 09 AM Vietnam time
       room_id: 0,
     });
   };
@@ -143,23 +137,23 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
                 control={control}
                 name={`${name}[${index}].start_time`}
                 render={({ field }) => {
-                  // Convert UTC time from server to local time for display
-                  const displayValue = field.value ? 
-                    convertUtcTimeToVietnamString(field.value).substring(0, 5) : // HH:mm format for input
+                  // GroupSchedule times are already in Vietnam local time (LocalTimeString)
+                  // No conversion needed - use as-is and format for time input
+                  const displayValue = field.value ?
+                    field.value.substring(0, 5) : // Convert "HH:mm:ss" to "HH:mm" for time input
                     '08:00';
-                  
+
                   return (
                     <FormItem>
                       <FormLabel>Thời gian bắt đầu (GMT+7)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="time" 
+                        <Input
+                          type="time"
                           value={displayValue}
                           onChange={(e) => {
-                            // Convert local Vietnam time to UTC for storage
-                            const utcTime = convertVietnamTimeToUtcString(e.target.value + ':00');
-                            field.onChange(utcTime);
-                          }} 
+                            // Store as LocalTimeString - add seconds to match HH:mm:ss format
+                            field.onChange(e.target.value + ':00');
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -172,23 +166,23 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
                 control={control}
                 name={`${name}[${index}].end_time`}
                 render={({ field }) => {
-                  // Convert UTC time from server to local time for display
-                  const displayValue = field.value ? 
-                    convertUtcTimeToVietnamString(field.value).substring(0, 5) : // HH:mm format for input
+                  // GroupSchedule times are already in Vietnam local time (LocalTimeString)
+                  // No conversion needed - use as-is and format for time input
+                  const displayValue = field.value ?
+                    field.value.substring(0, 5) : // Convert "HH:mm:ss" to "HH:mm" for time input
                     '10:00';
-                  
+
                   return (
                     <FormItem>
                       <FormLabel>Thời gian tan học (GMT+7)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="time" 
+                        <Input
+                          type="time"
                           value={displayValue}
                           onChange={(e) => {
-                            // Convert local Vietnam time to UTC for storage
-                            const utcTime = convertVietnamTimeToUtcString(e.target.value + ':00');
-                            field.onChange(utcTime);
-                          }} 
+                            // Store as LocalTimeString - add seconds to match HH:mm:ss format
+                            field.onChange(e.target.value + ':00');
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -204,24 +198,11 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
                   <FormItem>
                     <FormLabel>Phòng học</FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={(value) => field.onChange(value ? Number(value) : '')}
-                        value={field.value?.toString() || ''}
-                        disabled={roomsLoading}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={roomsLoading ? "Đang tải..." : "Chọn phòng học"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {rooms.map((room) => (
-                              <SelectItem key={room.id} value={room.id?.toString() || ''}>
-                                {room.name} - {room.location}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                      <RoomSelect
+                        handleSelect={(value) => field.onChange(value)}
+                        value={field.value}
+                        placeholder="Chọn phòng học"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

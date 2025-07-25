@@ -19,11 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import RoomSelect from "@/components/features/room-select";
 
 import { groupService } from "@/service/group.service";
-import { roomService } from "@/service/room.service";
-import type { Group, Room, Teacher, Schedule } from "@/types/api.types";
+import type { Group, Teacher, Schedule } from "@/types/api.types";
 import { scheduleFormSchema, type ScheduleFormData } from "../schemas/timetable.schema";
+import {
+  formatApiDateTimeForInput,
+  parseDateTimeLocalToUtc,
+  formatDateTimeForApi
+} from "@/utils/timezone-utils";
 
 interface ScheduleFormProps {
   onSubmit: (data: ScheduleFormData) => Promise<void>;
@@ -39,7 +44,6 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
   onCancel,
 }) => {
   const [groups, setGroups] = useState<Group[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
   const [teachers] = useState<Teacher[]>([]); // TODO: Add teacher service
   const [loadingOptions, setLoadingOptions] = useState(true);
 
@@ -47,8 +51,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
     resolver: zodResolver(scheduleFormSchema),
     defaultValues: {
       group_id: initialData?.group_id || 0,
-      start_time: initialData?.start_time || new Date(),
-      end_time: initialData?.end_time || new Date(),
+      start_time: initialData?.start_time ? formatApiDateTimeForInput(initialData.start_time) : "",
+      end_time: initialData?.end_time ? formatApiDateTimeForInput(initialData.end_time) : "",
       delivery_mode: initialData?.delivery_mode || "",
       meeting_link: initialData?.meeting_link || "",
       teacher_id: initialData?.teacher?.account?.id || 0,
@@ -60,13 +64,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const [groupsData, roomsData] = await Promise.all([
-          groupService.getAllGroups(),
-          roomService.getAllRooms(),
-        ]);
-        
+        const groupsData = await groupService.getAllGroups();
         setGroups(groupsData);
-        setRooms(roomsData);
       } catch (error) {
         console.error("Lỗi khi tải danh sách:", error);
       } finally {
@@ -85,10 +84,13 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
     }
   };
 
-  const formatDateTimeLocal = (date: Date) => {
-    const d = new Date(date);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
+  // Helper function to convert datetime-local input to API format  
+  const formatInputForApi = (dateTimeLocalValue: string): string => {
+    if (!dateTimeLocalValue) return "";
+
+    // Parse the datetime-local input and convert to UTC for API
+    const utcDate = parseDateTimeLocalToUtc(dateTimeLocalValue);
+    return formatDateTimeForApi(utcDate);
   };
 
   if (loadingOptions) {
@@ -110,7 +112,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nhóm học</FormLabel>
-                <Select 
+                <Select
                   onValueChange={(value) => field.onChange(parseInt(value))}
                   defaultValue={field.value?.toString()}
                 >
@@ -139,23 +141,13 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Phòng học</FormLabel>
-                <Select 
-                  onValueChange={(value) => field.onChange(parseInt(value))}
-                  defaultValue={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn phòng học" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {rooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id?.toString() || ""}>
-                        {room.name} - {room.location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <RoomSelect
+                    handleSelect={(value) => field.onChange(value)}
+                    value={field.value}
+                    placeholder="Chọn phòng học"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -168,7 +160,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Giáo viên</FormLabel>
-                <Select 
+                <Select
                   onValueChange={(value) => field.onChange(parseInt(value))}
                   defaultValue={field.value?.toString()}
                 >
@@ -224,8 +216,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
                 <FormControl>
                   <Input
                     type="datetime-local"
-                    value={formatDateTimeLocal(field.value)}
-                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -243,8 +235,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
                 <FormControl>
                   <Input
                     type="datetime-local"
-                    value={formatDateTimeLocal(field.value)}
-                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />

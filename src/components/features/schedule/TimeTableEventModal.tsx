@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRoom } from "@/hooks/useRoom";
+import RoomSelect from "@/components/features/room-select";
 import { useTimeTable } from "@/hooks/useTimeTable";
 import { cn } from "@/lib/utils";
 import type { Room, Schedule, Teacher } from "@/types/api.types";
@@ -73,14 +73,10 @@ const TimeTableEventModal = ({
   onSubmit,
 }: TimeTableEventModalProps) => {
   const { schedules } = useTimeTable();
-  const { rooms, handleFetchRooms } = useRoom();
   const [date, setDate] = useState<Date | undefined>(
     event?.start_time ? utcToVietnamTime(event.start_time) : undefined
   );
 
-  useEffect(() => {
-    handleFetchRooms();
-  }, [handleFetchRooms]);
 
   // Get unique teachers from schedules
   const teachers = schedules
@@ -228,26 +224,13 @@ const TimeTableEventModal = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a room" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {rooms?.map((room: Room) => (
-                        <SelectItem
-                          key={room.id}
-                          value={room.id?.toString() || ""}
-                        >
-                          {room.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <RoomSelect
+                      handleSelect={(value) => field.onChange(value)}
+                      value={field.value}
+                      placeholder="Select a room"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

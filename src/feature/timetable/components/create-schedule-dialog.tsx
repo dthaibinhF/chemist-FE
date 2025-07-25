@@ -10,6 +10,7 @@ import {
 import { useTimetable } from "../hooks/useTimetable";
 import { ScheduleForm } from "./schedule-form";
 import type { ScheduleFormData } from "../schemas/timetable.schema";
+import { parseDateTimeLocalToUtc, formatDateTimeForApi } from "@/utils/timezone-utils";
 
 interface CreateScheduleDialogProps {
   open: boolean;
@@ -24,11 +25,15 @@ export const CreateScheduleDialog: React.FC<CreateScheduleDialogProps> = ({
 
   const handleSubmit = async (data: ScheduleFormData) => {
     try {
+      // Convert datetime-local strings to proper API format
+      const startTimeUtc = parseDateTimeLocalToUtc(data.start_time);
+      const endTimeUtc = parseDateTimeLocalToUtc(data.end_time);
+      
       // Transform form data to match API expectations
       const scheduleData = {
         group_id: data.group_id,
-        start_time: data.start_time,
-        end_time: data.end_time,
+        start_time: formatDateTimeForApi(startTimeUtc),
+        end_time: formatDateTimeForApi(endTimeUtc),
         delivery_mode: data.delivery_mode,
         meeting_link: data.meeting_link || "",
         // Note: teacher_id and room_id will need to be handled based on API structure
