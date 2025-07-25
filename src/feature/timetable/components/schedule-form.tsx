@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import RoomSelect from "@/components/features/room-select";
+import TeacherSelect from "@/components/features/teacher-select";
 
 import { groupService } from "@/service/group.service";
 import type { Group, Teacher, Schedule } from "@/types/api.types";
@@ -44,7 +45,6 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
   onCancel,
 }) => {
   const [groups, setGroups] = useState<Group[]>([]);
-  const [teachers] = useState<Teacher[]>([]); // TODO: Add teacher service
   const [loadingOptions, setLoadingOptions] = useState(true);
 
   const form = useForm<ScheduleFormData>({
@@ -55,7 +55,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
       end_time: initialData?.end_time ? formatApiDateTimeForInput(initialData.end_time) : "",
       delivery_mode: initialData?.delivery_mode || "",
       meeting_link: initialData?.meeting_link || "",
-      teacher_id: initialData?.teacher?.account?.id || 0,
+      teacher_id: initialData?.teacher_id || 0,
       room_id: initialData?.room?.id || 0,
     },
   });
@@ -84,15 +84,6 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
     }
   };
 
-  // Helper function to convert datetime-local input to API format  
-  const formatInputForApi = (dateTimeLocalValue: string): string => {
-    if (!dateTimeLocalValue) return "";
-
-    // Parse the datetime-local input and convert to UTC for API
-    const utcDate = parseDateTimeLocalToUtc(dateTimeLocalValue);
-    return formatDateTimeForApi(utcDate);
-  };
-
   if (loadingOptions) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -114,10 +105,10 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
                 <FormLabel>Nhóm học</FormLabel>
                 <Select
                   onValueChange={(value) => field.onChange(parseInt(value))}
-                  defaultValue={field.value?.toString()}
+                  value={field.value?.toString()}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Chọn nhóm học" />
                     </SelectTrigger>
                   </FormControl>
@@ -160,23 +151,13 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Giáo viên</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(parseInt(value))}
-                  defaultValue={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn giáo viên" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {teachers.map((teacher) => (
-                      <SelectItem key={teacher.id} value={teacher.account?.id?.toString() || ""}>
-                        {teacher.account?.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <TeacherSelect
+                    handleSelect={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                    placeholder="Chọn giáo viên"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -191,7 +172,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
                 <FormLabel>Hình thức học</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Chọn hình thức" />
                     </SelectTrigger>
                   </FormControl>
@@ -211,7 +192,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             control={form.control}
             name="start_time"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2">
                 <FormLabel>Thời gian bắt đầu</FormLabel>
                 <FormControl>
                   <Input
@@ -230,7 +211,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             control={form.control}
             name="end_time"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2">
                 <FormLabel>Thời gian kết thúc</FormLabel>
                 <FormControl>
                   <Input

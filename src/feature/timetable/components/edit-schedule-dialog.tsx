@@ -11,6 +11,7 @@ import { useTimetable } from "../hooks/useTimetable";
 import { ScheduleForm } from "./schedule-form";
 import type { ScheduleFormData } from "../schemas/timetable.schema";
 import { parseDateTimeLocalToUtc, formatDateTimeForApi } from "@/utils/timezone-utils";
+import { toast } from "sonner";
 
 interface EditScheduleDialogProps {
   open: boolean;
@@ -23,12 +24,13 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
   onOpenChange,
   scheduleId,
 }) => {
-  const { 
-    handleUpdateSchedule, 
-    handleFetchSchedule, 
-    schedule, 
-    loading 
+  const {
+    handleUpdateSchedule,
+    handleFetchSchedule,
+    schedule,
+    loading
   } = useTimetable();
+
 
   // Load schedule data when dialog opens
   useEffect(() => {
@@ -44,7 +46,7 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
       // Convert datetime-local strings to proper API format
       const startTimeUtc = parseDateTimeLocalToUtc(data.start_time);
       const endTimeUtc = parseDateTimeLocalToUtc(data.end_time);
-      
+
       // Transform form data to match API expectations
       const scheduleData = {
         group_id: data.group_id,
@@ -52,15 +54,14 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
         end_time: formatDateTimeForApi(endTimeUtc),
         delivery_mode: data.delivery_mode,
         meeting_link: data.meeting_link || "",
-        // Note: teacher_id and room_id will need to be handled based on API structure
-        teacher: { account: { id: data.teacher_id } },
+        teacher_id: data.teacher_id,
         room: { id: data.room_id },
       };
 
       await handleUpdateSchedule(scheduleId, scheduleData as any);
       onOpenChange(false);
     } catch (error) {
-      console.error("Lỗi khi cập nhật lịch học:", error);
+      toast.error(error instanceof Error ? error.message : "Lỗi khi cập nhật lịch học");
     }
   };
 

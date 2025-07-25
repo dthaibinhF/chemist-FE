@@ -133,7 +133,7 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Tạo lịch học tuần</DialogTitle>
           <DialogDescription>
@@ -142,21 +142,21 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             {/* Group Selection */}
             <FormField
               control={form.control}
               name="group_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nhóm học</FormLabel>
+                  <FormLabel className="text-sm font-medium">Nhóm học</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
                     defaultValue={field.value?.toString()}
                     disabled={loadingGroups}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full h-11">
                         <SelectValue
                           placeholder={loadingGroups ? "Đang tải..." : "Chọn nhóm học"}
                         />
@@ -180,18 +180,19 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
               control={form.control}
               name="date_range"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Khoảng thời gian</FormLabel>
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">Khoảng thời gian</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
+                            "w-full h-11 justify-start text-left font-normal",
                             !field.value?.from && "text-muted-foreground"
                           )}
                         >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
                           {field.value?.from ? (
                             field.value.to ? (
                               `${formatDateDisplay(field.value.from)} - ${formatDateDisplay(field.value.to)}`
@@ -201,7 +202,6 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
                           ) : (
                             "Chọn khoảng thời gian"
                           )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -224,21 +224,22 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
             />
 
             {/* Info Message */}
-            <div className="bg-blue-50 p-3 rounded-md">
-              <p className="text-sm text-blue-700">
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <p className="text-sm text-blue-800">
                 <strong>Lưu ý:</strong> Tính năng này sẽ tự động tạo lịch học cho nhóm được chọn
                 dựa trên lịch trình template của nhóm trong khoảng thời gian đã chọn.
               </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={handleClose}>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={handleClose} className="min-w-[80px]">
                 Hủy
               </Button>
               <Button
                 type="submit"
                 disabled={loading || loadingGroups}
+                className="min-w-[120px]"
               >
                 {loading ? "Đang tạo..." : "Tạo lịch học"}
               </Button>

@@ -31,7 +31,6 @@ export const getGroupColor = (groupId: number): typeof GROUP_COLORS[0] => {
 
 export const convertScheduleToEvent = (schedule: Schedule): CalendarEvent => {
   const color = getGroupColor(schedule.group_id);
-  console.log('schedule:', schedule);
   return {
     id: schedule.id || 0,
     title: schedule.group_name,
@@ -39,7 +38,7 @@ export const convertScheduleToEvent = (schedule: Schedule): CalendarEvent => {
     start: new Date(schedule.start_time),
     end: new Date(schedule.end_time),
     group_name: schedule.group_name,
-    teacher_name: schedule.teacher?.account?.name || "Chưa có giáo viên",
+    teacher_name: schedule.teacher_name || "Chưa có giáo viên",
     room_name: schedule.room?.name || "Chưa có phòng",
     delivery_mode: schedule.delivery_mode,
     meeting_link: schedule.meeting_link,

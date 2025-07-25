@@ -129,12 +129,7 @@ const RoomSelect: FC<RoomSelectProps> = ({ handleSelect, value, placeholder = "C
                 className="w-full"
                 disabled={disabled}
             />
-            {/* Temporary debug info */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-400 mt-1">
-                    Debug: value={value}, selectedValue={selectedValue}, rooms={rooms.length}
-                </div>
-            )}
+
             <Dialog open={isNewRoomDialogOpen} onOpenChange={setIsNewRoomDialogOpen}>
                 <DialogContent aria-describedby="dialog-description">
                     <DialogHeader>

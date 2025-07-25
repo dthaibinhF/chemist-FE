@@ -19,8 +19,10 @@ import { Search, Filter, X, Users, MapPin, User } from "lucide-react";
 
 import { groupService } from "@/service/group.service";
 import { roomService } from "@/service/room.service";
+import { teacherService } from "@/service/teacher.service";
 import type { TimetableFilterData } from "../schemas/timetable.schema";
 import type { FilterOptions } from "../types/timetable.types";
+import { toast } from "sonner";
 
 interface TimetableFiltersProps {
   filters: TimetableFilterData;
@@ -54,10 +56,10 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const [groupsData, roomsData] = await Promise.all([
+        const [groupsData, roomsData, teachersData] = await Promise.all([
           groupService.getAllGroups(),
           roomService.getAllRooms(),
-          // TODO: Add teacher service
+          teacherService.getAllTeachers(),
         ]);
 
         setFilterOptions({
@@ -65,7 +67,10 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
             value: group.id || 0,
             label: group.name,
           })),
-          teachers: [], // TODO: Load teachers
+          teachers: teachersData.map(teacher => ({
+            value: teacher.id || 0,
+            label: teacher.account?.name || 'Chưa có tên',
+          })),
           rooms: roomsData.map(room => ({
             value: room.id || 0,
             label: `${room.name} - ${room.location}`,
@@ -77,7 +82,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
           ],
         });
       } catch (error) {
-        console.error("Lỗi khi tải danh sách lọc:", error);
+        toast.error(error instanceof Error ? error.message : "Lỗi khi tải danh sách lọc");
       } finally {
         setLoading(false);
       }
@@ -122,7 +127,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
   const activeFiltersCount = Object.values(filters).filter(Boolean).length + (searchQuery ? 1 : 0);
 
   const formatDateForInput = (date?: Date | string): string => {
-  if (!date) return "";
+    if (!date) return "";
     if (typeof date === 'string') {
       date = new Date(date);
     }

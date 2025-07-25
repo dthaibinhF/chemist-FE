@@ -122,6 +122,10 @@ export interface TeacherDetail extends BaseDTO {
 export interface Teacher extends BaseDTO {
   account: Account;
   teacher_details: TeacherDetail[];
+  schedules?: Schedule[];
+  salary_type: string;
+  base_rate: number;
+  monthly_summaries: TeacherMonthlySummary[];
 }
 
 export interface Schedule extends BaseDTO {
@@ -132,7 +136,8 @@ export interface Schedule extends BaseDTO {
   delivery_mode: string;
   meeting_link: string;
   attendances: Attendance[];
-  teacher: Teacher;
+  teacher_id: number;
+  teacher_name: string;
   room: Room;
 }
 
@@ -243,6 +248,7 @@ export interface TeacherSearchParams {
   phone?: string;
   email?: string;
   specialization?: string;
+  total_count?: number;
 }
 
 // Bulk Attendance Operations
@@ -266,4 +272,19 @@ export interface PaginatedResponse<T> {
   number: number;
   first: boolean;
   last: boolean;
+}
+
+
+export interface TeacherMonthlySummary {
+  teacher_id: number;
+  teacher_name: string;
+  month: number;
+  year: number;
+  scheduled_lessons: number;
+  completed_lessons: number;
+  completion_rate: number;
+  rate_per_lesson: number;
+  base_salary: number;
+  performance_bonus: number;
+  total_salary: number;
 }

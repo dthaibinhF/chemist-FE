@@ -11,6 +11,7 @@ import paymentReducer from "./slice/payment.slice";
 import roomReducer from "./slice/room.slice";
 import schoolClassReducer from "./slice/school-class.slice";
 import schoolReducer from "./slice/school.slice";
+import teacherReducer from "./slice/teacher.slice";
 import timeTableReducer from "./slice/time-table.slice";
 
 export const store = configureStore({
@@ -24,6 +25,7 @@ export const store = configureStore({
     school: schoolReducer,
     schoolClass: schoolClassReducer,
     payment: paymentReducer,
+    teacher: teacherReducer,
     timeTable: timeTableReducer,
     room: roomReducer,
   },

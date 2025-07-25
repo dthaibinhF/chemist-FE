@@ -31,13 +31,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   onEventClick,
   loading = false,
 }) => {
-  // console.log(events);
-
   const weekData: WeekData = useMemo(
     () => generateWeekData(selectedWeek, events),
     [selectedWeek, events]
   );
-  console.log('weekData:', weekData);
 
   const handlePrevWeek = () => {
     onWeekChange(navigateWeek(selectedWeek, 'prev'));
@@ -136,7 +133,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                     Không có lịch học
                   </div>
                 ) : (
-                  dayEvents.map((event) => (
+                  dayEvents.sort((a, b) => a.start.getTime() - b.start.getTime()).map((event) => (
                     <div
                       key={event.id}
                       className={`p-2 rounded-md cursor-pointer transition-all hover:shadow-md ${event.color
