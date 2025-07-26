@@ -61,21 +61,21 @@ export const useSalary = () => {
     // 💰 Calculation Actions
     const handleCalculateMonthlySalary = useCallback(
         (teacherId: number, params: SalaryCalculationParams) => {
-            dispatch(calculateMonthlySalary({ teacherId, params }));
+            return dispatch(calculateMonthlySalary({ teacherId, params }));
         },
         [dispatch]
     );
 
     const handleCalculateAllMonthlySalaries = useCallback(
         (params: SalaryCalculationParams) => {
-            dispatch(calculateAllMonthlySalaries(params));
+            return dispatch(calculateAllMonthlySalaries(params));
         },
         [dispatch]
     );
 
     const handleRecalculateMonthlySalary = useCallback(
         (teacherId: number, params: SalaryCalculationParams) => {
-            dispatch(recalculateMonthlySalary({ teacherId, params }));
+            return dispatch(recalculateMonthlySalary({ teacherId, params }));
         },
         [dispatch]
     );

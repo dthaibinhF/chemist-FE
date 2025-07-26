@@ -7,9 +7,13 @@ import {
   fetchPaymentDetailByStudentId,
   fetchPaymentDetailByStudentIdAndFeeId,
   fetchPaymentDetails,
+  fetchPaymentsByDateRange,
+  fetchPaymentsByStatus,
+  fetchTotalPaidByStudentForFee,
+  searchPayments,
   updatePaymentDetail,
 } from "@/redux/slice/payment.slice";
-import { PaymentDetail } from "@/types/api.types";
+import { PaymentDetail, PaymentStatus, PaymentSearchParams } from "@/types/api.types";
 import { useCallback } from "react";
 
 export const usePayment = () => {
@@ -71,11 +75,43 @@ export const usePayment = () => {
     [dispatch]
   );
 
+  // 🆕 NEW ENHANCED PAYMENT METHODS
+
+  const handleFetchPaymentsByStatus = useCallback(
+    (status: PaymentStatus) => {
+      dispatch(fetchPaymentsByStatus(status));
+    },
+    [dispatch]
+  );
+
+  const handleFetchTotalPaidByStudentForFee = useCallback(
+    (studentId: number, feeId: number) => {
+      dispatch(fetchTotalPaidByStudentForFee({ studentId, feeId }));
+    },
+    [dispatch]
+  );
+
+  const handleFetchPaymentsByDateRange = useCallback(
+    (params: PaymentSearchParams) => {
+      dispatch(fetchPaymentsByDateRange(params));
+    },
+    [dispatch]
+  );
+
+
+  const handleSearchPayments = useCallback(
+    (params: PaymentSearchParams) => {
+      dispatch(searchPayments(params));
+    },
+    [dispatch]
+  );
+
   return {
     paymentDetails,
     paymentDetail,
     loading,
     error,
+    // Original methods
     handleFetchPaymentDetails,
     handleFetchPaymentDetailById,
     handleCreatePaymentDetail,
@@ -84,5 +120,10 @@ export const usePayment = () => {
     handleFetchPaymentDetailByStudentId,
     handleFetchPaymentDetailByFeeId,
     handleFetchPaymentDetailByStudentIdAndFeeId,
+    // Enhanced methods
+    handleFetchPaymentsByStatus,
+    handleFetchTotalPaidByStudentForFee,
+    handleFetchPaymentsByDateRange,
+    handleSearchPayments,
   };
 };

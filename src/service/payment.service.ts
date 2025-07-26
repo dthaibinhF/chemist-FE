@@ -1,4 +1,4 @@
-import { PaymentDetail } from "@/types/api.types";
+import { PaymentDetail, PaymentStatus, PaymentSearchParams } from "@/types/api.types";
 import { createApiClient } from "./api-client";
 
 const apiClient = createApiClient("payment-detail");
@@ -50,6 +50,38 @@ export const paymentService = {
     feeId: number
   ): Promise<PaymentDetail[]> => {
     const response = await apiClient.get(`/student/${studentId}/fee/${feeId}`);
+    return response.data;
+  },
+
+  // 🆕 NEW ENHANCED API ENDPOINTS
+
+  // Get payments by status
+  getPaymentsByStatus: async (status: PaymentStatus): Promise<PaymentDetail[]> => {
+    const response = await apiClient.get(`/status/${status}`);
+    return response.data;
+  },
+
+  // Get total amount paid by student for specific fee
+  getTotalPaidByStudentForFee: async (
+    studentId: number,
+    feeId: number
+  ): Promise<number> => {
+    const response = await apiClient.get(`/student/${studentId}/fee/${feeId}/total`);
+    return response.data;
+  },
+
+  // Get payments within date range
+  getPaymentsByDateRange: async (
+    params: PaymentSearchParams
+  ): Promise<PaymentDetail[]> => {
+    const response = await apiClient.get("/date-range", { params });
+    return response.data;
+  },
+
+
+  // Advanced search with multiple parameters
+  searchPayments: async (params: PaymentSearchParams): Promise<PaymentDetail[]> => {
+    const response = await apiClient.get("", { params });
     return response.data;
   },
 };

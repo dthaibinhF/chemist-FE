@@ -81,6 +81,30 @@ export interface PaymentDetail extends BaseDTO {
   amount: number;
   description: string;
   have_discount: number;
+  payment_status: PaymentStatus;
+  due_date: Date;
+  generated_amount: number;
+  is_overdue: boolean;
+}
+
+export interface StudentPaymentSummary extends BaseDTO {
+  student_id: number;
+  student_name: string;
+  fee_id: number;
+  fee_name: string;
+  academic_year_id: number;
+  academic_year_name: string;
+  group_id: number;
+  group_name: string;
+  total_amount_due: number;
+  total_amount_paid: number;
+  outstanding_amount: number;
+  payment_status: PaymentStatus;
+  due_date: Date;
+  enrollment_date: Date;
+  completion_rate: number;
+  is_overdue: boolean;
+  is_fully_paid: boolean;
 }
 
 // Fee types
@@ -274,6 +298,28 @@ export interface PaginatedResponse<T> {
   last: boolean;
 }
 
+export enum PaymentStatus {
+  PENDING = "PENDING",
+
+  /**
+   * Some amount has been paid but the full amount is still outstanding.
+   * This occurs when the total paid amount is greater than 0 but less than the total due amount.
+   */
+  PARTIAL = "PARTIAL",
+
+  /**
+   * The payment has been completed in full.
+   * This occurs when the total paid amount equals or exceeds the total due amount.
+   */
+  PAID = "PAID",
+
+  /**
+   * The payment is past its due date and has not been paid in full.
+   * This status is automatically set by the system when checking for overdue payments.
+   */
+  OVERDUE = "OVERDUE"
+}
+
 
 // Salary System Types
 export enum SalaryType {
@@ -293,8 +339,6 @@ export interface TeacherMonthlySummary extends BaseDTO {
   base_salary: number;
   performance_bonus: number;
   total_salary: number;
-  created_at: string; // ISO datetime
-  updated_at: string; // ISO datetime
 }
 
 export interface SalaryConfigurationDTO {
@@ -318,4 +362,51 @@ export interface SalarySummariesParams {
   page?: number;
   size?: number;
   sort?: string[];
+}
+
+// Financial Dashboard & Statistics Types
+export interface FinancialStatisticsDTO {
+  total_revenue: number;
+  total_outstanding: number;
+  total_amount_due: number;
+  collection_rate: number;            // Percentage 0-100
+  pending_payments_count: number;
+  partial_payments_count: number;
+  paid_payments_count: number;
+  overdue_payments_count: number;
+  overdue_amount: number;
+  current_month_revenue: number;
+  previous_month_revenue: number;
+  monthly_growth_rate: number;        // Percentage
+  average_payment_amount: number;
+  total_transactions: number;
+  active_students_count: number;
+  student_participation_rate: number; // Percentage 0-100
+}
+
+export interface OverdueStatisticsDTO {
+  totalOverdueAmount: number;
+  overduePaymentSummariesCount: number;
+  overduePaymentDetailsCount: number;
+  uniqueStudentsWithOverduePayments: number;
+  asOfDate: string;
+}
+
+// Enhanced Payment Types for Search and Filtering
+export interface PaymentSearchParams {
+  startDate?: string;
+  endDate?: string;
+  status?: PaymentStatus;
+  studentId?: number;
+  feeId?: number;
+}
+
+export interface BulkPaymentGenerationDTO {
+  groupId: number;
+  academicYearId: number;
+}
+
+export interface PaymentWithSummaryUpdateDTO extends Omit<PaymentDetail, 'id'> {
+  academicYearId: number;
+  groupId: number;
 }

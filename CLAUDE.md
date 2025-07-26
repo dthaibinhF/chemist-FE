@@ -297,3 +297,15 @@ const formattedTime = displayTime(utcTimeFromServer); // Shows Vietnam time
 - `src/utils/date-formatters.ts` - Vietnamese localized date/time formatting
 
 This system ensures consistent timezone handling across the entire application while maintaining excellent user experience with proper Vietnamese localization.
+
+## Recent Code Cleanup Tasks
+
+- **Remove Unused Imports**
+  - Remove all unuse import
+  - Remove unsuse variable
+
+## Development Best Practices
+
+- **Always test with `npm run build` before ending development**
+  - This ensures the entire project compiles without errors
+  - Catches potential build-time issues before committing code

@@ -8,6 +8,13 @@ export {
 export { FinanceOverviewCards } from "./finance-overview-cards";
 export { PaymentManagementTable } from "./payment-management-table";
 
+// Enhanced payment system components
+export { EnhancedFinanceOverviewCards } from "./enhanced-finance-overview-cards";
+export { PaymentStatusCharts } from "./payment-status-charts";
+export { OverduePaymentAlerts } from "./overdue-payment-alerts";
+export { EnhancedPaymentSummaryTable } from "./enhanced-payment-summary-table";
+export { BulkPaymentGenerationDialog } from "./bulk-payment-generation-dialog";
+
 // Existing common components
 export { default as AppSideBar } from "./app-side-bar";
 export { ButtonSortingDataTable } from "./button-sorting-datatable";

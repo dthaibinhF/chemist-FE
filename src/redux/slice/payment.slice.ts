@@ -1,5 +1,5 @@
 import { paymentService } from "@/service/payment.service";
-import { PaymentDetail } from "@/types/api.types";
+import { PaymentDetail, PaymentStatus, PaymentSearchParams } from "@/types/api.types";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 interface PaymentState {
@@ -89,6 +89,41 @@ export const fetchPaymentDetailByStudentIdAndFeeId = createAsyncThunk(
       studentId,
       feeId
     );
+    return response;
+  }
+);
+
+// 🆕 NEW ENHANCED ASYNC THUNKS
+
+export const fetchPaymentsByStatus = createAsyncThunk(
+  "payment/fetchPaymentsByStatus",
+  async (status: PaymentStatus) => {
+    const response = await paymentService.getPaymentsByStatus(status);
+    return response;
+  }
+);
+
+export const fetchTotalPaidByStudentForFee = createAsyncThunk(
+  "payment/fetchTotalPaidByStudentForFee",
+  async ({ studentId, feeId }: { studentId: number; feeId: number }) => {
+    const response = await paymentService.getTotalPaidByStudentForFee(studentId, feeId);
+    return response;
+  }
+);
+
+export const fetchPaymentsByDateRange = createAsyncThunk(
+  "payment/fetchPaymentsByDateRange",
+  async (params: PaymentSearchParams) => {
+    const response = await paymentService.getPaymentsByDateRange(params);
+    return response;
+  }
+);
+
+
+export const searchPayments = createAsyncThunk(
+  "payment/searchPayments",
+  async (params: PaymentSearchParams) => {
+    const response = await paymentService.searchPayments(params);
     return response;
   }
 );
