@@ -1,0 +1,67 @@
+import React from "react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import { useTimetable } from "../hooks/useTimetable";
+import { ScheduleForm } from "./schedule-form";
+import type { ScheduleFormData } from "../schemas/timetable.schema";
+import { parseDateTimeLocalToUtc, formatDateTimeForApi } from "@/utils/timezone-utils";
+
+interface CreateScheduleDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const CreateScheduleDialog: React.FC<CreateScheduleDialogProps> = ({
+  open,
+  onOpenChange,
+}) => {
+  const { handleCreateSchedule, loading } = useTimetable();
+
+  const handleSubmit = async (data: ScheduleFormData) => {
+    try {
+      // Convert datetime-local strings to proper API format
+      const startTimeUtc = parseDateTimeLocalToUtc(data.start_time);
+      const endTimeUtc = parseDateTimeLocalToUtc(data.end_time);
+      
+      // Transform form data to match API expectations
+      const scheduleData = {
+        group_id: data.group_id,
+        start_time: formatDateTimeForApi(startTimeUtc),
+        end_time: formatDateTimeForApi(endTimeUtc),
+        delivery_mode: data.delivery_mode,
+        meeting_link: data.meeting_link || "",
+        // Note: teacher_id and room_id will need to be handled based on API structure
+        teacher: { account: { id: data.teacher_id } },
+        room: { id: data.room_id },
+        attendances: [],
+      };
+
+      await handleCreateSchedule(scheduleData as any);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Lỗi khi tạo lịch học:", error);
+    }
+  };
+
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Tạo lịch học mới</DialogTitle>
+        </DialogHeader>
+        <ScheduleForm
+          onSubmit={handleSubmit}
+          loading={loading}
+          onCancel={() => onOpenChange(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+};

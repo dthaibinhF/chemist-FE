@@ -1,14 +1,17 @@
-import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Papa from 'papaparse';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { useRevalidator } from 'react-router-dom';
 
 import { useAcademicYear } from '@/hooks/useAcademicYear';
+import { useGrade } from '@/hooks/useGrade';
 import { useGroup } from '@/hooks/useGroup';
-import { useStudent } from '../hooks';
+import { useSchool } from '@/hooks/useSchool';
+import { useSchoolClass } from '@/hooks/useSchoolClass';
+import { studentService } from '@/service';
 
 import AcademicYearSelect from '@/components/features/academic-year-select';
 import GradeSelect from '@/components/features/grade-select';
@@ -26,368 +29,26 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import type { Student, StudentDetail, Group } from '@/types/api.types';
+
+// Import extracted components and utilities
+import { StudentPreviewTable } from './student-csv-preview-table';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { useGrade } from '@/hooks/useGrade';
-import { useSchool } from '@/hooks/useSchool';
-import { useSchoolClass } from '@/hooks/useSchoolClass';
-import type { Student, StudentDetail } from '@/types/api.types';
-import { useRevalidator } from 'react-router-dom';
-
-// Represents a row from the CSV for preview, including data and potential errors
-interface StudentPreview {
-  data: Record<string, any>;
-  errors: Record<string, string | null>;
-  rowIndex: number;
-}
-
-// Mapping from CSV headers to Student interface fields
-const CSV_TO_STUDENT_MAPPING: Record<string, keyof Student> = {
-  'name': 'name',
-  'họ và tên': 'name',
-  'tên': 'name',
-  'full_name': 'name',
-  'student_name': 'name',
-  'parent_phone': 'parent_phone',
-  'số điện thoại phụ huynh': 'parent_phone',
-  'phone': 'parent_phone',
-  'phone_number': 'parent_phone',
-  'parent_phone_number': 'parent_phone',
-};
-
-const CSV_TO_STUDENT_DETAIL_MAPPING: Record<string, keyof StudentDetail> = {
-  'school': 'school',
-  'trường': 'school',
-  'trường học': 'school',
-  'class': 'school_class',
-  'lớp': 'school_class',
-  'academic_year': 'academic_year',
-  'năm học': 'academic_year',
-  'grade': 'grade',
-  'khối': 'grade',
-  'group': 'group_id',
-  'nhóm': 'group_id',
-};
-
-// Mapping for abbreviated school names
-const SCHOOL_MAPPING: Record<string, string> = {
-  'AK': 'Trường THPT An Khánh',
-  'CVL': 'Trường THPT Châu Văn Liêm',
-  'NVD': 'Trường THPT Nguyễn Việt Dũng',
-  'NVH': 'Trường THPT Nguyễn Việt Hồng',
-  'PNH': 'Trường THPT Phan Ngọc Hiển',
-  'BHN': 'Trường THPT Bùi Hữu Nghĩa',
-  'BM': 'Trường THPT Bình Minh',
-  'LTT': 'Trường THPT Lý Tự Trọng',
-  'LHP': 'Trường THPT Lưu Hữu Phước',
-  'NS': 'Trường THPT Ngã Sáu',
-  'THSP': 'Trường THPT Thực Hành Sư Phạm',
-  'TĐN': 'Trường THPT Trần Đại Nghĩa',
-  'NBK': 'Trường THPT Nguyễn Bình Khiêm',
-  'TSTD': 'Thí Sinh Tự Do',
-  'PVT': 'Trường THPT Phan Văn Trị',
-  'TV': 'Trường THPT Tầm Vu',
-  'TẦM VU': 'Trường THPT Tầm Vu',
-  'SP': 'Trường THPT Song Phú',
-  'Song Phú': 'Trường THPT Song Phú',
-  'GX': 'Trường THPT Giai Xuân',
-  'ALT': 'Trường THPT An Lạc Thôn',
-  'TL': 'Trường THPT Thới Lai',
-  'QTHB': 'Trường THPT Quốc Tế Hòa Bình',
-  'CTA': 'Trường THPT Châu Thành A',
-  'Giai Xuân': 'Trường THPT Giai Xuân',
-  'An Lạc Thôn': 'Trường THPT An Lạc Thôn',
-  'Thới Lai': 'Trường THPT Thới Lai',
-  'Quốc Tế Hòa Bình': 'Trường THPT Quốc Tế Hòa Bình',
-  'Châu Thành A': 'Trường THPT Châu Thành A',
+  CSV_TEMPLATE_COLUMNS,
+  fileSchema,
+  validateGroupNamesBatch,
+  downloadCSVTemplate,
+  validateCsvHeaders,
+  validateStudentRow,
+  debounce,
+  type CSVStudentRow,
+  type StudentPreview,
+} from './csv-utils';
 
 
-  // Full names for backward compatibility
-  'Trường THPT An Lạc Thôn': 'Trường THPT An Lạc Thôn',
-  'Trường THPT Thới Lai': 'Trường THPT Thới Lai',
-  'Trường THPT Quốc Tế Hòa Bình': 'Trường THPT Quốc Tế Hòa Bình',
-  'Trường THPT Châu Thành A': 'Trường THPT Châu Thành A',
-  'Trường THPT An Khánh': 'Trường THPT An Khánh',
-  'Trường THPT Châu Văn Liêm': 'Trường THPT Châu Văn Liêm',
-  'Trường THPT Nguyễn Việt Dũng': 'Trường THPT Nguyễn Việt Dũng',
-  'Trường THPT Nguyễn Việt Hồng': 'Trường THPT Nguyễn Việt Hồng',
-  'Trường THPT Phan Ngọc Hiển': 'Trường THPT Phan Ngọc Hiển',
-  'Trường THPT Bùi Hữu Nghĩa': 'Trường THPT Bùi Hữu Nghĩa',
-  'Trường THPT Bình Minh': 'Trường THPT Bình Minh',
-  'Trường THPT Lý Tự Trọng': 'Trường THPT Lý Tự Trọng',
-  'Trường THPT Lưu Hữu Phước': 'Trường THPT Lưu Hữu Phước',
-  'Trường THPT Ngã Sáu': 'Trường THPT Ngã Sáu',
-  'Trường THPT Thực Hành Sư Phạm': 'Trường THPT Thực Hành Sư Phạm',
-  'Trường THPT Trần Đại Nghĩa': 'Trường THPT Trần Đại Nghĩa',
-  'Trường THPT Nguyễn Bình Khiêm': 'Trường THPT Nguyễn Bình Khiêm',
-  'Trường THPT Phan Văn Trị': 'Trường THPT Phan Văn Trị',
-  'Trường THPT Tầm Vu': 'Trường THPT Tầm Vu',
-  'Trường THPT Song Phú': 'Trường THPT Song Phú',
-  'Trường THPT Giai Xuân': 'Trường THPT Giai Xuân',
-  'Thí Sinh Tự Do': 'Thí Sinh Tự Do',
-};
 
-// Zod schema for file upload
-const fileSchema = z.object({
-  file: z
-    .instanceof(File, { message: 'Vui lòng chọn một tệp.' })
-    .refine((file) => file.size > 0, { message: 'Tệp không được để trống.' })
-    .refine((file) => file.type === 'text/csv' || file.name.endsWith('.csv'), {
-      message: 'Chỉ chấp nhận tệp có định dạng .csv.',
-    }),
-});
 
-// Zod schema for a single student row for validation
-const studentRowSchema = z.object({
-  name: z.string().min(1, 'Tên không được để trống'),
-  parent_phone: z.string().optional(),
-});
 
-interface StudentPreviewTableProps {
-  students: StudentPreview[];
-  headers: string[];
-  onCellChange: (rowIndex: number, header: string, value: string) => void;
-  onSave: () => void;
-  hasErrors: boolean;
-}
-
-const StudentPreviewTable = ({ students, headers, onCellChange, onSave, hasErrors }: StudentPreviewTableProps) => {
-  const { academicYears, handleFetchAcademicYears } = useAcademicYear();
-  const { grades, handleFetchGrades } = useGrade();
-  const { schoolClasses, handleFetchSchoolClasses } = useSchoolClass();
-  const { groups, handleFetchGroups } = useGroup();
-
-  useEffect(() => {
-    if (academicYears.length === 0) {
-      handleFetchAcademicYears();
-    }
-    if (grades.length === 0) {
-      handleFetchGrades();
-    }
-    if (schoolClasses.length === 0) {
-      handleFetchSchoolClasses();
-    }
-    if (groups.length === 0) {
-      handleFetchGroups();
-    }
-  }, [academicYears, grades, schoolClasses, groups]);
-
-  if (students.length === 0) return null;
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Bước 3: Kiểm tra và xác nhận dữ liệu</CardTitle>
-        <CardDescription>
-          Kiểm tra lại dữ liệu đã được đọc từ tệp. Chỉnh sửa trực tiếp trên bảng nếu cần thiết.
-          Các ô màu đỏ là dữ liệu không hợp lệ.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="relative w-full overflow-auto border rounded-md">
-          <div className="max-h-[500px] overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {headers.map((header) => (
-                    <TableHead key={header} className="bg-background sticky top-0 z-10">
-                      <div className="flex flex-col">
-                        <span>{header}</span>
-                      </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.rowIndex}>
-                    {headers.map((header) => {
-                      const error = student.errors[header];
-                      return (
-                        <TableCell
-                          key={`${student.rowIndex}-${header}`}
-                          className={cn(
-                            "min-w-[200px]",
-                            error ? 'bg-red-100' : ''
-                          )}
-                        >
-                          {
-                            header === 'school' ? (
-                              <Input
-                                type="text"
-                                value={student.data[header] || ''}
-                                onChange={(e) => onCellChange(student.rowIndex, header, e.target.value)}
-                                className="w-full bg-transparent p-1 border-none focus:ring-0 focus:ring-offset-0"
-                              />
-                            )
-                              : header === 'grade' ? (
-                                <GradeSelect value={student.data[header] || ''} handleSelect={(value) => onCellChange(student.rowIndex, header, value)} />
-                              )
-                                : header === 'school_class' ? (
-                                  <SchoolClassSelect value={student.data[header] || ''} handleSelect={(value) => onCellChange(student.rowIndex, header, value)} />
-                                )
-                                  : header === 'academic_year' ? (
-                                    <AcademicYearSelect value={student.data[header] || ''} handleSelect={(value) => onCellChange(student.rowIndex, header, value)} />
-                                  )
-                                    : header === 'group_id' ? (
-                                      <GroupSelect value={student.data[header] || ''} handleSelect={(value) => onCellChange(student.rowIndex, header, value)} />
-                                    )
-                                      : <Input
-                                        type="text"
-                                        value={student.data[header] || ''}
-                                        onChange={(e) => onCellChange(student.rowIndex, header, e.target.value)}
-                                        className="w-full bg-transparent p-1 border-none focus:ring-offset-0"
-                                      />
-                          }
-                          {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end">
-          <Button onClick={onSave} disabled={hasErrors}>
-            Lưu {students.length} học sinh
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Helper function to map school abbreviations to full names
-const mapSchoolName = (schoolValue: string): string => {
-  if (!schoolValue) return '';
-  const upperSchoolValue = schoolValue.toUpperCase().split(' ').join('');
-  return SCHOOL_MAPPING[upperSchoolValue] || schoolValue;
-};
-
-// Helper function to map CSV data to Student interface
-const mapCsvToStudent = (csvRow: Record<string, any>): Partial<Student> => {
-  const student: Partial<Student> = {};
-
-  Object.keys(csvRow).forEach(header => {
-    const studentField = CSV_TO_STUDENT_MAPPING[header.toLowerCase()];
-    if (studentField && csvRow[header]) {
-      let value = csvRow[header];
-
-      // Special handling for school field
-      if (header.toLowerCase().includes('school') || header.toLowerCase().includes('trường')) {
-        value = mapSchoolName(value);
-      }
-
-      (student as any)[studentField] = value;
-    }
-  });
-
-  return student;
-};
-
-// Helper function to validate CSV headers
-const validateCsvHeaders = (headers: string[]): { valid: boolean; warnings: string[]; errors: string[] } => {
-  const warnings: string[] = [];
-  const errors: string[] = [];
-
-  // Get all expected headers from mappings
-  const expectedStudentHeaders = Object.keys(CSV_TO_STUDENT_MAPPING);
-  const expectedDetailHeaders = Object.keys(CSV_TO_STUDENT_DETAIL_MAPPING);
-  const allExpectedHeaders = [...expectedStudentHeaders, ...expectedDetailHeaders];
-
-  // Check for required headers (name is required)
-  const requiredHeaders = ['name', 'họ và tên', 'tên', 'full_name', 'student_name'];
-  const hasRequiredHeader = requiredHeaders.some(header =>
-    headers.some(h => h.toLowerCase().trim() === header.toLowerCase().trim())
-  );
-
-  if (!hasRequiredHeader) {
-    errors.push('Tệp CSV phải có ít nhất một cột chứa tên học sinh (name, họ và tên, tên, full_name, student_name)');
-  }
-
-  // Check for unrecognized headers
-  const unrecognizedHeaders = headers.filter(header => {
-    const normalizedHeader = header.toLowerCase().trim();
-    return !allExpectedHeaders.some(expected =>
-      expected.toLowerCase().trim() === normalizedHeader
-    );
-  });
-
-  if (unrecognizedHeaders.length > 0) {
-    warnings.push(`Các cột sau sẽ được bỏ qua: ${unrecognizedHeaders.join(', ')}`);
-  }
-
-  // Check for duplicate headers (case-insensitive)
-  const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
-  const uniqueHeaders = new Set(normalizedHeaders);
-  if (uniqueHeaders.size !== headers.length) {
-    errors.push('Tệp CSV có các cột trùng tên (không phân biệt hoa thường)');
-  }
-
-  // Check for empty headers
-  const emptyHeaders = headers.filter(header => !header.trim());
-  if (emptyHeaders.length > 0) {
-    errors.push('Tệp CSV có các cột không có tên');
-  }
-
-  return {
-    valid: errors.length === 0,
-    warnings,
-    errors
-  };
-};
-
-// Helper function to validate a single student row
-const validateStudentRow = (
-  row: Record<string, any>,
-  index: number,
-  defaults: {
-    school: string;
-    grade: string;
-    schoolClass: string;
-    academicYear: string;
-    group: string;
-  },
-): StudentPreview => {
-  const dataWithDefaults = { ...row };
-  if (defaults.school) dataWithDefaults['school'] = defaults.school;
-  if (defaults.grade) dataWithDefaults['grade'] = defaults.grade;
-  if (defaults.schoolClass) dataWithDefaults['school_class'] = defaults.schoolClass;
-  if (defaults.academicYear) dataWithDefaults['academic_year'] = defaults.academicYear;
-  if (defaults.group) dataWithDefaults['group_id'] = defaults.group;
-
-  // Map CSV data to Student interface for validation
-  const mappedData = mapCsvToStudent(dataWithDefaults);
-  const validationResult = studentRowSchema.safeParse(mappedData);
-  const errors: Record<string, string | null> = {};
-
-  if (!validationResult.success) {
-    validationResult.error.issues.forEach((issue: z.ZodIssue) => {
-      // Find the original CSV header that maps to this field
-      const fieldName = issue.path[0];
-      const originalHeader = Object.keys(CSV_TO_STUDENT_MAPPING).find(
-        key => CSV_TO_STUDENT_MAPPING[key] === fieldName
-      );
-      if (originalHeader) {
-        errors[originalHeader] = issue.message;
-      }
-    });
-  }
-
-  return {
-    data: dataWithDefaults,
-    errors,
-    rowIndex: index,
-  };
-};
 
 interface AddStudentCsvFileProps {
   groupId?: number;
@@ -396,7 +57,6 @@ interface AddStudentCsvFileProps {
 }
 
 export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStudentCsvFileProps) => {
-  const { addMultipleStudents } = useStudent();
   const { schools, handleFetchSchools } = useSchool();
   const { academicYears, handleFetchAcademicYears } = useAcademicYear();
   const { grades, handleFetchGrades } = useGrade();
@@ -474,28 +134,26 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => {
-        const newHeader = header.toLowerCase().trim();
-        return CSV_TO_STUDENT_MAPPING[newHeader] || CSV_TO_STUDENT_DETAIL_MAPPING[newHeader] || newHeader;
-      },
       complete: (results) => {
         toast.dismiss(loadingToast);
+
         if (results.errors.length > 0) {
           toast.error('Có lỗi xảy ra khi đọc tệp. Vui lòng kiểm tra định dạng tệp CSV.');
           console.error('CSV Parsing Errors:', results.errors);
           return;
         }
+
         if (results.data.length === 0) {
           toast.error('Không tìm thấy dữ liệu trong tệp CSV.');
           return;
         }
 
-        // Validate headers first
-        const originalHeaders = results.meta.fields || [];
-        const headerValidation = validateCsvHeaders(originalHeaders);
+        // Validate headers against template
+        const headers = results.meta.fields || [];
+        const headerValidation = validateCsvHeaders(headers);
 
         if (!headerValidation.valid) {
-          toast.error('Tệp CSV có lỗi trong cấu trúc cột:');
+          toast.error('Tệp CSV không đúng định dạng template:');
           headerValidation.errors.forEach(error => {
             toast.error(error);
           });
@@ -509,38 +167,20 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
           });
         }
 
-        // Transform headers to normalized form
-        const transformedData = (results.data as Record<string, any>[]).map((row: Record<string, any>) => {
-          const transformedRow: Record<string, any> = {};
-          originalHeaders.forEach((header) => {
-            const normalizedHeader = header.toLowerCase().trim();
-            const mappedHeader = CSV_TO_STUDENT_MAPPING[normalizedHeader] ||
-              CSV_TO_STUDENT_DETAIL_MAPPING[normalizedHeader] ||
-              normalizedHeader;
-            transformedRow[mappedHeader] = row[header];
-          });
-          return transformedRow;
-        });
+        // Process CSV data directly (no transformation needed)
+        const csvData = results.data as Partial<CSVStudentRow>[];
 
-        // Map the 'school' field in each row using SCHOOL_MAPPING if present
-        if (transformedData && Array.isArray(transformedData)) {
-          transformedData.forEach((row) => {
-            if (row.school && SCHOOL_MAPPING[row.school.toUpperCase().split(' ')[0]]) {
-              row.school = SCHOOL_MAPPING[row.school.toUpperCase().split(' ')[0]];
-            }
-          });
-        }
-
-        const previewData = transformedData.map((row, index) =>
+        const previewData = csvData.map((row, index) =>
           validateStudentRow(row, index, {
             school: selectedSchool || '',
             grade: selectedGrade || '',
             schoolClass: selectedSchoolClass || '',
             academicYear: selectedAcademicYear || '',
-            group: selectedGroup || '',
+            groupName: selectedGroup || '',
           }),
         );
-        setTableHeaders(originalHeaders);
+
+        setTableHeaders(Object.keys(CSV_TEMPLATE_COLUMNS));
         setStudentsPreview(previewData);
         toast.success(`Đã tải ${previewData.length} dòng để xem trước.`);
       },
@@ -563,91 +203,157 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
       return;
     }
 
-    //convert studentsPreview to array of objects to Student interface
-    const studentsToSave = studentsPreview.map((s) => {
+    try {
+      // First, validate all group names using batch processing
+      const loadingToast = toast.loading('Đang kiểm tra tên nhóm...');
 
-      let school = undefined;
-      if (s.data.school) {
-        school = schools.find((schoolItem) => schoolItem.name === s.data.school);
-      }
+      // Collect all unique group names
+      const groupNames = studentsPreview
+        .map(student => student.data.group_name)
+        .filter((name): name is string => name !== undefined && name.trim() !== '');
 
-      let grade = undefined;
-      if (s.data.grade) {
-        grade = grades.find((gradeItem) => gradeItem.name === s.data.grade);
-      }
+      // Batch validate all group names
+      const groupValidationMap = await validateGroupNamesBatch(groupNames);
 
-      let schoolClass = undefined;
-      if (s.data.school_class) {
-        schoolClass = schoolClasses.find((schoolClassItem) => schoolClassItem.name === s.data.school_class);
-      }
+      // Map results back to students
+      const groupValidationResults: Array<{ student: StudentPreview; group?: Group; error?: string }> = [];
 
-      let academicYear = undefined;
-      if (s.data.academic_year) {
-        academicYear = academicYears.find((academicYearItem) => Number(academicYearItem.id) === Number(s.data.academic_year));
-      }
-
-      let groupId = undefined;
-      if (s.data.group_id) {
-        groupId = s.data.group_id;
-      }
-
-      return {
-        name: s.data.name,
-        parent_phone: s.data.parent_phone || undefined,
-        student_details: [
-          {
-            school: school,
-            school_class: schoolClass,
-            academic_year: academicYear,
-            group_id: groupId,
-            grade: grade,
-            student_id: s.data.id || undefined,
-            student_name: s.data.name,
-          } as StudentDetail,
-        ],
-      };
-    });
-
-    toast.promise(addMultipleStudents(studentsToSave), {
-      loading: 'Đang lưu danh sách học sinh...',
-      success: () => {
-        // Reset state after successful save
-        setStudentsPreview([]);
-        setTableHeaders([]);
-        form.reset();
-        revalidate.revalidate();
-        if (onStudentAdded) {
-          onStudentAdded();
+      for (const student of studentsPreview) {
+        if (student.data.group_name) {
+          const validation = groupValidationMap.get(student.data.group_name) || {};
+          groupValidationResults.push({
+            student,
+            group: validation.group,
+            error: validation.error,
+          });
+        } else {
+          groupValidationResults.push({ student });
         }
-        return 'Đã lưu học sinh thành công!';
-      },
-      error: 'Đã xảy ra lỗi khi lưu.',
-    });
+      }
 
+      toast.dismiss(loadingToast);
+
+      // Check for any group validation errors
+      const groupErrors = groupValidationResults.filter(result => result.error);
+      if (groupErrors.length > 0) {
+        toast.error('Có lỗi trong tên nhóm:');
+        groupErrors.slice(0, 5).forEach(({ student, error }) => {
+          toast.error(`Dòng ${student.rowIndex + 1}: ${error}`);
+        });
+        if (groupErrors.length > 5) {
+          toast.error(`Và ${groupErrors.length - 5} lỗi khác...`);
+        }
+        return;
+      }
+
+      // Convert studentsPreview to Student interface format
+      const studentsToSave = studentsPreview.map((s, index) => {
+        // Find related entities
+        const school = s.data.school
+          ? schools.find((schoolItem) => schoolItem.name === s.data.school)
+          : undefined;
+
+        const grade = s.data.grade
+          ? grades.find((gradeItem) => gradeItem.name === s.data.grade)
+          : undefined;
+
+        const schoolClass = s.data.school_class
+          ? schoolClasses.find((schoolClassItem) => schoolClassItem.name === s.data.school_class)
+          : undefined;
+
+        const academicYear = s.data.academic_year
+          ? academicYears.find((academicYearItem) =>
+            Number(academicYearItem.id) === Number(s.data.academic_year)
+          )
+          : undefined;
+
+        // Get group from validation results
+        const groupResult = groupValidationResults[index];
+        const groupId = groupResult?.group?.id;
+
+        return {
+          name: s.data.name,
+          parent_phone: s.data.parent_phone || undefined,
+          student_details: [
+            {
+              school: school,
+              school_class: schoolClass,
+              academic_year: academicYear,
+              group_id: groupId,
+              grade: grade,
+              student_name: s.data.name,
+            } as StudentDetail,
+          ],
+        } as Student;
+      });
+
+      toast.promise(
+        studentService.createMultipleStudents(studentsToSave),
+        {
+          loading: 'Đang lưu danh sách học sinh...',
+          success: () => {
+            // Reset state after successful save
+            setStudentsPreview([]);
+            setTableHeaders([]);
+            form.reset();
+            revalidate.revalidate();
+            if (onStudentAdded) {
+              onStudentAdded();
+            }
+            return 'Đã lưu học sinh thành công!';
+          },
+          error: (error: any) => {
+            console.error('Error saving students:', error);
+            return 'Đã xảy ra lỗi khi lưu học sinh.';
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Unexpected error during save:', error);
+      toast.error('Đã xảy ra lỗi không mong muốn.');
+    }
   };
 
-  // Handler for inline cell editing
-  const handleCellChange = (rowIndex: number, header: string, value: string) => {
+  // Debounced cell change handler to reduce re-validation frequency
+  const debouncedValidation = useCallback(
+    debounce((rowIndex: number, defaults: any) => {
+      setStudentsPreview(currentPreview => {
+        const newPreview = [...currentPreview];
+        const revalidatedStudent = validateStudentRow(newPreview[rowIndex].data, rowIndex, defaults);
+        newPreview[rowIndex] = revalidatedStudent;
+        return newPreview;
+      });
+    }, 300),
+    []
+  );
+
+  // Handler for inline cell editing with optimized validation
+  const handleCellChange = useCallback((rowIndex: number, header: keyof CSVStudentRow, value: string) => {
     setStudentsPreview((currentPreview) => {
       const newPreview = [...currentPreview];
       const studentToUpdate = { ...newPreview[rowIndex] };
 
-      // Store the value directly
-      studentToUpdate.data[header] = value;
+      // Update the specific field immediately
+      studentToUpdate.data = {
+        ...studentToUpdate.data,
+        [header]: value || undefined,
+      };
 
-      // Re-validate the row after edit
-      const revalidatedStudent = validateStudentRow(studentToUpdate.data, rowIndex, {
+      newPreview[rowIndex] = studentToUpdate;
+
+      // Debounce validation to avoid excessive re-computation
+      debouncedValidation(rowIndex, {
         school: selectedSchool || '',
         grade: selectedGrade || '',
         schoolClass: selectedSchoolClass || '',
         academicYear: selectedAcademicYear || '',
-        group: selectedGroup || '',
+        groupName: selectedGroup || '',
       });
 
-      newPreview[rowIndex] = revalidatedStudent;
       return newPreview;
     });
-  };
+  }, [selectedSchool, selectedGrade, selectedSchoolClass, selectedAcademicYear, selectedGroup, debouncedValidation]);
+
 
   // Show loading state while initializing
   if (isInitializing) {
@@ -669,13 +375,12 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
   }
 
   return (
-    <div className="space-y-6 max-h-[500px] overflow-auto">
+    <div className="space-y-4 h-full flex flex-col">
       <Card>
         <CardHeader>
           <CardTitle>Bước 1: Cấu hình giá trị mặc định (Tùy chọn)</CardTitle>
           <CardDescription>
-            Chọn giá trị mặc định sẽ áp dụng cho tất cả học sinh trong tệp. Các cột tương ứng trong
-            tệp CSV sẽ bị ghi đè.
+            Thiết lập giá trị mặc định cho các trường không bắt buộc. Giá trị này sẽ được áp dụng khi cột tương ứng trong CSV để trống.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -689,26 +394,65 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
 
       <Card>
         <CardHeader>
-          <CardTitle>Bước 2: Tải lên và xem trước tệp</CardTitle>
+          <CardTitle>Bước 2: Tải lên file CSV đã điền</CardTitle>
           <CardDescription>
-            Tải lên tệp CSV của bạn. Dữ liệu sẽ được hiển thị bên dưới để bạn kiểm tra và chỉnh sửa
-            trước khi lưu.
+            Tải lên file CSV đã điền theo template. Hệ thống sẽ kiểm tra định dạng và hiển thị dữ liệu để xác nhận.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md bg-blue-50 p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Hướng dẫn đặt tên cột trong file CSV:</h4>
+            <h4 className="font-medium text-blue-900 mb-2">Cấu trúc CSV Template cần sử dụng:</h4>
             <div className="text-sm text-blue-800 space-y-1">
-              <p><strong>Tên học sinh:</strong> name, họ và tên, tên, full_name, student_name</p>
-              <p><strong>Số điện thoại phụ huynh:</strong> parent_phone, số điện thoại phụ huynh, phone, phone_number, parent_phone_number</p>
-              <p><strong>Trường học:</strong> school, trường, trường học</p>
-              <p className="text-xs mt-2">Các cột không khớp sẽ được bỏ qua. Giá trị trống sẽ được để null.</p>
+              {Object.entries(CSV_TEMPLATE_COLUMNS).map(([column, config]) => (
+                <p key={column}>
+                  <strong className={config.required ? 'text-red-600' : ''}>
+                    {column}{config.required ? '*' : ''}
+                  </strong>
+                  : {config.description}
+                </p>
+              ))}
+              <p className="text-xs mt-2 text-red-600">
+                * Cột bắt buộc phải có dữ liệu
+              </p>
             </div>
           </div>
 
           <div className="rounded-md bg-green-50 p-4">
-            <h4 className="font-medium text-green-900 mb-2">Hướng dẫn viết tắt tên trường:</h4>
-            <div className="text-sm text-green-800 space-y-1">
+            <h4 className="font-medium text-green-900 mb-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={downloadCSVTemplate}
+                className="mr-2"
+              >
+                Tải Template CSV
+              </Button>
+              Tải file mẫu và điền thông tin
+            </h4>
+            <div className="text-sm text-green-800">
+              <p>1. Nhấn nút "Tải Template CSV" để tải file mẫu</p>
+              <p>2. Mở file với Excel hoặc Google Sheets</p>
+              <p>3. Điền thông tin học sinh vào các cột tương ứng</p>
+              <p className="font-medium ml-4 text-red-700">• Cột "group_name": Nhập tên nhóm CHÍNH XÁC (VD: "12NC1", "11VL2") - không được sai một ký tự</p>
+              <p className="font-medium ml-4">• Cột "school": Có thể dùng viết tắt (VD: AK, CVL) hoặc tên đầy đủ</p>
+              <p>4. Lưu file dưới định dạng CSV và tải lên hệ thống</p>
+            </div>
+          </div>
+
+          <div className="rounded-md bg-red-50 p-4 mb-4">
+            <h4 className="font-medium text-red-900 mb-2">⚠️ Lưu ý quan trọng về tên nhóm:</h4>
+            <div className="text-sm text-red-800 space-y-1">
+              <p><strong>Tên nhóm phải chính xác 100%</strong> - hệ thống sẽ từ chối nếu không khớp hoàn toàn</p>
+              <p>• Ví dụ đúng: "12NC1", "11VL2", "10TK3"</p>
+              <p>• Ví dụ sai: "12NC" (thiếu số), "12nc1" (sai viết hoa), "12NC 1" (có khoảng trắng)</p>
+              <p className="font-medium">Kiểm tra kỹ tên nhóm trước khi import!</p>
+            </div>
+          </div>
+
+          <div className="rounded-md bg-yellow-50 p-4">
+            <h4 className="font-medium text-yellow-900 mb-2">Các viết tắt tên trường hỗ trợ:</h4>
+            <div className="text-sm text-yellow-800 grid grid-cols-2 gap-1">
               <p><strong>AK</strong> → Trường THPT An Khánh</p>
               <p><strong>CVL</strong> → Trường THPT Châu Văn Liêm</p>
               <p><strong>NVD</strong> → Trường THPT Nguyễn Việt Dũng</p>
@@ -720,10 +464,11 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
               <p><strong>LHP</strong> → Trường THPT Lưu Hữu Phước</p>
               <p><strong>NS</strong> → Trường THPT Ngã Sáu</p>
               <p><strong>THSP</strong> → Trường THPT Thực Hành Sư Phạm</p>
-              <p><strong>TDN</strong> → Trường THPT Trần Đại Nghĩa</p>
-              <p><strong>NBK</strong> → Trường THPT Nguyễn Bình Khiêm</p>
               <p><strong>TSTD</strong> → Thí Sinh Tự Do</p>
             </div>
+            <p className="text-xs mt-2 text-yellow-700">
+              Có thể sử dụng viết tắt hoặc tên đầy đủ của trường
+            </p>
           </div>
           <Form {...form}>
             <form id="form-add-student-csv-file" onSubmit={form.handleSubmit(onSubmit)} className="flex items-end gap-4">
@@ -732,31 +477,38 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
                 name="file"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Chọn tệp CSV</FormLabel>
+                    <FormLabel>Chọn file CSV (phải theo đúng template)</FormLabel>
                     <FormControl>
                       <Input
                         type="file"
                         accept=".csv,text/csv"
                         onChange={(e) => field.onChange(e.target.files?.[0])}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit">Tải lên & Xem trước</Button>
+              <Button type="submit" className="whitespace-nowrap">
+                Tải lên & Kiểm tra
+              </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
 
-      <StudentPreviewTable
-        students={studentsPreview}
-        headers={tableHeaders}
-        onCellChange={handleCellChange}
-        onSave={handleSave}
-        hasErrors={hasErrors}
-      />
+      {studentsPreview.length > 0 && (
+        <div className="flex-1 min-h-0">
+          <StudentPreviewTable
+            students={studentsPreview}
+            headers={tableHeaders}
+            onCellChange={handleCellChange}
+            onSave={handleSave}
+            hasErrors={hasErrors}
+          />
+        </div>
+      )}
     </div>
   );
 };

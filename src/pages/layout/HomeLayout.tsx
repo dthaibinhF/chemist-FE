@@ -5,7 +5,7 @@ import AppSideBar from '@/components/common/app-side-bar.tsx';
 import SiteHeader from '@/components/common/site-header.tsx';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar.tsx';
 import { getAccount } from '@/feature/auth/services/authApi.ts';
-import { setAccount } from '@/feature/auth/slice/authSlice.ts';
+import { setAccount } from '@/feature/auth/slice/auth.slice';
 import { usePageTitle } from '@/hooks/usePageTitle.tsx';
 import { useAppDispatch, useAppSelector } from '@/redux/hook.ts';
 

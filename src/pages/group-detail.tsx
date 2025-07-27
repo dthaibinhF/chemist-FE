@@ -66,7 +66,7 @@ export const GroupDetail = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Thời gian học</CardTitle>
           </CardHeader>
@@ -74,13 +74,13 @@ export const GroupDetail = () => {
             {group.group_schedules?.map((schedule) => {
               return (
                 <div key={schedule.id} className='flex items-center gap-2'>
-                  <span className='text-sm font-medium'>{schedule.day_of_week}</span>
-                  <span className='text-sm text-muted-foreground'>{schedule.start_time.toString()} - {schedule.end_time.toString()}</span>
+                  <span className='text-sm font-medium'>{displayDayEnum(schedule.day_of_week)}</span>
+                  <span className='text-sm text-muted-foreground'>{displayTimeRange(schedule.start_time, schedule.end_time)}</span>
                 </div>
               )
             })}
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

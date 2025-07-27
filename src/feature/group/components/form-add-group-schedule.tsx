@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import RoomSelect from '@/components/features/room-select';
 
 const Days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
@@ -41,8 +42,9 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
   const handleAddSchedule = () => {
     append({
       day_of_week: 'MONDAY',
-      start_time: '00:00',
-      end_time: '00:00',
+      start_time: '07:00:00', // Default to 7 AM Vietnam time
+      end_time: '09:00:00',   // Default to 09 AM Vietnam time
+      room_id: 0,
     });
   };
 
@@ -103,7 +105,7 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
             </div>
 
             {/* Form Fields */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               <FormField
                 control={control}
                 name={`${name}[${index}].day_of_week`}
@@ -134,25 +136,73 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
               <FormField
                 control={control}
                 name={`${name}[${index}].start_time`}
-                render={(field) => (
-                  <FormItem>
-                    <FormLabel>Thời gian bắt đầu</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field.field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // GroupSchedule times are already in Vietnam local time (LocalTimeString)
+                  // No conversion needed - use as-is and format for time input
+                  const displayValue = field.value ?
+                    field.value.substring(0, 5) : // Convert "HH:mm:ss" to "HH:mm" for time input
+                    '08:00';
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Thời gian bắt đầu (GMT+7)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          value={displayValue}
+                          onChange={(e) => {
+                            // Store as LocalTimeString - add seconds to match HH:mm:ss format
+                            field.onChange(e.target.value + ':00');
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
 
               <FormField
                 control={control}
                 name={`${name}[${index}].end_time`}
-                render={(field) => (
+                render={({ field }) => {
+                  // GroupSchedule times are already in Vietnam local time (LocalTimeString)
+                  // No conversion needed - use as-is and format for time input
+                  const displayValue = field.value ?
+                    field.value.substring(0, 5) : // Convert "HH:mm:ss" to "HH:mm" for time input
+                    '10:00';
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Thời gian tan học (GMT+7)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          value={displayValue}
+                          onChange={(e) => {
+                            // Store as LocalTimeString - add seconds to match HH:mm:ss format
+                            field.onChange(e.target.value + ':00');
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={control}
+                name={`${name}[${index}].room_id`}
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thời gian tan học</FormLabel>
+                    <FormLabel>Phòng học</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field.field} />
+                      <RoomSelect
+                        handleSelect={(value) => field.onChange(value)}
+                        value={field.value}
+                        placeholder="Chọn phòng học"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

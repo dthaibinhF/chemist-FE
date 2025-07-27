@@ -52,7 +52,7 @@ export const AcademicYearSelect = ({ handleSelect, value }: AcademicYearSelectPr
     return <Select
         value={selectedValue}
         onValueChange={handleChange}>
-        <SelectTrigger>
+        <SelectTrigger className='w-full'>
             <SelectValue placeholder="Chọn năm học" />
         </SelectTrigger>
         <SelectContent>

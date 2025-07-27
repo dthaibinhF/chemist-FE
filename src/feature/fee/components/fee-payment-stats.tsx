@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Fee, PaymentDetail } from '@/types/api.types';
 
@@ -52,12 +52,12 @@ export const FeePaymentStats = ({ fee, paymentDetails }: FeePaymentStatsProps) =
     const totalDiscountGiven = studentSummaries.reduce((sum, student) => sum + student.totalDiscount, 0);
     const totalPayments = studentSummaries.reduce((sum, student) => sum + student.paymentCount, 0);
 
-    const getPaymentStatusBadge = (isFullyPaid: boolean) => {
-        if (isFullyPaid) {
-            return <Badge variant="default" className="bg-green-500 w-full">Đã đóng đủ</Badge>;
-        }
-        return <Badge variant="secondary" className="w-full bg-yellow-100 text-yellow-800">Chưa đóng đủ</Badge>;
-    };
+    // const getPaymentStatusBadge = (isFullyPaid: boolean) => {
+    //     if (isFullyPaid) {
+    //         return <Badge variant="default" className="bg-green-500 w-full">Đã đóng đủ</Badge>;
+    //     }
+    //     return <Badge variant="secondary" className="w-full bg-yellow-100 text-yellow-800">Chưa đóng đủ</Badge>;
+    // };
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

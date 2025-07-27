@@ -23,6 +23,12 @@ export const groupService = {
     return response.data;
   },
 
+  // Lấy nhóm theo tên
+  getGroupByName: async (name: string): Promise<Group> => {
+    const response = await apiClient.get(`/name/${name}`);
+    return response.data;
+  },
+
   // Lấy nhóm theo năm học
   getGroupsByAcademicYearId: async (
     academicYearId: number

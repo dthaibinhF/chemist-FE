@@ -27,14 +27,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRoom } from "@/hooks/useRoom";
+import RoomSelect from "@/components/features/room-select";
 import { useTimeTable } from "@/hooks/useTimeTable";
 import { cn } from "@/lib/utils";
-import type { Room, Schedule, Teacher } from "@/types/api.types";
+import type { Schedule, Teacher } from "@/types/api.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { utcToVietnamTime, formatUtcToVietnamTime, getCurrentVietnamTime } from "@/utils/timezone-utils";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import GroupSelect from "../group-select";
@@ -72,38 +72,36 @@ const TimeTableEventModal = ({
   onSubmit,
 }: TimeTableEventModalProps) => {
   const { schedules } = useTimeTable();
-  const { rooms, handleFetchRooms } = useRoom();
-  const [date, setDate] = useState<Date | undefined>(
-    event?.start_time ? new Date(event.start_time) : undefined
-  );
 
-  useEffect(() => {
-    handleFetchRooms();
-  }, [handleFetchRooms]);
-
-  // Get unique teachers from schedules
+  // Get unique teachers from schedules - using teacher_id and teacher_name
   const teachers = schedules
-    ?.map((schedule) => schedule.teacher)
-    .filter(
-      (teacher, index, self) =>
-        teacher && self.findIndex((t) => t?.id === teacher.id) === index
-    ) as Teacher[];
+    ?.filter(schedule => schedule.teacher_id && schedule.teacher_name)
+    .reduce((acc, schedule) => {
+      const existingTeacher = acc.find(t => t.id === schedule.teacher_id);
+      if (!existingTeacher) {
+        acc.push({
+          id: schedule.teacher_id,
+          account: { name: schedule.teacher_name },
+        } as Teacher);
+      }
+      return acc;
+    }, [] as Teacher[]) || [];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       group_id: event?.group_id ? Number(event.group_id) : 0,
-      date: event?.start_time ? new Date(event.start_time) : new Date(),
+      date: event?.start_time ? utcToVietnamTime(event.start_time) : getCurrentVietnamTime(),
       start_time: event?.start_time
-        ? format(new Date(event.start_time), "HH:mm")
+        ? formatUtcToVietnamTime(event.start_time, "HH:mm")
         : "",
       end_time: event?.end_time
-        ? format(new Date(event.end_time), "HH:mm")
+        ? formatUtcToVietnamTime(event.end_time, "HH:mm")
         : "",
       delivery_mode: event?.delivery_mode || "OFFLINE",
       meeting_link: event?.meeting_link || "",
       teacher: {
-        id: event?.teacher?.id ? Number(event.teacher.id) : 0,
+        id: event?.teacher_id ? Number(event.teacher_id) : 0,
       },
       room: {
         id: event?.room?.id ? Number(event.room.id) : 0,
@@ -227,26 +225,13 @@ const TimeTableEventModal = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a room" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {rooms?.map((room: Room) => (
-                        <SelectItem
-                          key={room.id}
-                          value={room.id?.toString() || ""}
-                        >
-                          {room.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <RoomSelect
+                      handleSelect={(value) => field.onChange(value)}
+                      value={field.value}
+                      placeholder="Select a room"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

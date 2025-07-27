@@ -39,17 +39,18 @@ import {
   groupService,
   schoolClassService,
   type Grade,
-  type GroupList,
+  type Group,
   type School,
 } from '@/service';
 
 import type { Student } from '@/types/api.types';
 import { studentFormSchema, type StudentFormData } from '../schemas/student.schema';
+import { useSchool } from '@/hooks/useSchool';
 
 // Type for mapped data that matches API structure
 interface MappedStudentData extends Omit<StudentFormData, 'school' | 'grade' | 'academic_year' | 'school_class' | 'group'> {
   student_details: Array<{
-    school?: School;
+    school?: School | null;
     grade?: Grade;
     group_id?: number;
     academic_year?: AcademicYear;
@@ -70,9 +71,9 @@ export const EditStudentDialog = memo(
     const isControlled = typeof open === 'boolean' && typeof onOpenChange === 'function';
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange! : setInternalOpen;
-    const [schools, setSchools] = useState<School[]>([]);
+    const { handleFetchSchool, school } = useSchool();
     const [grades, setGrades] = useState<Grade[]>([]);
-    const [groups, setGroups] = useState<GroupList[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
     const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
     const [schoolClasses, setSchoolClasses] = useState<SchoolClass[]>([]);
     const [loading, setLoading] = useState(false);
@@ -143,12 +144,14 @@ export const EditStudentDialog = memo(
 
     const handleSchoolSelect = (value: string) => {
       form.setValue('school', value);
+      handleFetchSchool(Number(value));
     };
 
     const onSubmit = useCallback(
       async (data: StudentFormData) => {
         try {
           setSubmitting(true);
+          console.log('data-school', data.school)
 
           // Map form data to match API structure
           const mappedData: MappedStudentData = {
@@ -156,7 +159,7 @@ export const EditStudentDialog = memo(
             parent_phone: data.parent_phone,
             student_details: [{
               ...student.student_details?.[0],
-              school: data.school ? schools.find(s => s.id?.toString() === data.school) : undefined,
+              school: data.school ? school : undefined,
               grade: data.grade ? grades.find(g => g.id?.toString() === data.grade) : undefined,
               group_id: data.group ? parseInt(data.group) : undefined,
               academic_year: data.academic_year ? academicYears.find(ay => ay.id?.toString() === data.academic_year) : undefined,
@@ -173,7 +176,7 @@ export const EditStudentDialog = memo(
           setSubmitting(false);
         }
       },
-      [onEditStudent, student.id, handleClose, schools, grades, groups, academicYears, schoolClasses]
+      [onEditStudent, student.id, handleClose, school, grades, groups, academicYears, schoolClasses]
     );
 
     return (

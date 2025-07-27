@@ -41,7 +41,7 @@ const GroupSelect: FC<GroupSelectProps> = ({ handleSelect, value }) => {
 
   return (
     <Select onValueChange={handleChange} value={selectedValue}>
-      <SelectTrigger>
+      <SelectTrigger className="w-full">
         <SelectValue placeholder="Chọn nhóm học" />
       </SelectTrigger>
       <SelectContent>

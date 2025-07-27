@@ -2,7 +2,7 @@ import { Building2, Users } from 'lucide-react';
 import { memo, useMemo } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Student } from '@/types/student.type';
+import type { Student } from '@/types/api.types';
 
 interface StudentStatsCardsProps {
   students: Student[];
@@ -15,8 +15,8 @@ export const StudentStatsCards = memo(({ students }: StudentStatsCardsProps) => 
 
     // Lấy danh sách các trường (school) hiện tại có học sinh đang học
     const schools = students.reduce((schoolSet, student) => {
-      if (student.studentDetails?.[0]?.school?.name) {
-        schoolSet.add(student.studentDetails[0].school.name);
+      if (student.student_details?.[0]?.school?.name) {
+        schoolSet.add(student.student_details[0].school.name);
       }
       return schoolSet;
     }, new Set<string>());
@@ -25,8 +25,8 @@ export const StudentStatsCards = memo(({ students }: StudentStatsCardsProps) => 
 
     // Tính số lượng nhóm học
     const groups = students.reduce((groupSet, student) => {
-      if (student.studentDetails?.[0]?.group_name) {
-        groupSet.add(student.studentDetails[0].group_name);
+      if (student.student_details?.[0]?.group_name) {
+        groupSet.add(student.student_details[0].group_name);
       }
       return groupSet;
     }, new Set<string>());

@@ -15,7 +15,7 @@ createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
       <ThemeProvider defaultTheme="light" storageKey="chemist-theme">
         <App />
-        <Toaster position="top-center" />
+        <Toaster position="top-center" richColors />
       </ThemeProvider>
     </Provider>
   </StrictMode>

@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { GroupList } from '@/service';
+import type { Group } from '@/service';
 import { gradeService, groupService } from '@/service';
 import type { Grade, Student } from '@/types/api.types';
 
@@ -39,7 +39,7 @@ interface FormAddStudentProps {
 export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
   const { addStudent } = useStudent();
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [groups, setGroups] = useState<GroupList[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 

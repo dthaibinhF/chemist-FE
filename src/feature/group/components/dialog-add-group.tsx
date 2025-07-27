@@ -20,12 +20,12 @@ export const DialogAddGroup = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Tạo nhóm mới</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Tạo nhóm mới</DialogTitle>
           <DialogDescription>Tạo nhóm mới để quản lý học sinh</DialogDescription>
         </DialogHeader>
-        <FormCreateGroup />
+        <FormCreateGroup onSuccess={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>
   );

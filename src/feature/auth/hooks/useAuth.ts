@@ -23,7 +23,7 @@ import {
   logout,
   refreshTokenFailure,
   refreshTokenSuccess,
-} from "../slice/authSlice";
+} from "../slice/auth.slice";
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -87,6 +87,7 @@ export const useAuth = () => {
     error,
     accessToken,
     refreshToken,
+    refreshTokenAction,
     login,
     logout: logoutAction,
   };

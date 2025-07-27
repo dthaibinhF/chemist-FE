@@ -1,16 +1,20 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import authReducer from "@/feature/auth/slice/authSlice.ts";
+import authReducer from "@/feature/auth/slice/auth.slice";
 import studentReducer from "@/feature/student/slice/student.slice";
 import groupReducer from "./slice/group.slice";
 
 import academicYearReducer from "./slice/academic-year.slice";
 import feeReducer from "./slice/fee.slice";
+import financialDashboardReducer from "./slice/financial-dashboard.slice";
 import gradeReducer from "./slice/grade.slice";
 import paymentReducer from "./slice/payment.slice";
 import roomReducer from "./slice/room.slice";
+import salaryReducer from "./slice/salary.slice";
 import schoolClassReducer from "./slice/school-class.slice";
 import schoolReducer from "./slice/school.slice";
+import studentPaymentSummaryReducer from "./slice/student-payment-summary.slice";
+import teacherReducer from "./slice/teacher.slice";
 import timeTableReducer from "./slice/time-table.slice";
 
 export const store = configureStore({
@@ -21,11 +25,15 @@ export const store = configureStore({
     grade: gradeReducer,
     academicYear: academicYearReducer,
     fee: feeReducer,
+    financialDashboard: financialDashboardReducer,
     school: schoolReducer,
     schoolClass: schoolClassReducer,
     payment: paymentReducer,
-    timeTable: timeTableReducer,
     room: roomReducer,
+    salary: salaryReducer,
+    studentPaymentSummary: studentPaymentSummaryReducer,
+    teacher: teacherReducer,
+    timeTable: timeTableReducer,
   },
 });
 
