@@ -40,13 +40,19 @@ const TimeTableFilters = ({
     handleFetchRooms();
   }, [handleFetchRooms]);
 
-  // Get unique teachers from schedules
+  // Get unique teachers from schedules - using teacher_id and teacher_name
   const teachers = schedules
-    ?.map((schedule) => schedule.teacher)
-    .filter(
-      (teacher, index, self) =>
-        teacher && self.findIndex((t) => t?.id === teacher.id) === index
-    ) as Teacher[];
+    ?.filter(schedule => schedule.teacher_id && schedule.teacher_name)
+    .reduce((acc, schedule) => {
+      const existingTeacher = acc.find(t => t.id === schedule.teacher_id);
+      if (!existingTeacher) {
+        acc.push({
+          id: schedule.teacher_id,
+          account: { name: schedule.teacher_name },
+        } as Teacher);
+      }
+      return acc;
+    }, [] as Teacher[]) || [];
 
   return (
     <Card className="p-4">

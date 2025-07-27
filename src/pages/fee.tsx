@@ -18,7 +18,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 const FeeManagement = () => {
   usePageTitle('Quản lý học phí');
   const [activeTab, setActiveTab] = useState('list');
-  const { fees, loading } = useFee();
+  const { fees } = useFee();
   const [open, setOpen] = useState(false);
   // Mock data cho thống kê - sẽ thay bằng data thực từ API
   const feeStats = {

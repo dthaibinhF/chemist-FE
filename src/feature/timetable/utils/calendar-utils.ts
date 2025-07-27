@@ -1,6 +1,6 @@
 import type { Schedule } from "@/types/api.types";
 import type { CalendarEvent, TimeSlot, WeekData } from "../types/timetable.types";
-import { utcToVietnamTime, getCurrentVietnamTime } from "@/utils/timezone-utils";
+import { getCurrentVietnamTime } from "@/utils/timezone-utils";
 
 // Generate color palette for group color-coding
 const GROUP_COLORS = [

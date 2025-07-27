@@ -61,10 +61,10 @@ const TimeTableEventCard = ({ schedule, onClick }: TimeTableEventCardProps) => {
                   displayTimeRange(schedule.start_time, schedule.end_time)}
               </span>
             </div>
-            {schedule.teacher?.account?.name && (
+            {schedule.teacher_name && (
               <div className="flex items-center text-sm text-muted-foreground">
                 <Users className="h-4 w-4 mr-2" />
-                <span>{schedule.teacher.account.name}</span>
+                <span>{schedule.teacher_name}</span>
               </div>
             )}
             {schedule.room?.name && (

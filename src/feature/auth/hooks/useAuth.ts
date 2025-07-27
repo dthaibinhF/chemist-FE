@@ -87,6 +87,7 @@ export const useAuth = () => {
     error,
     accessToken,
     refreshToken,
+    refreshTokenAction,
     login,
     logout: logoutAction,
   };

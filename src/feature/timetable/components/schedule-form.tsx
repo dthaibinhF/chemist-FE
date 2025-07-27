@@ -23,12 +23,10 @@ import RoomSelect from "@/components/features/room-select";
 import TeacherSelect from "@/components/features/teacher-select";
 
 import { groupService } from "@/service/group.service";
-import type { Group, Teacher, Schedule } from "@/types/api.types";
+import type { Group, Schedule } from "@/types/api.types";
 import { scheduleFormSchema, type ScheduleFormData } from "../schemas/timetable.schema";
 import {
   formatApiDateTimeForInput,
-  parseDateTimeLocalToUtc,
-  formatDateTimeForApi
 } from "@/utils/timezone-utils";
 
 interface ScheduleFormProps {

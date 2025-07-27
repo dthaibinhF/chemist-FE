@@ -67,7 +67,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
     const { handleUpdateGroup, loading } = useGroup();
     const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
     const { fees, handleFetchFees, loading: loadingFees } = useFee();
-    const { rooms, handleFetchRooms, loading: loadingRooms } = useRoom();
+    const { handleFetchRooms, loading: loadingRooms } = useRoom();
     const {
         academicYears,
         handleFetchAcademicYears,

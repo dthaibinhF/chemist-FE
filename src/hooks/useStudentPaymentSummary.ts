@@ -7,20 +7,16 @@ import {
   generateAllPaymentsForGroup,
   generatePaymentForStudentInGroup,
   recalculateAllSummaries,
-  selectError,
-  selectLoading,
-  selectPaymentSummaries,
-  selectPaymentSummary,
   updateSummaryAfterPayment,
 } from "@/redux/slice/student-payment-summary.slice";
 import { useCallback } from "react";
 
 export const useStudentPaymentSummary = () => {
   const dispatch = useAppDispatch();
-  const paymentSummaries = useAppSelector(selectPaymentSummaries);
-  const paymentSummary = useAppSelector(selectPaymentSummary);
-  const loading = useAppSelector(selectLoading);
-  const error = useAppSelector(selectError);
+  const paymentSummaries = useAppSelector(state => state.studentPaymentSummary.paymentSummaries);
+  const paymentSummary = useAppSelector(state => state.studentPaymentSummary.paymentSummary);
+  const loading = useAppSelector(state => state.studentPaymentSummary.loading);
+  const error = useAppSelector(state => state.studentPaymentSummary.error);
 
   // 📝 Payment Obligation Management
 

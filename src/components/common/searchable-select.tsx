@@ -60,9 +60,9 @@ function SearchableSelect({
         setSearchValue(e.target.value);
     };
 
-    const handleOpenChange = (open: boolean) => {
-        setIsOpen(open);
-        if (!open) {
+    const handleOpenChange = () => {
+        setIsOpen(!isOpen);
+        if (!isOpen) {
             setSearchValue('');
         }
     };

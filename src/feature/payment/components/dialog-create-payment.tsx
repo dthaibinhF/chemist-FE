@@ -36,6 +36,8 @@ import { validatePaymentAmounts, validatePaymentForm, handlePaymentApiError } fr
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Plus, DollarSign, CheckCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import AcademicYearSelect from '@/components/features/academic-year-select';
+import GroupSelect from '@/components/features/group-select';
 
 const PaymentSchema = z.object({
     fee_id: z.number().min(1, { message: 'Vui lòng chọn loại phí' }),
@@ -67,8 +69,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         getPaymentStatusIcon
     } = useStudentPaymentSummary();
     const { fees, handleFetchFees } = useFee();
-    const { students, loadStudents } = useStudent();
-
+    const { students, loadStudents, selectedStudent, loadStudent } = useStudent();
     const [selectedStudentSummaries, setSelectedStudentSummaries] = useState<any[]>([]);
     const [paymentPreview, setPaymentPreview] = useState<{
         remainingAmount: number;
@@ -76,6 +77,8 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         isValid: boolean;
         message?: string;
     } | null>(null);
+
+    const studentdetail = selectedStudent?.student_details?.filter(detail => detail.end_at === null)[0];
 
     const form = useForm<PaymentFormData>({
         resolver: zodResolver(PaymentSchema),
@@ -86,8 +89,8 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
             amount: 0,
             description: '',
             have_discount: 0,
-            academic_year_id: 0,
-            group_id: 0,
+            academic_year_id: studentdetail?.academic_year?.id || 0,
+            group_id: studentdetail?.group_id || 0,
             due_date: '',
             payment_status: 'PENDING',
         },
@@ -101,18 +104,35 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         }
     }, [open, handleFetchFees, loadStudents]);
 
+    useEffect(() => {
+        if (form.watch('student_id') && form.watch('student_id') > 0) {
+            loadStudent(form.watch('student_id')!);
+        }
+    }, [form.watch('student_id')]);
+
     // Load student payment summaries when student is selected
     useEffect(() => {
-        const studentId = form.watch('student_id');
-        if (studentId && studentId > 0) {
-            handleFetchPaymentSummariesByStudent(studentId);
-        }
-    }, [form.watch('student_id'), handleFetchPaymentSummariesByStudent]);
+        const subscription = form.watch((value, { name }) => {
+            if (name === 'student_id' && value.student_id && value.student_id > 0) {
+                handleFetchPaymentSummariesByStudent(value.student_id);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [form, handleFetchPaymentSummariesByStudent]);
 
     // Update selected student summaries when paymentSummaries change
     useEffect(() => {
         setSelectedStudentSummaries(paymentSummaries);
     }, [paymentSummaries]);
+
+    // Auto-fill form when studentdetail changes
+    useEffect(() => {
+        if (studentdetail && selectedStudent) {
+            form.setValue('academic_year_id', studentdetail.academic_year?.id || 0);
+            form.setValue('group_id', studentdetail.group_id || 0);
+            form.setValue('due_date', new Date().toISOString().split('T')[0]);
+        }
+    }, [studentdetail, selectedStudent, form]);
 
     // Enhanced validation function using payment summaries and utility functions
     const validatePaymentAmount = (studentId: number, feeId: number, newAmount: number, haveDiscount: number) => {
@@ -226,7 +246,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
 
             await handleCreatePaymentDetail(paymentWithSummaryUpdate);
 
-            toast.success('Tạo thanh toán và cập nhật nghĩa vụ thành công');
+            toast.success('Tạo thanh toán và cập nhật hóa đơn thành công');
             form.reset();
             onOpenChange?.(false);
 
@@ -303,12 +323,12 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 grid grid-cols-2 gap-4 w-full">
                         {/* Payment Summary Preview */}
                         {getExistingPaymentSummary() && (
-                            <Alert>
+                            <Alert className="col-span-2">
                                 <DollarSign className="h-4 w-4" />
-                                <AlertTitle>Thông tin nghĩa vụ hiện tại</AlertTitle>
+                                <AlertTitle>Thông tin hóa đơn hiện tại</AlertTitle>
                                 <AlertDescription>
                                     <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                                         <div>Tổng phí: {formatCurrency(getExistingPaymentSummary()!.total_amount_due)}</div>
@@ -328,7 +348,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
 
                         {/* Payment Preview */}
                         {paymentPreview && paymentPreview.isValid && (
-                            <Alert>
+                            <Alert className="col-span-2">
                                 <CheckCircle className="h-4 w-4" />
                                 <AlertTitle>Xem trước thanh toán</AlertTitle>
                                 <AlertDescription>
@@ -351,7 +371,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                             control={form.control}
                             name="student_id"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="col-span-2">
                                     <FormLabel>Học sinh</FormLabel>
                                     <FormControl>
                                         <SearchableSelect
@@ -384,7 +404,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                             control={form.control}
                             name="fee_id"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="col-span-2 ">
                                     <FormLabel>Loại phí</FormLabel>
                                     <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value.toString()}>
                                         <FormControl>
@@ -414,7 +434,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Chọn phương thức thanh toán" />
+                                                <SelectValue placeholder="Chọn phương thức" className='text' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -475,9 +495,55 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
 
                         <FormField
                             control={form.control}
-                            name="description"
+                            name="academic_year_id"
                             render={({ field }) => (
                                 <FormItem>
+                                    <FormLabel>Năm học</FormLabel>
+                                    <FormControl>
+                                        <AcademicYearSelect value={field.value.toString()} handleSelect={(value) => field.onChange(Number(value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="group_id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nhóm học</FormLabel>
+                                    <FormControl>
+                                        <GroupSelect value={field.value.toString()} handleSelect={(value) => field.onChange(Number(value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="due_date"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Hạn thanh toán</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="date"
+                                            {...field}
+                                            min={new Date().toISOString().split('T')[0]}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem className='col-span-2'>
                                     <FormLabel>Mô tả</FormLabel>
                                     <FormControl>
                                         <Textarea {...field} placeholder="Nhập mô tả (tùy chọn)" />

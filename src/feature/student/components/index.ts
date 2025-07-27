@@ -1,4 +1,3 @@
-export { AddStudentDialog } from './add-student-dialog';
 export { EditStudentDialog } from './edit-student-dialog';
 export { StudentEmptyState } from './student-empty-state';
 export { StudentLoader } from './student-loader';

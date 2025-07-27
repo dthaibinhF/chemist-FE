@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { BulkPaymentGenerationDialog } from '@/components/common/bulk-payment-generation-dialog';
@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SalaryManagementTab } from '@/feature/salary/components';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { usePayment } from '@/hooks/usePayment';
 import { 
   BarChart3, 
   Calendar, 
@@ -31,6 +32,28 @@ const EnhancedFinancePage = () => {
   
   const [bulkPaymentDialogOpen, setBulkPaymentDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState('overview');
+  
+  // Payment data for calendar
+  const { paymentDetails } = usePayment();
+  
+  // Convert payment details to calendar events
+  const paymentEvents = useMemo(() =>
+    paymentDetails.map(payment => ({
+      id: payment.id || 0,
+      date: payment.create_at ? new Date(payment.create_at) : new Date(),
+      studentName: payment.student_name || '',
+      amount: payment.amount || 0,
+      feeType: payment.fee_name || '',
+      status: payment.payment_status === 'PAID' ? 'paid' as const : 
+             payment.payment_status === 'OVERDUE' ? 'overdue' as const : 
+             'pending' as const
+    })), [paymentDetails]
+  );
+  
+  const handleDateSelect = useCallback((date: Date) => {
+    console.log('Selected date:', date);
+    toast.info('Đã chọn ngày: ' + date.toLocaleDateString('vi-VN'));
+  }, []);
 
   const handleBulkPaymentSuccess = (count: number) => {
     toast.success(`Đã tạo thành công ${count} nghĩa vụ thanh toán`);
@@ -247,7 +270,10 @@ const EnhancedFinancePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FinanceCalendar />
+              <FinanceCalendar
+                paymentEvents={paymentEvents}
+                onDateSelect={handleDateSelect}
+              />
             </CardContent>
           </Card>
         </TabsContent>

@@ -101,6 +101,13 @@ export const FinanceManagement = () => {
     toast.success('Thanh toán đã được tạo thành công');
   }, [handleFetchDashboardStatistics, handleFetchPaymentDetails]);
 
+  // Add refresh function for child components
+  const handleRefreshDashboardData = useCallback(() => {
+    handleFetchDashboardStatistics();
+    handleFetchOverdueStatistics();
+    handleFetchPaymentDetails();
+  }, [handleFetchDashboardStatistics, handleFetchOverdueStatistics, handleFetchPaymentDetails]);
+
   // Convert payment details to calendar events (memoized)
   const paymentEvents = useMemo(() =>
     paymentDetails.map(payment => ({
@@ -142,7 +149,7 @@ export const FinanceManagement = () => {
       <EnhancedFinanceOverviewCards />
 
       {/* Overdue Payment Alerts */}
-      <OverduePaymentAlerts />
+      <OverduePaymentAlerts onRefreshData={handleRefreshDashboardData} />
 
       {/* Filters */}
       <FinanceFiltersComponent onFiltersChange={handleFiltersChange} />

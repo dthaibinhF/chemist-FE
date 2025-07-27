@@ -6,20 +6,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useFinancialDashboard } from '@/hooks/useFinancialDashboard';
 import { cn } from '@/lib/utils';
-import { StudentPaymentSummary } from '@/types/api.types';
-import { 
-  AlertTriangle, 
-  Clock, 
-  DollarSign, 
-  ExternalLink, 
-  Mail, 
-  Phone, 
-  RefreshCw, 
+import {
+  AlertTriangle,
+  Clock,
+  DollarSign,
+  ExternalLink,
+  Mail,
+  Phone,
+  RefreshCw,
   Users,
   Calendar,
   AlertCircle
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -27,40 +26,32 @@ interface OverduePaymentAlertsProps {
   className?: string;
   maxItems?: number;
   showActions?: boolean;
+  onRefreshData?: () => void; // New prop for refreshing data
 }
 
-export const OverduePaymentAlerts = ({ 
-  className, 
+export const OverduePaymentAlerts = ({
+  className,
   maxItems = 10,
-  showActions = true
+  showActions = true,
+  onRefreshData
 }: OverduePaymentAlertsProps) => {
   const {
     overdueStats,
     overduePaymentSummaries,
     loading,
     error,
-    handleFetchOverdueStatistics,
-    handleFetchOverduePaymentSummaries,
     handleUpdateOverdueStatuses,
     formatCurrency,
-    getPaymentStatusColor,
-    getPaymentStatusIcon,
   } = useFinancialDashboard();
 
   const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    handleFetchOverdueStatistics();
-    handleFetchOverduePaymentSummaries();
-  }, [handleFetchOverdueStatistics, handleFetchOverduePaymentSummaries]);
 
   const handleUpdateStatuses = async () => {
     setIsUpdating(true);
     try {
       await handleUpdateOverdueStatuses();
-      // Refresh data after update
-      handleFetchOverdueStatistics();
-      handleFetchOverduePaymentSummaries();
+      // Call parent's refresh function if provided
+      onRefreshData?.();
     } finally {
       setIsUpdating(false);
     }
@@ -212,13 +203,13 @@ export const OverduePaymentAlerts = ({
               </Button>
             )}
           </div>
-          
+
           <ScrollArea className="h-[300px]">
             <div className="space-y-3">
-              {displayItems.map((payment: StudentPaymentSummary, index) => {
+              {displayItems.map((payment, index) => {
                 const daysOverdue = calculateDaysOverdue(payment.due_date);
                 const priority = getPriorityLevel(daysOverdue);
-                
+
                 return (
                   <div key={payment.id || index} className="border rounded-lg p-3 space-y-2">
                     <div className="flex items-start justify-between">
@@ -244,15 +235,15 @@ export const OverduePaymentAlerts = ({
                         </div>
                       </div>
                     </div>
-                    
+
                     <Separator className="my-2" />
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                         <span>Hạn thanh toán:</span>
                         <span>{format(new Date(payment.due_date), 'dd/MM/yyyy', { locale: vi })}</span>
                       </div>
-                      
+
                       {showActions && (
                         <div className="flex items-center space-x-1">
                           <Button variant="outline" size="sm" className="h-6 text-xs">

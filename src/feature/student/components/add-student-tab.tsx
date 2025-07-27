@@ -1,4 +1,4 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, FileSpreadsheetIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,10 +9,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 
 import { AddStudentCsvFile } from './add-student-cvs-file';
 import { FormAddStudent } from './form-add-student';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddStudentTabProps {
   groupId?: number;
@@ -21,48 +29,57 @@ interface AddStudentTabProps {
 
 export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
   return (
-    <div>
+    <div className="flex gap-2">
+      {/* Dialog for Manual Student Entry */}
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex items-center gap-2 px-4 py-2">
             <PlusIcon className="w-4 h-4" />
-            Thêm học sinh
+            Thêm thủ công
           </Button>
         </DialogTrigger>
-        <DialogContent className="min-w-[1200px] w-full">
-          <DialogHeader className="mb-4">
-            <DialogTitle>Thêm học sinh</DialogTitle>
-            <DialogDescription>Chọn thêm thủ công hoặc thêm bằng file CSV</DialogDescription>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Thêm học sinh thủ công</DialogTitle>
+            <DialogDescription>Điền thông tin học sinh vào form dưới đây</DialogDescription>
           </DialogHeader>
+          <div className="mt-4">
+            <FormAddStudent
+              groupId={groupId}
+              gradeId={gradeId}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
-          <Tabs>
-            <TabsList className="">
-              <TabsTrigger value="manual" className="py-2">
-                Thêm thủ công
-              </TabsTrigger>
-              <TabsTrigger value="csv" className="py-2">
-                Thêm bằng file CSV
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="manual">
-              <div className="p-5 border rounded-lg shadow-sm w-full">
-                <FormAddStudent
+      {/* Drawer for CSV Import */}
+      <Drawer direction="bottom">
+        <DrawerTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-2 px-4 py-2">
+            <FileSpreadsheetIcon className="w-4 h-4" />
+            Import CSV
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="h-[90vh] max-h-[800px]">
+          <ScrollArea className="h-[90vh] max-h-[700px]">
+            <div className="mx-auto w-full max-w-full">
+              <DrawerHeader>
+                <DrawerTitle>Import học sinh từ file CSV</DrawerTitle>
+                <DrawerDescription>
+                  Tải lên file CSV để import nhiều học sinh cùng lúc. Hỗ trợ preview và chỉnh sửa trước khi lưu.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="p-4 h-full overflow-hidden">
+                <AddStudentCsvFile
                   groupId={groupId}
                   gradeId={gradeId}
                 />
               </div>
-            </TabsContent>
-
-            <TabsContent value="csv" className="mt-1 w-full overflow-hidden">
-              <AddStudentCsvFile
-                groupId={groupId}
-                gradeId={gradeId}
-              />
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+            </div>
+          </ScrollArea>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
+

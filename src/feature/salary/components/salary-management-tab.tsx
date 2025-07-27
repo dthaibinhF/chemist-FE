@@ -110,11 +110,11 @@ export const SalaryManagementTab = () => {
   };
 
   // Transform teachers for select component
-  const teacherOptions = teachers.map(teacher => ({
-    value: teacher.id?.toString() || '',
-    label: `${teacher.account.name}`,
-    description: teacher.account?.email || '',
-  }));
+  // const teacherOptions = teachers.map(teacher => ({
+  //   value: teacher.id?.toString() || '',
+  //   label: `${teacher.account.name}`,
+  //   description: teacher.account?.email || '',
+  // }));
 
   return (
     <div className="space-y-6">

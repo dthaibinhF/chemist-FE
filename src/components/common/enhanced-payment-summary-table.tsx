@@ -7,27 +7,22 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useFinancialDashboard } from '@/hooks/useFinancialDashboard';
-import { usePayment } from '@/hooks/usePayment';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
 import { cn } from '@/lib/utils';
-import { PaymentStatus, StudentPaymentSummary } from '@/types/api.types';
+import { PaymentStatus } from '@/types/api.types';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { 
-  AlertCircle, 
-  Calendar, 
-  CheckCircle, 
-  Clock, 
-  Download, 
-  DollarSign, 
-  Eye, 
-  Filter, 
-  Mail, 
-  MoreHorizontal, 
-  Phone, 
-  RefreshCw, 
-  Search, 
+import {
+  AlertCircle,
+  Clock,
+  Download,
+  DollarSign,
+  Eye,
+  Filter,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  Search,
   Users,
   X
 } from 'lucide-react';
@@ -63,14 +58,11 @@ export const EnhancedPaymentSummaryTable = ({
     error,
     handleFetchPaymentSummariesByGroup,
     handleFetchPaymentSummariesByStudent,
-    handleUpdateSummaryAfterPayment,
     formatCurrency,
-    getPaymentStatusColor,
+    // getPaymentStatusColor,
     getPaymentStatusIcon,
     calculateCompletionPercentage
   } = useStudentPaymentSummary();
-
-  const { formatCurrency: formatCurrencyFinance } = useFinancialDashboard();
 
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
@@ -97,7 +89,7 @@ export const EnhancedPaymentSummaryTable = ({
     // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.student_name.toLowerCase().includes(searchLower) ||
         item.fee_name.toLowerCase().includes(searchLower) ||
         item.group_name.toLowerCase().includes(searchLower)
@@ -116,12 +108,12 @@ export const EnhancedPaymentSummaryTable = ({
 
     // Date filters
     if (filters.dateFrom) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         new Date(item.due_date) >= new Date(filters.dateFrom)
       );
     }
     if (filters.dateTo) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         new Date(item.due_date) <= new Date(filters.dateTo)
       );
     }
@@ -160,8 +152,8 @@ export const EnhancedPaymentSummaryTable = ({
 
   const getStatusBadge = (status: PaymentStatus, isOverdue: boolean) => {
     const icon = getPaymentStatusIcon(status);
-    const color = getPaymentStatusColor(status);
-    
+    // const color = getPaymentStatusColor(status);
+
     let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
     let label = "";
 
@@ -240,7 +232,7 @@ export const EnhancedPaymentSummaryTable = ({
               {filteredData.length}
             </Badge>
           </CardTitle>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -251,14 +243,14 @@ export const EnhancedPaymentSummaryTable = ({
               <Filter className="h-4 w-4" />
               <span>Bộ lọc</span>
             </Button>
-            
+
             {showBulkActions && selectedItems.size > 0 && (
               <Button variant="outline" size="sm">
                 <Mail className="h-4 w-4 mr-2" />
                 Nhắc nhở ({selectedItems.size})
               </Button>
             )}
-            
+
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Xuất Excel
@@ -287,7 +279,7 @@ export const EnhancedPaymentSummaryTable = ({
               <Label>Trạng thái</Label>
               <Select
                 value={filters.status}
-                onValueChange={(value: PaymentStatus | 'ALL') => 
+                onValueChange={(value: PaymentStatus | 'ALL') =>
                   setFilters(prev => ({ ...prev, status: value }))
                 }
               >
@@ -333,7 +325,7 @@ export const EnhancedPaymentSummaryTable = ({
               <Checkbox
                 id="overdueOnly"
                 checked={filters.showOverdueOnly}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setFilters(prev => ({ ...prev, showOverdueOnly: Boolean(checked) }))
                 }
               />
@@ -368,8 +360,8 @@ export const EnhancedPaymentSummaryTable = ({
             <TableBody>
               {filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell 
-                    colSpan={showBulkActions ? 8 : 7} 
+                  <TableCell
+                    colSpan={showBulkActions ? 8 : 7}
                     className="text-center py-6"
                   >
                     <div className="text-muted-foreground">
@@ -381,7 +373,7 @@ export const EnhancedPaymentSummaryTable = ({
               ) : (
                 filteredData.map((item) => {
                   const completionRate = calculateCompletionPercentage(
-                    item.total_amount_paid, 
+                    item.total_amount_paid,
                     item.total_amount_due
                   );
                   const isSelected = selectedItems.has(item.id!);
@@ -396,13 +388,13 @@ export const EnhancedPaymentSummaryTable = ({
                         <TableCell>
                           <Checkbox
                             checked={isSelected}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleSelectItem(item.id!, Boolean(checked))
                             }
                           />
                         </TableCell>
                       )}
-                      
+
                       <TableCell>
                         <div className="space-y-1">
                           <p className="font-medium">{item.student_name}</p>

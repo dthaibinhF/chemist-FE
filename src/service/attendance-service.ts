@@ -1,5 +1,4 @@
 import { Attendance, BulkAttendanceDTO, PaginatedResponse } from "@/types/api.types";
-import { AxiosResponse } from "axios";
 import { createApiClient } from "./api-client";
 
 const apiClient = createApiClient("attendance");

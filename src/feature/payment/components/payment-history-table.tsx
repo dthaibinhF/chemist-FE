@@ -116,8 +116,8 @@ export const PaymentHistoryTable = ({
   } = usePayment();
 
   const {
-    handleFetchPaymentSummariesByStudent,
     formatCurrency,
+    loading: loadingPaymentSummary,
   } = useStudentPaymentSummary();
 
   // Enhanced filtering state
@@ -129,9 +129,9 @@ export const PaymentHistoryTable = ({
 
   const isExternalData = externalPaymentDetails !== undefined;
   const displayPaymentDetails = isExternalData ? externalPaymentDetails : paymentDetails;
-  const displayLoading = isExternalData ? externalLoading : loading;
+  const displayLoading = isExternalData || loadingPaymentSummary ? externalLoading : loading;
 
-  // Load payment details and summaries
+  // // Load payment details and summaries
   useEffect(() => {
     if (!isExternalData) {
       if (studentId && feeId) {
@@ -144,15 +144,7 @@ export const PaymentHistoryTable = ({
         handleFetchPaymentDetails();
       }
     }
-  }, [studentId, feeId, isExternalData, handleFetchPaymentDetails, handleFetchPaymentDetailByStudentId, handleFetchPaymentDetailByFeeId, handleFetchPaymentDetailByStudentIdAndFeeId]);
-
-  // Load payment summaries for enhanced data
-  useEffect(() => {
-    if (showSummary && studentId) {
-      handleFetchPaymentSummariesByStudent(studentId);
-    }
-  }, [showSummary, studentId, handleFetchPaymentSummariesByStudent]);
-
+  }, [studentId, feeId, isExternalData]);
   // Memoized filter functions for better performance
   const searchFilter = useCallback((payment: PaymentDetail, searchTerm: string) => {
     if (!searchTerm) return true;
@@ -166,7 +158,7 @@ export const PaymentHistoryTable = ({
 
   const dateRangeFilter = useCallback((payment: PaymentDetail, dateRange: string) => {
     if (dateRange === 'all' || !payment.create_at) return true;
-    
+
     const paymentDate = new Date(payment.create_at);
     const now = new Date();
     const daysDiff = Math.floor((now.getTime() - paymentDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -270,17 +262,17 @@ export const PaymentHistoryTable = ({
         );
       },
     },
-    ...(studentId ? [] : [{
-      accessorKey: 'student_name',
-      header: 'Học sinh',
-      cell: ({ row }: { row: any }) => {
-        return (
-          <div className="font-medium">
-            {row.getValue('student_name')}
-          </div>
-        );
-      },
-    }]),
+    // {
+    //   accessorKey: 'student_name',
+    //   header: 'Học sinh',
+    //   cell: ({ row }: { row: any }) => {
+    //     return (
+    //       <div className="font-medium">
+    //         {row.getValue('student_name')}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       accessorKey: 'amount',
       header: 'Số tiền',
@@ -426,7 +418,7 @@ export const PaymentHistoryTable = ({
   return (
     <div className="space-y-6">
       {/* Summary Statistics */}
-      {showSummary && (
+      {showSummary && !loadingPaymentSummary && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -581,9 +573,8 @@ export const PaymentHistoryTable = ({
           <DataTable
             columns={columns}
             data={filteredPaymentDetails}
-            pagination={true}
-            filterColumn="student_name"
-            filterPlaceholder="Tìm kiếm học sinh..."
+            pagination={true} filterColumn="fee_name"
+            filterPlaceholder="Tìm kiếm phí..."
           />
         </CardContent>
       </Card>

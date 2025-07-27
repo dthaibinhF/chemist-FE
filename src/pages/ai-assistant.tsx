@@ -1,4 +1,4 @@
-import AIChat from "@/feature/ai-assistant/components/AIChat";
+// import AIChat from "@/feature/ai-assistant/components/AIChat";
 import { useAuth } from "@/feature/auth/hooks/useAuth";
 
 var systemPrompt = `Bạn là Junie, một trợ lý thân thiện cho Chemist, ứng dụng quản lý trung tâm dạy thêm môn Hóa học cho học sinh THPT. 
@@ -84,7 +84,7 @@ const AiAssistantPage = () => {
         Hãy hỏi Junie về thông tin học sinh, lịch học, điểm số, v.v. bằng ngôn
         ngữ tự nhiên.
       </p>
-      <AIChat systemPrompt={systemPrompt} height="60vh" />
+      {/* <AIChat systemPrompt={systemPrompt} height="60vh" /> */}
     </div>
   );
 };

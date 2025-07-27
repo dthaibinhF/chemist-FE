@@ -35,7 +35,6 @@ const isSameTimeSlot = (date: Date, slot: string) => {
 
 const TimeTableWeeklyView = ({
   schedules,
-  selectedDate,
   onEventClick,
 }: TimeTableWeeklyViewProps) => {
   // Group schedules by day and time slot

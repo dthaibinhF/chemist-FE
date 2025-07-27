@@ -32,7 +32,7 @@ export const uploadFile = async (file: File | FormData): Promise<File> => {
 };
 
 export const viewFile = async (url: string) => {
-    const response = await axios.get(
+    await axios.get(
         'https://vsdp-api.development.thanhlp18.info/api/v1/file-storage/view',
         {
             params: {

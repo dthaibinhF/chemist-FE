@@ -2,9 +2,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinancialDashboard } from '@/hooks/useFinancialDashboard';
 import { cn } from '@/lib/utils';
-import { FinancialStatisticsDTO } from '@/types/api.types';
-import { AlertCircle, DollarSign, TrendingDown, TrendingUp, Users, Wallet, Clock, CheckCircle } from 'lucide-react';
-import { useEffect } from 'react';
+// import { FinancialStatisticsDTO } from '@/types/api.types'; // Commented out - not currently used
+import { AlertCircle, DollarSign, Users, Wallet, Clock, CheckCircle } from 'lucide-react';
+// import { useEffect } from 'react'; // Removed - no longer needed
 
 interface EnhancedFinanceOverviewCardsProps {
   className?: string;
@@ -15,7 +15,7 @@ export const EnhancedFinanceOverviewCards = ({ className }: EnhancedFinanceOverv
     dashboardStats,
     loading,
     error,
-    handleFetchDashboardStatistics,
+    // handleFetchDashboardStatistics, // Removed - parent component handles this
     formatCurrency,
     calculateGrowthRate,
     formatPercentage,
@@ -23,9 +23,10 @@ export const EnhancedFinanceOverviewCards = ({ className }: EnhancedFinanceOverv
     getGrowthIcon,
   } = useFinancialDashboard();
 
-  useEffect(() => {
-    handleFetchDashboardStatistics();
-  }, [handleFetchDashboardStatistics]);
+  // REMOVED: useEffect that was causing infinite loop
+  // useEffect(() => {
+  //   handleFetchDashboardStatistics();
+  // }, [handleFetchDashboardStatistics]);
 
   if (loading) {
     return (
@@ -84,7 +85,7 @@ export const EnhancedFinanceOverviewCards = ({ className }: EnhancedFinanceOverv
             <span style={{ color: getGrowthColor(growthRate) }}>
               {getGrowthIcon(growthRate)}
             </span>
-            <span 
+            <span
               className="font-medium"
               style={{ color: getGrowthColor(growthRate) }}
             >
@@ -104,7 +105,7 @@ export const EnhancedFinanceOverviewCards = ({ className }: EnhancedFinanceOverv
         <CardContent>
           <div className="text-2xl font-bold">{formatPercentage(collectionRate)}</div>
           <div className="flex items-center space-x-1 text-xs">
-            <Badge 
+            <Badge
               variant={collectionRate >= 80 ? "default" : collectionRate >= 60 ? "secondary" : "destructive"}
               className="text-xs"
             >

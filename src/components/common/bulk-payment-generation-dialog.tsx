@@ -102,17 +102,17 @@ export const BulkPaymentGenerationDialog = ({
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      const result = await handleGenerateAllPaymentsForGroup(selectedGroupId);
+      await handleGenerateAllPaymentsForGroup(selectedGroupId);
 
       setProgress(prev => ({
         ...prev,
         completed: studentCount,
-        generatedSummaries: result || [],
+        generatedSummaries: [], // Will be populated from Redux state if needed
         currentStep: 'Hoàn thành!'
       }));
 
       setGenerationComplete(true);
-      onSuccess?.(result?.length || 0);
+      onSuccess?.(studentCount);
 
     } catch (error) {
       console.error('Error generating payments:', error);

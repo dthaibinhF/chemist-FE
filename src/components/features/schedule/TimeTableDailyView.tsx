@@ -13,7 +13,6 @@ interface TimeTableDailyViewProps {
 
 const TimeTableDailyView = ({
   schedules,
-  selectedDate,
   onEventClick,
 }: TimeTableDailyViewProps) => {
   // Sort schedules by start time (convert to Vietnam time for proper sorting)
@@ -50,10 +49,10 @@ const TimeTableDailyView = ({
                           displayTimeRange(schedule.start_time, schedule.end_time)}
                       </span>
                     </div>
-                    {schedule.teacher?.account?.name && (
+                    {schedule.teacher_name && (
                       <div className="flex items-center text-muted-foreground">
                         <Users className="mr-2 h-4 w-4" />
-                        <span>{schedule.teacher.account.name}</span>
+                        <span>{schedule.teacher_name}</span>
                       </div>
                     )}
                     {schedule.room?.name && (

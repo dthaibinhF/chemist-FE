@@ -40,7 +40,7 @@ import { updateSummaryAfterPayment } from '@/redux/slice/student-payment-summary
 import { getCurrentStudentDetail } from '@/lib/student-utils';
 import type { PaymentDetail, StudentPaymentSummary } from '@/types/api.types';
 import { PaymentStatus } from '@/types/api.types';
-import { validatePaymentAmounts, calculateFinalAmount, validatePaymentForm, handlePaymentApiError } from '@/utils/payment-utils';
+import { validatePaymentAmounts, validatePaymentForm, handlePaymentApiError } from '@/utils/payment-utils';
 import {
   AlertCircle,
   CheckCircle,
@@ -85,10 +85,11 @@ export const DialogAddPayment = ({
     handleFetchPaymentSummariesByStudent,
     formatCurrency,
     getPaymentStatusIcon,
-    calculateCompletionPercentage
+    calculateCompletionPercentage,
+    loading: summaryLoading
   } = useStudentPaymentSummary();
-  const { fees, handleFetchFees } = useFee();
-  const { students, loadStudents } = useStudent();
+  const { fees, handleFetchFees, loading: feeLoading } = useFee();
+  const { students, loadStudents, loading: studentLoading } = useStudent();
   const { handleFetchGroups } = useGroup();
 
   const [selectedPaymentSummary, setSelectedPaymentSummary] = useState<StudentPaymentSummary | null>(null);
@@ -127,32 +128,36 @@ export const DialogAddPayment = ({
 
   // Load student payment summaries when student is selected
   useEffect(() => {
-    const studentId = form.watch('student_id');
-    if (studentId && studentId > 0) {
-      handleFetchPaymentSummariesByStudent(studentId);
-    }
-  }, [form.watch('student_id'), handleFetchPaymentSummariesByStudent]);
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'student_id' && value.student_id && value.student_id > 0) {
+        handleFetchPaymentSummariesByStudent(value.student_id);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [handleFetchPaymentSummariesByStudent]);
 
   // Find relevant payment summary when student and fee are selected
   useEffect(() => {
-    const studentId = form.watch('student_id');
-    const feeId = form.watch('fee_id');
+    const subscription = form.watch((value) => {
+      const { student_id, fee_id } = value;
 
-    if (studentId && feeId && paymentSummaries.length > 0) {
-      const summary = paymentSummaries.find(
-        s => s.student_id === studentId && s.fee_id === feeId
-      );
-      setSelectedPaymentSummary(summary || null);
+      if (student_id && fee_id && paymentSummaries.length > 0) {
+        const summary = paymentSummaries.find(
+          s => s.student_id === student_id && s.fee_id === fee_id
+        );
+        setSelectedPaymentSummary(summary || null);
 
-      // Auto-fill group and academic year if found
-      if (summary) {
-        form.setValue('group_id', summary.group_id);
-        form.setValue('academic_year_id', summary.academic_year_id);
+        // Auto-fill group and academic year if found
+        if (summary) {
+          form.setValue('group_id', summary.group_id);
+          form.setValue('academic_year_id', summary.academic_year_id);
+        }
+      } else {
+        setSelectedPaymentSummary(null);
       }
-    } else {
-      setSelectedPaymentSummary(null);
-    }
-  }, [form.watch('student_id'), form.watch('fee_id'), paymentSummaries, form]);
+    });
+    return () => subscription.unsubscribe();
+  }, [paymentSummaries, form]);
 
   // Calculate payment preview with enhanced validation
   const calculatePaymentPreview = (amount: number, discount: number) => {
@@ -164,7 +169,7 @@ export const DialogAddPayment = ({
     // First validate the payment amounts using utility functions
     const generatedAmount = amount + discount;
     const amountValidation = validatePaymentAmounts(amount, discount, generatedAmount);
-    
+
     if (!amountValidation.isValid) {
       setPaymentPreview({
         remainingAmount: 0,
@@ -344,9 +349,10 @@ export const DialogAddPayment = ({
                           }))}
                           value={field.value?.toString()}
                           onValueChange={(value) => field.onChange(Number(value))}
-                          placeholder="Chọn học sinh"
+                          placeholder={studentLoading ? "Đang tải học sinh..." : "Chọn học sinh"}
                           searchPlaceholder="Tìm kiếm học sinh..."
                           className="w-full"
+                          disabled={studentLoading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -360,10 +366,10 @@ export const DialogAddPayment = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Loại phí</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value.toString()}>
+                      <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value.toString()} disabled={feeLoading}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Chọn loại phí" />
+                            <SelectValue placeholder={feeLoading ? "Đang tải phí..." : "Chọn loại phí"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -381,7 +387,17 @@ export const DialogAddPayment = ({
               </div>
 
               {/* Payment Summary Information */}
-              {selectedPaymentSummary && (
+              {summaryLoading && (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-center space-x-2 text-muted-foreground">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                      <span>Đang tải thông tin nghĩa vụ thanh toán...</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {selectedPaymentSummary && !summaryLoading && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center space-x-2">

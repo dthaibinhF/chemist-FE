@@ -1,23 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFinancialDashboard } from '@/hooks/useFinancialDashboard';
-import { cn } from '@/lib/utils';
-import { 
-  Bar, 
-  BarChart, 
-  CartesianGrid, 
-  Cell, 
-  Line, 
-  LineChart, 
-  Pie, 
-  PieChart, 
-  ResponsiveContainer, 
-  Tooltip, 
-  XAxis, 
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
   YAxis,
   Legend
 } from 'recharts';
-import { useEffect } from 'react';
+// import { useEffect } from 'react'; // Removed - no longer needed
 import { AlertCircle, TrendingUp, PieChart as PieChartIcon, BarChart3 } from 'lucide-react';
 
 interface PaymentStatusChartsProps {
@@ -29,16 +28,16 @@ export const PaymentStatusCharts = ({ className }: PaymentStatusChartsProps) => 
     dashboardStats,
     loading,
     error,
-    handleFetchDashboardStatistics,
+    // handleFetchDashboardStatistics, // Removed - parent component handles this
     formatCurrency,
-    getPaymentStatusColor,
     prepareRevenueChartData,
     preparePaymentStatusChartData,
   } = useFinancialDashboard();
 
-  useEffect(() => {
-    handleFetchDashboardStatistics();
-  }, [handleFetchDashboardStatistics]);
+  // REMOVED: useEffect that was causing infinite loop
+  // useEffect(() => {
+  //   handleFetchDashboardStatistics();
+  // }, [handleFetchDashboardStatistics]);
 
   if (loading) {
     return (
@@ -104,8 +103,8 @@ export const PaymentStatusCharts = ({ className }: PaymentStatusChartsProps) => 
           <p className="font-medium">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              {entry.name}: {entry.name?.includes('số tiền') || entry.name?.includes('collected') || entry.name?.includes('target') 
-                ? formatCurrency(entry.value) 
+              {entry.name?.includes('số tiền') || entry.name?.includes('collected') || entry.name?.includes('target')
+                ? formatCurrency(entry.value)
                 : entry.value}
             </p>
           ))}
@@ -158,8 +157,8 @@ export const PaymentStatusCharts = ({ className }: PaymentStatusChartsProps) => 
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {paymentStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {paymentStatusData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={_.color} />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
@@ -170,7 +169,7 @@ export const PaymentStatusCharts = ({ className }: PaymentStatusChartsProps) => 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               {paymentStatusData.map((item, index) => (
                 <div key={index} className="flex items-center space-x-2">
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
@@ -206,19 +205,19 @@ export const PaymentStatusCharts = ({ className }: PaymentStatusChartsProps) => 
                   <XAxis dataKey="month" />
                   <YAxis tickFormatter={(value) => formatCurrency(value)} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="collected" 
+                  <Line
+                    type="monotone"
+                    dataKey="collected"
                     name="Đã thu"
-                    stroke="#4ECDC4" 
+                    stroke="#4ECDC4"
                     strokeWidth={3}
                     dot={{ fill: '#4ECDC4', strokeWidth: 2, r: 4 }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="target" 
+                  <Line
+                    type="monotone"
+                    dataKey="target"
                     name="Mục tiêu"
-                    stroke="#FF6B6B" 
+                    stroke="#FF6B6B"
                     strokeWidth={2}
                     strokeDasharray="5 5"
                     dot={{ fill: '#FF6B6B', strokeWidth: 2, r: 4 }}
@@ -241,8 +240,8 @@ export const PaymentStatusCharts = ({ className }: PaymentStatusChartsProps) => 
                   <YAxis dataKey="category" type="category" width={120} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="count" name="Số lượng">
-                    {overdueAnalysisData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {overdueAnalysisData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={_.color} />
                     ))}
                   </Bar>
                 </BarChart>

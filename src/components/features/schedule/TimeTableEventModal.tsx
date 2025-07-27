@@ -30,12 +30,11 @@ import {
 import RoomSelect from "@/components/features/room-select";
 import { useTimeTable } from "@/hooks/useTimeTable";
 import { cn } from "@/lib/utils";
-import type { Room, Schedule, Teacher } from "@/types/api.types";
+import type { Schedule, Teacher } from "@/types/api.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { utcToVietnamTime, formatUtcToVietnamTime, getCurrentVietnamTime } from "@/utils/timezone-utils";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import GroupSelect from "../group-select";
@@ -73,18 +72,20 @@ const TimeTableEventModal = ({
   onSubmit,
 }: TimeTableEventModalProps) => {
   const { schedules } = useTimeTable();
-  const [date, setDate] = useState<Date | undefined>(
-    event?.start_time ? utcToVietnamTime(event.start_time) : undefined
-  );
 
-
-  // Get unique teachers from schedules
+  // Get unique teachers from schedules - using teacher_id and teacher_name
   const teachers = schedules
-    ?.map((schedule) => schedule.teacher)
-    .filter(
-      (teacher, index, self) =>
-        teacher && self.findIndex((t) => t?.id === teacher.id) === index
-    ) as Teacher[];
+    ?.filter(schedule => schedule.teacher_id && schedule.teacher_name)
+    .reduce((acc, schedule) => {
+      const existingTeacher = acc.find(t => t.id === schedule.teacher_id);
+      if (!existingTeacher) {
+        acc.push({
+          id: schedule.teacher_id,
+          account: { name: schedule.teacher_name },
+        } as Teacher);
+      }
+      return acc;
+    }, [] as Teacher[]) || [];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -100,7 +101,7 @@ const TimeTableEventModal = ({
       delivery_mode: event?.delivery_mode || "OFFLINE",
       meeting_link: event?.meeting_link || "",
       teacher: {
-        id: event?.teacher?.id ? Number(event.teacher.id) : 0,
+        id: event?.teacher_id ? Number(event.teacher_id) : 0,
       },
       room: {
         id: event?.room?.id ? Number(event.room.id) : 0,

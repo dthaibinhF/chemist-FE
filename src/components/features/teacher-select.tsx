@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useTeacher } from '@/hooks/useTeacher';
-import type { Teacher } from '@/types/api.types';
+import { SalaryType, type Teacher } from '@/types/api.types';
 
 interface TeacherSelectProps {
   handleSelect: (value: string) => void;
@@ -86,6 +86,9 @@ const TeacherSelect: FC<TeacherSelectProps> = ({
           role_name: 'TEACHER',
         },
         teacher_details: [],
+        salary_type: SalaryType.PER_LESSON,
+        base_rate: 0,
+        monthly_summaries: [],
       };
 
       await handleCreateTeacher(newTeacher);

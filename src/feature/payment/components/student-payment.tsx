@@ -192,7 +192,7 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Target className="h-5 w-5" />
-            <span>Tổng quan nghĩa vụ thanh toán</span>
+            <span>Tổng quan học phí thanh toán</span>
           </CardTitle>
           <CardDescription>
             Trạng thái tổng thể các khoản phí của học sinh {studentName || ''}
@@ -202,7 +202,7 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{formatCurrency(summaryStats.totalObligations)}</div>
-              <div className="text-sm text-muted-foreground">Tổng nghĩa vụ</div>
+              <div className="text-sm text-muted-foreground">Tổng học phí</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{formatCurrency(summaryStats.totalPaid)}</div>
@@ -267,7 +267,7 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
               <FileText className="h-5 w-5" />
               <span>Chi tiết thanh toán</span>
             </CardTitle>
-            <CardDescription>Quản lý chi tiết các giao dịch và nghĩa vụ thanh toán</CardDescription>
+            <CardDescription>Quản lý chi tiết các giao dịch và học phí thanh toán</CardDescription>
           </div>
           <Button size="sm" onClick={() => setOpenAddPayment(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -277,20 +277,20 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Nghĩa vụ</TabsTrigger>
+              <TabsTrigger value="overview">học phí</TabsTrigger>
               <TabsTrigger value="history">Lịch sử</TabsTrigger>
               <TabsTrigger value="analytics">Thống kê</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
               <div className="text-sm text-muted-foreground mb-4">
-                Danh sách các nghĩa vụ thanh toán hiện tại
+                Danh sách các học phí thanh toán hiện tại
               </div>
 
               {paymentSummaries.length === 0 ? (
                 <div className="text-center py-12">
                   <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <div className="text-muted-foreground">Chưa có nghĩa vụ thanh toán nào</div>
+                  <div className="text-muted-foreground">Chưa có học phí thanh toán nào</div>
                 </div>
               ) : (
                 <div className="grid gap-4">
@@ -410,7 +410,7 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Tổng nghĩa vụ</span>
+                        <span className="text-sm text-muted-foreground">Tổng học phí</span>
                         <span className="font-semibold">{formatCurrency(summaryStats.totalObligations)}</span>
                       </div>
                       <Separator />

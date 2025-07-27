@@ -33,7 +33,7 @@ export const SalarySummariesTable = ({ teacher, showAllTeachers = false }: Salar
     calculationLoading
   } = useSalary();
 
-  const [page, setPage] = useState(0);
+  const [page] = useState(0);
   const [size] = useState(12);
 
   useEffect(() => {

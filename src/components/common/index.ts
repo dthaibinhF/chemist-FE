@@ -24,7 +24,6 @@ export { default as LoginForm } from "./login-form";
 export { default as LogOutButton } from "./logout-button";
 export { ModeToggle } from "./mode-toggle";
 export { SearchableSelect } from "./searchable-select";
-export { SearchableSelectDemo } from "./searchable-select-demo";
 export { default as SiteHeader } from "./site-header";
 export { showErrorToast, showSuccessToast } from "./success-toast";
 export { default as UserItem } from "./user-item";
