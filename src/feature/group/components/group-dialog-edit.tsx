@@ -97,11 +97,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
                 roomId = schedule?.room_id || 0;
             }
 
-            console.log('Converting schedule:', {
-                scheduleRoomId: schedule.room_id,
-                scheduleRoom: schedule.room_name,
-                finalRoomId: roomId
-            });
+            // Converting schedule to form format
 
             return {
                 day_of_week: schedule.day_of_week,
@@ -147,7 +143,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
                 group_schedules: convertSchedulesToForm(group.group_schedules),
             };
 
-            console.log('Resetting form with data:', formData);
+            // Resetting form with converted data
             form.reset(formData);
         }
     }, [open, group, loadingGrades, loadingAcademicYears, loadingFees, loadingRooms, form]);
@@ -176,7 +172,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
             setOpen(false);
         } catch (error) {
             toast.error('Cập nhật nhóm thất bại');
-            console.log(error);
+            // Handle error silently in production
         }
     };
 

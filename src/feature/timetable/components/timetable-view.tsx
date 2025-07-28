@@ -14,6 +14,7 @@ import { GenerateWeeklyScheduleDialog } from "./generate-weekly-schedule-dialog"
 import { convertScheduleToEvent, getWeekStart } from "../utils/calendar-utils";
 import type { CalendarEvent } from "../types/timetable.types";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface TimetableViewProps {
   className?: string;
@@ -126,7 +127,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
       // Refresh schedules after generation
       handleFetchSchedules();
     } catch (error) {
-      console.error("Lỗi khi tạo lịch học tuần:", error);
+      toast.error((error as Error).message);
     }
   };
 
