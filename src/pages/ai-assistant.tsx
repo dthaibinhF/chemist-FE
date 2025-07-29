@@ -14,23 +14,24 @@ const AiAssistantPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 h-[calc(100vh-8rem)]">
-      <div className="mb-6 text-center">
-        <h1 className="text-3xl font-bold mb-2">Junie - Trợ lý AI Chemist</h1>
-        <p className="text-muted-foreground">
+    <div className="container mx-auto p-4 max-w-6xl">
+      <div className="mb-4 text-center">
+        <h1 className="text-2xl font-bold mb-1">Junie - Trợ lý AI Chemist</h1>
+        <p className="text-sm text-muted-foreground">
           Hỏi về thông tin học sinh, lịch học, điểm số và nhiều thông tin khác bằng ngôn ngữ tự nhiên
         </p>
         {!account && (
-          <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
             💡 Đăng nhập để truy cập thông tin chi tiết và dữ liệu cá nhân
           </p>
         )}
       </div>
 
-      <AIChat 
-        height="calc(100vh - 16rem)"
+      <AIChat
+        height="70vh"
         welcomeMessage={getWelcomeMessage()}
-        className="mx-auto max-w-4xl"
+        className="mx-auto max-w-4xl shadow-lg"
+        userAccount={account}
       />
     </div>
   );

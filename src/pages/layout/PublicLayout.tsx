@@ -1,13 +1,37 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/feature/auth/hooks/useAuth';
+import { getAccount } from '@/feature/auth/services/authApi';
+import { setAccount } from '@/feature/auth/slice/auth.slice';
 import { usePageTitle } from '@/hooks/usePageTitle.tsx';
+import { useAppDispatch, useAppSelector } from '@/redux/hook';
 import { BotIcon, HomeIcon, LogInIcon } from 'lucide-react';
 
 const PublicLayout = () => {
+  const dispatch = useAppDispatch();
   const { account } = useAuth();
+  const { accessToken } = useAppSelector((state) => state.auth);
   usePageTitle('AI Assistant - Chemist');
+
+  // Load account data if user is authenticated but account data is missing
+  useEffect(() => {
+    if (accessToken && !account) {
+      const fetchUser = async () => {
+        try {
+          const response = await getAccount();
+          const accountData = response.payload;
+          dispatch(setAccount(accountData));
+        } catch (error) {
+          console.error('Failed to fetch user in PublicLayout:', error);
+          // Don't redirect to login in PublicLayout as it's meant for public access
+        }
+      };
+
+      fetchUser();
+    }
+  }, [accessToken, account, dispatch]);
 
   return (
     <div className="flex min-h-svh flex-col">

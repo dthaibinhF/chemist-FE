@@ -13,14 +13,14 @@ import {
 } from "@/components/ui/kibo-ui/ai/input";
 import {
   AIMessage,
-  AIMessageAvatar,
   AIMessageContent,
 } from "@/components/ui/kibo-ui/ai/message";
 import { AIResponse } from "@/components/ui/kibo-ui/ai/response";
-import { useAuth } from "@/feature/auth/hooks/useAuth";
+import { LoadingDots } from "@/components/common";
 import { cn } from "@/lib/utils";
 import { aiService, type ChatMessage } from "@/service/ai.service";
-import { BotIcon, UserIcon } from "lucide-react";
+import type { TAccount } from "@/feature/auth/types/auth.type";
+import { BotIcon } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +29,7 @@ export interface AIChatProps {
   className?: string;
   conversationId?: string;
   welcomeMessage?: string;
+  userAccount?: TAccount | null;
 }
 
 type StreamingStatus = "ready" | "submitted" | "streaming" | "error";
@@ -38,8 +39,8 @@ export const AIChat: React.FC<AIChatProps> = ({
   className,
   conversationId,
   welcomeMessage = "Xin chào! Tôi là Junie, trợ lý AI của Chemist. Tôi có thể giúp bạn tìm hiểu về học sinh, lịch học, điểm số và nhiều thông tin khác. Hãy hỏi tôi bất cứ điều gì bạn muốn biết!",
+  userAccount,
 }) => {
-  const { account } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [status, setStatus] = useState<StreamingStatus>("ready");
@@ -75,13 +76,13 @@ export const AIChat: React.FC<AIChatProps> = ({
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      
+
       if (!inputMessage.trim() || status === "streaming" || status === "submitted") {
         return;
       }
 
       const userMessage = aiService.formatUserMessage(inputMessage.trim());
-      
+
       // Thêm tin nhắn của user vào conversation
       setMessages((prev) => [...prev, userMessage]);
       setInputMessage("");
@@ -97,7 +98,7 @@ export const AIChat: React.FC<AIChatProps> = ({
           timestamp: new Date(),
           isStreaming: true,
         };
-        
+
         setMessages((prev) => [...prev, streamingMessage]);
         currentStreamingMessageRef.current = streamingMessage;
         setStatus("streaming");
@@ -111,6 +112,7 @@ export const AIChat: React.FC<AIChatProps> = ({
         eventSourceRef.current = aiService.streamChat(
           inputMessage.trim(),
           currentConversationId,
+          userAccount,
           // onChunk
           (chunk: string) => {
             // Cập nhật tin nhắn streaming trong danh sách
@@ -129,7 +131,7 @@ export const AIChat: React.FC<AIChatProps> = ({
           // onComplete
           () => {
             setStatus("ready");
-            
+
             // Cập nhật tin nhắn cuối cùng để loại bỏ trạng thái streaming
             setMessages((prevMessages) => {
               return prevMessages.map((msg) => {
@@ -142,7 +144,7 @@ export const AIChat: React.FC<AIChatProps> = ({
                 return msg;
               });
             });
-            
+
             currentStreamingMessageRef.current = null;
             eventSourceRef.current = null;
           },
@@ -150,7 +152,7 @@ export const AIChat: React.FC<AIChatProps> = ({
           (error) => {
             console.error("Streaming error:", error);
             setStatus("error");
-            
+
             // Xóa tin nhắn streaming placeholder và hiển thị lỗi
             setMessages((prevMessages) => {
               const filtered = prevMessages.filter((msg) => msg.id !== streamingMessageId);
@@ -164,7 +166,7 @@ export const AIChat: React.FC<AIChatProps> = ({
                 },
               ];
             });
-            
+
             currentStreamingMessageRef.current = null;
             eventSourceRef.current = null;
             toast.error("Có lỗi xảy ra khi gửi tin nhắn");
@@ -174,12 +176,12 @@ export const AIChat: React.FC<AIChatProps> = ({
         console.error("Error sending message:", error);
         setStatus("error");
         toast.error("Không thể gửi tin nhắn. Vui lòng thử lại.");
-        
+
         // Xóa tin nhắn streaming placeholder
         setMessages((prev) => prev.filter((msg) => !msg.isStreaming));
       }
     },
-    [inputMessage, status, currentConversationId]
+    [inputMessage, status, currentConversationId, userAccount]
   );
 
   // Xử lý dừng streaming
@@ -189,7 +191,7 @@ export const AIChat: React.FC<AIChatProps> = ({
       eventSourceRef.current = null;
     }
     setStatus("ready");
-    
+
     // Cập nhật tin nhắn streaming cuối cùng
     if (currentStreamingMessageRef.current) {
       setMessages((prevMessages) => {
@@ -218,22 +220,9 @@ export const AIChat: React.FC<AIChatProps> = ({
   // Render tin nhắn
   const renderMessage = useCallback((message: ChatMessage) => {
     const isUser = message.from === "user";
-    const avatarName = isUser 
-      ? (account?.name || "User") 
-      : "Junie";
 
     return (
       <AIMessage key={message.id} from={message.from}>
-        <AIMessageAvatar 
-          src="" 
-          name={avatarName}
-        >
-          {isUser ? (
-            <UserIcon className="size-4" />
-          ) : (
-            <BotIcon className="size-4" />
-          )}
-        </AIMessageAvatar>
         <AIMessageContent>
           {isUser ? (
             <div className="whitespace-pre-wrap">{message.content}</div>
@@ -248,14 +237,14 @@ export const AIChat: React.FC<AIChatProps> = ({
             </div>
           )}
           {message.isStreaming && (
-            <div className="mt-1">
-              <div className="inline-block h-4 w-1 bg-primary animate-pulse" />
+            <div className="mt-2 flex items-center gap-1">
+              <LoadingDots size="sm" color="primary" />
             </div>
           )}
         </AIMessageContent>
       </AIMessage>
     );
-  }, [account]);
+  }, []);
 
   return (
     <div
@@ -266,17 +255,12 @@ export const AIChat: React.FC<AIChatProps> = ({
       style={{ height }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b p-4">
+      <div className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2">
-          <BotIcon className="size-5 text-primary" />
-          <h2 className="font-semibold">Junie - Trợ lý AI</h2>
-          {account && (
-            <span className="text-sm text-muted-foreground">
-              ({account.role_name})
-            </span>
-          )}
+          <BotIcon className="size-4 text-primary" />
+          <h2 className="text-sm font-semibold">Junie - Trợ lý AI</h2>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs text-muted-foreground">
           {status === "streaming" && "Đang trả lời..."}
           {status === "submitted" && "Đang xử lý..."}
           {status === "ready" && "Sẵn sàng"}
@@ -293,15 +277,15 @@ export const AIChat: React.FC<AIChatProps> = ({
       </AIConversation>
 
       {/* Input Area */}
-      <div className="border-t p-4">
+      <div className="border-t p-3">
         <AIInput onSubmit={handleSubmit}>
           <AIInputTextarea
             value={inputMessage}
             onChange={handleInputChange}
             placeholder="Hỏi Junie về học sinh, lịch học, điểm số..."
             disabled={status === "streaming" || status === "submitted"}
-            minHeight={48}
-            maxHeight={120}
+            minHeight={40}
+            maxHeight={100}
           />
           <AIInputToolbar>
             <div className="flex-1" />

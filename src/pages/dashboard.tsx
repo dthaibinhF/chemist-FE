@@ -1,9 +1,5 @@
-import TeacherSelect from "@/components/features/teacher-select";
 import { IReferenceData } from "@/components/file-view-and-picker/media";
-import { Calendar } from "@/components/ui/calendar";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
 
 // Loading animation component với dấu 3 chấm nhảy nhảy
 const LoadingDots = () => {
