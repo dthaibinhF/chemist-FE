@@ -104,13 +104,18 @@ All API services are located in `src/service/` and follow CRUD patterns:
 - Feature-specific components in `src/components/features/`
 - All components use TypeScript and follow consistent naming conventions
 
-## AI Assistant Feature
+## AI Assistant Feature (FULLY IMPLEMENTED)
 
-- Integrated Google Gemini AI with custom tool engine
-- Located in `src/feature/ai-assistant/`
-- Connects to PostgreSQL database via MCP (Model Context Protocol) server
-- Tools engine provides database access and API integration capabilities
-- Custom UI components for chat interface in `src/components/ui/kibo-ui/`
+- **Complete Streaming Chat Interface**: Real-time AI conversations using EventSource
+- **Backend Integration**: Spring AI backend with Claude 3.5 Sonnet at `/api/v1/ai/` endpoints
+- **Public Access**: Available at `/ai-assistant` route without authentication requirement
+- **Role-based Responses**: Different AI behavior for PUBLIC vs authenticated users (ADMIN, TEACHER, STUDENT, etc.)
+- **Vietnamese Language Support**: Natural Vietnamese conversation with appropriate formality
+- **Service Layer**: `aiService` in `src/service/ai.service.ts` with streaming and standard API methods
+- **Feature Structure**: Complete implementation in `src/feature/ai-assistant/components/AIChat.tsx`
+- **Public Layout**: Custom `PublicLayout` for unauthenticated access with login prompts
+- **UI Components**: Uses existing kibo-ui components (`AIConversation`, `AIMessage`, `AIInput`, `AIResponse`)
+- **Backend Tools**: Connects to PostgreSQL database via Spring AI @Tool annotations for function calling
 
 ## Authentication
 
