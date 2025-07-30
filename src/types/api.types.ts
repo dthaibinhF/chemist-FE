@@ -217,7 +217,7 @@ export interface StudentDetail extends BaseDTO {
   group_id?: number;
   group_name?: string;
   school?: School;
-  school_class?: SchoolClass;
+  class?: SchoolClass;
   academic_year?: AcademicYear;
   grade?: Grade;
   student_id?: number;

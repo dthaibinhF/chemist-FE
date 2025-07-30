@@ -12,6 +12,8 @@ import { ScheduleForm } from "./schedule-form";
 import type { ScheduleFormData } from "../schemas/timetable.schema";
 import { parseDateTimeLocalToUtc, formatDateTimeForApi } from "@/utils/timezone-utils";
 import { toast } from "sonner";
+import type { Schedule } from "@/types/api.types";
+import { roomService } from "@/service/room.service";
 
 interface EditScheduleDialogProps {
   open: boolean;
@@ -37,7 +39,6 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
   // Load schedule data when dialog opens
   useEffect(() => {
     if (open && scheduleId && scheduleId !== currentScheduleIdRef.current) {
-      console.log('Loading schedule for ID:', scheduleId);
       currentScheduleIdRef.current = scheduleId;
       handleFetchSchedule(scheduleId);
     }
@@ -52,6 +53,7 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
     }
   }, [open, handleClearSchedule]);
 
+
   const handleSubmit = async (data: ScheduleFormData) => {
     if (!scheduleId) return;
 
@@ -60,6 +62,9 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
       const startTimeUtc = parseDateTimeLocalToUtc(data.start_time);
       const endTimeUtc = parseDateTimeLocalToUtc(data.end_time);
 
+      // Fetch room data and wait for it
+      const roomResult = await roomService.getRoomById(data.room_id);
+      const roomData = roomResult;
       // Transform form data to match API expectations
       const scheduleData = {
         group_id: data.group_id,
@@ -68,10 +73,10 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
         delivery_mode: data.delivery_mode,
         meeting_link: data.meeting_link || "",
         teacher_id: data.teacher_id,
-        room_id: data.room_id,
-      };
+        room: roomData,
+      } as Schedule;
 
-      await handleUpdateSchedule(scheduleId, scheduleData as any);
+      await handleUpdateSchedule(scheduleId, scheduleData);
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Lỗi khi cập nhật lịch học");
@@ -93,7 +98,6 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
       }
     };
   }, [handleClearSchedule]);
-
 
   return (
     <Dialog key={`edit-dialog-${scheduleId}`} open={open} onOpenChange={onOpenChange}>

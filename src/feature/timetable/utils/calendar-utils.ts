@@ -100,7 +100,6 @@ export const isSameWeek = (date1: Date, date2: Date): boolean => {
 };
 
 export const generateWeekData = (weekStart: Date, events: CalendarEvent[]): WeekData => {
-  console.log('events in generateWeekData:', events);
   const weekEnd = getWeekEnd(weekStart);
   const days = [];
 

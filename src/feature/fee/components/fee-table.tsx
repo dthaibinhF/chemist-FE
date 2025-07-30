@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useFee } from '@/hooks/useFee';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 import type { Fee } from '@/types/api.types';
 import { displayDate } from '@/utils/date-formatters';
 import { LoaderCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
@@ -20,6 +21,7 @@ interface FeeTableProps {
 
 const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
   const { fees, loading, handleFetchFees, handleDeleteFee } = useFee();
+  const { financial } = useRolePermissions();
 
   useEffect(() => {
     handleFetchFees();
@@ -69,21 +71,23 @@ const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
       id: 'actions',
       cell: ({ row }) => {
         const fee = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+        
+        const actionItems = [
+          { 
+            label: 'Chỉnh sửa', 
+            component: (
               <DialogEditFee fee={fee}>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Chỉnh sửa
                 </DropdownMenuItem>
               </DialogEditFee>
+            ), 
+            show: financial.canManageFees 
+          },
+          { 
+            label: 'Xóa', 
+            component: (
               <DialogConfirmation
                 title="Xóa phí"
                 description={`Bạn có chắc chắn muốn xóa phí ${fee.name}?`}
@@ -94,6 +98,29 @@ const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
                   Xóa
                 </DropdownMenuItem>
               </DialogConfirmation>
+            ), 
+            show: financial.canManageFees 
+          }
+        ].filter(item => item.show);
+
+        if (actionItems.length === 0) {
+          return null;
+        }
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {actionItems.map((item, index) => (
+                <div key={index}>
+                  {item.component}
+                </div>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -112,7 +139,11 @@ const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
 
   return (
     <div>
-      <DataTable columns={columns} data={fees} ComponentForCreate={ComponentForCreate} />
+      <DataTable 
+        columns={columns} 
+        data={fees} 
+        ComponentForCreate={financial.canManageFees ? ComponentForCreate : undefined} 
+      />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePayment } from '@/hooks/usePayment';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import { PaymentDetail, PaymentStatus } from '@/types/api.types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
@@ -116,7 +117,6 @@ export const PaymentHistoryTable = ({
   } = usePayment();
 
   const {
-    formatCurrency,
     loading: loadingPaymentSummary,
   } = useStudentPaymentSummary();
 
@@ -280,7 +280,7 @@ export const PaymentHistoryTable = ({
         const amount = row.getValue('amount') as number;
         return (
           <div className="font-medium">
-            {formatCurrency(amount)}
+            {formatCurrencyVND(amount)}
           </div>
         );
       },
@@ -292,7 +292,7 @@ export const PaymentHistoryTable = ({
         const discount = row.getValue('have_discount') as number;
         return (
           <div className="text-muted-foreground">
-            {discount > 0 ? `-${formatCurrency(discount)}` : formatCurrency(0)}
+            {discount > 0 ? `-${formatCurrencyVND(discount)}` : formatCurrencyVND(0)}
           </div>
         );
       },
@@ -306,7 +306,7 @@ export const PaymentHistoryTable = ({
         const netAmount = (amount || 0) - (discount || 0);
         return (
           <div className="font-semibold text-green-600">
-            {formatCurrency(netAmount)}
+            {formatCurrencyVND(netAmount)}
           </div>
         );
       },
@@ -429,7 +429,7 @@ export const PaymentHistoryTable = ({
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(summaryStats.netAmount)}</div>
+                <div className="text-2xl font-bold text-green-600">{formatCurrencyVND(summaryStats.netAmount)}</div>
                 <div className="text-sm text-muted-foreground">Tổng thực thu</div>
               </div>
               <div className="text-center">
@@ -437,7 +437,7 @@ export const PaymentHistoryTable = ({
                 <div className="text-sm text-muted-foreground">Giao dịch</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{formatCurrency(summaryStats.totalDiscount)}</div>
+                <div className="text-2xl font-bold text-orange-600">{formatCurrencyVND(summaryStats.totalDiscount)}</div>
                 <div className="text-sm text-muted-foreground">Tổng giảm giá</div>
               </div>
               <div className="text-center">

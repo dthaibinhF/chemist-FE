@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogCreatePayment } from '@/feature/payment/components/dialog-create-payment';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import { Fee, PaymentDetail } from '@/types/api.types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
@@ -87,7 +88,7 @@ export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false, openCr
                 const amount = row.getValue('amount') as number;
                 return (
                     <div className="font-medium">
-                        {amount.toLocaleString('vi-VN')} VNĐ
+                        {formatCurrencyVND(amount)}
                     </div>
                 );
             },
@@ -99,7 +100,7 @@ export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false, openCr
                 const discount = row.getValue('have_discount') as number;
                 return (
                     <div className="text-muted-foreground">
-                        {discount > 0 ? `-${discount.toLocaleString('vi-VN')} VNĐ` : '0 VNĐ'}
+                        {discount > 0 ? `-${formatCurrencyVND(discount)}` : '0 VNĐ'}
                     </div>
                 );
             },

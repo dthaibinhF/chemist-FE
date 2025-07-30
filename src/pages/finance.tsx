@@ -15,6 +15,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useFinancialDashboard } from '@/hooks/useFinancialDashboard';
 import { usePayment } from '@/hooks/usePayment';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 import { SalaryManagementTab } from '@/feature/salary/components';
 import { Plus, TrendingUp, AlertTriangle, BarChart3, Calendar as CalendarIcon, Users } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export const FinanceManagement = () => {
   usePageTitle('Quản lý tài chính');
   const [activeTab, setActiveTab] = useState('overview');
   const [openAddPayment, setOpenAddPayment] = useState(false);
+  const { financial, teacher } = useRolePermissions();
   // State for filters (currently not actively used but maintained for future features)
   // const [filters, setFilters] = useState<FinanceFilters>({
   //   dateRange: { from: undefined, to: undefined },
@@ -156,7 +158,9 @@ export const FinanceManagement = () => {
           <TabsTrigger value="obligations">Nghĩa vụ</TabsTrigger>
           <TabsTrigger value="charts">Biểu đồ</TabsTrigger>
           <TabsTrigger value="calendar">Lịch</TabsTrigger>
-          <TabsTrigger value="salary">Lương GV</TabsTrigger>
+          {(teacher.canViewAllSalaries || teacher.canViewOwnSalary) && (
+            <TabsTrigger value="salary">Lương GV</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -174,10 +178,12 @@ export const FinanceManagement = () => {
                   </CardTitle>
                   <CardDescription>Các tác vụ quản lý thanh toán thường dùng</CardDescription>
                 </div>
-                <Button onClick={() => setOpenAddPayment(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Thêm thanh toán
-                </Button>
+                {financial.canCreatePayments && (
+                  <Button onClick={() => setOpenAddPayment(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm thanh toán
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -245,16 +251,20 @@ export const FinanceManagement = () => {
           />
         </TabsContent>
 
-        <TabsContent value="salary" className="space-y-4">
-          <SalaryManagementTab />
-        </TabsContent>
+{(teacher.canViewAllSalaries || teacher.canViewOwnSalary) && (
+          <TabsContent value="salary" className="space-y-4">
+            <SalaryManagementTab />
+          </TabsContent>
+        )}
       </Tabs>
 
-      {/* Enhanced Add Payment Dialog */}
-      <DialogCreatePayment
-        open={openAddPayment}
-        onOpenChange={setOpenAddPayment}
-      />
+      {/* Enhanced Add Payment Dialog - Only render if user can create payments */}
+      {financial.canCreatePayments && (
+        <DialogCreatePayment
+          open={openAddPayment}
+          onOpenChange={setOpenAddPayment}
+        />
+      )}
     </div>
   );
 };

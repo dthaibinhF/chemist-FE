@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,10 +11,9 @@ import {
 import { FormCreateGroup } from './form-create-group';
 
 export const DialogAddGroup = () => {
-  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">Tạo nhóm mới</Button>
       </DialogTrigger>
@@ -25,7 +22,7 @@ export const DialogAddGroup = () => {
           <DialogTitle>Tạo nhóm mới</DialogTitle>
           <DialogDescription>Tạo nhóm mới để quản lý học sinh</DialogDescription>
         </DialogHeader>
-        <FormCreateGroup onSuccess={() => setIsOpen(false)} />
+        <FormCreateGroup onSuccess={() => { }} />
       </DialogContent>
     </Dialog>
   );

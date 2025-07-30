@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import { Fee, PaymentDetail } from '@/types/api.types';
 
 interface FeePaymentStatsProps {
@@ -90,9 +91,9 @@ export const FeePaymentStats = ({ fee, paymentDetails }: FeePaymentStatsProps) =
                     <CardTitle className="text-sm font-medium">Tổng tiền đã thu</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{totalAmountCollected.toLocaleString('vi-VN')} VNĐ</div>
+                    <div className="text-2xl font-bold">{formatCurrencyVND(totalAmountCollected)}</div>
                     <p className="text-xs text-muted-foreground">
-                        {totalDiscountGiven > 0 && `Giảm giá: ${totalDiscountGiven.toLocaleString('vi-VN')} VNĐ`}
+                        {totalDiscountGiven > 0 && `Giảm giá: ${formatCurrencyVND(totalDiscountGiven)}`}
                     </p>
                 </CardContent>
             </Card>

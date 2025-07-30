@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 import type { Student } from '@/types/api.types';
 
 interface StudentTableProps {
@@ -29,6 +30,7 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
   const students = studentsProp || studentsFromHook;
   const navigate = useNavigate();
   const revalidate = useRevalidator();
+  const { student } = useRolePermissions();
 
   useEffect(() => {
     if (!studentsProp) {
@@ -39,7 +41,7 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
   const handleEditStudent = useCallback(
     async (id: number, formData: StudentFormData) => {
       try {
-        await editStudent(id, formData);
+        editStudent(id, formData);
         revalidate.revalidate();
         toast.success('Cập nhật học sinh thành công!');
       } catch (error) {
@@ -140,36 +142,66 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
       {
         id: 'actions',
         header: 'Thao tác',
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Mở menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleViewStudent(row.original)}>
-                <Eye className="mr-2 h-4 w-4" />
-                Xem chi tiết
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <EditStudentDialog student={row.original} onEditStudent={handleEditStudent} />
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDeleteStudent(row.original)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Xóa
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+        cell: ({ row }) => {
+          const actionItems = [
+            { 
+              label: 'Xem chi tiết', 
+              icon: Eye, 
+              action: () => handleViewStudent(row.original), 
+              show: true 
+            },
+            { 
+              label: 'Chỉnh sửa', 
+              component: <EditStudentDialog student={row.original} onEditStudent={handleEditStudent} />, 
+              show: student.canEditStudent 
+            },
+            { 
+              label: 'Xóa', 
+              icon: Trash2, 
+              action: () => handleDeleteStudent(row.original), 
+              show: student.canDeleteStudent,
+              destructive: true 
+            }
+          ].filter(item => item.show);
+
+          if (actionItems.length === 0) {
+            return null;
+          }
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Mở menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {actionItems.map((item, index) => (
+                  <div key={index}>
+                    {item.component ? (
+                      <DropdownMenuItem asChild>
+                        {item.component}
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={item.action}
+                        className={item.destructive ? "text-destructive focus:text-destructive" : ""}
+                      >
+                        {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                        {item.label}
+                      </DropdownMenuItem>
+                    )}
+                    {item.destructive && index < actionItems.length - 1 && <DropdownMenuSeparator />}
+                  </div>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
     ],
-    [handleViewStudent, handleDeleteStudent, handleEditStudent]
+    [handleViewStudent, handleDeleteStudent, handleEditStudent, student.canEditStudent, student.canDeleteStudent]
   );
 
   if (loading) {
@@ -201,7 +233,7 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
         pagination={false}
         columns={columns}
         data={students}
-        ComponentForCreate={<AddStudentTab />}
+        ComponentForCreate={student.canCreateStudent ? <AddStudentTab /> : undefined}
       />
     </div>
   );

@@ -17,6 +17,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 
 import { AddStudentCsvFile } from './add-student-cvs-file';
 import { FormAddStudent } from './form-add-student';
@@ -28,6 +29,8 @@ interface AddStudentTabProps {
 }
 
 export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
+  const { student } = useRolePermissions();
+
   return (
     <div className="flex gap-2">
       {/* Dialog for Manual Student Entry */}
@@ -52,33 +55,35 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Drawer for CSV Import */}
-      <Drawer direction="bottom">
-        <DrawerTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2 px-4 py-2">
-            <FileSpreadsheetIcon className="w-4 h-4" />
-            Import CSV
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent className="h-[90vh] max-h-[800px]">
-          <ScrollArea className="h-[90vh] max-h-[700px]">
-            <div className="mx-auto w-full max-w-full">
-              <DrawerHeader>
-                <DrawerTitle>Import học sinh từ file CSV</DrawerTitle>
-                <DrawerDescription>
-                  Tải lên file CSV để import nhiều học sinh cùng lúc. Hỗ trợ preview và chỉnh sửa trước khi lưu.
-                </DrawerDescription>
-              </DrawerHeader>
-              <div className="p-4 h-full overflow-hidden">
-                <AddStudentCsvFile
-                  groupId={groupId}
-                  gradeId={gradeId}
-                />
+      {/* Drawer for CSV Import - Only show for users who can create students */}
+      {student.canCreateStudent && (
+        <Drawer direction="bottom">
+          <DrawerTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2 px-4 py-2">
+              <FileSpreadsheetIcon className="w-4 h-4" />
+              Import CSV
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent className="h-[90vh] max-h-[800px]">
+            <ScrollArea className="h-[90vh] max-h-[700px]">
+              <div className="mx-auto w-full max-w-full">
+                <DrawerHeader>
+                  <DrawerTitle>Import học sinh từ file CSV</DrawerTitle>
+                  <DrawerDescription>
+                    Tải lên file CSV để import nhiều học sinh cùng lúc. Hỗ trợ preview và chỉnh sửa trước khi lưu.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-4 h-full overflow-hidden">
+                  <AddStudentCsvFile
+                    groupId={groupId}
+                    gradeId={gradeId}
+                  />
+                </div>
               </div>
-            </div>
-          </ScrollArea>
-        </DrawerContent>
-      </Drawer>
+            </ScrollArea>
+          </DrawerContent>
+        </Drawer>
+      )}
     </div>
   );
 };

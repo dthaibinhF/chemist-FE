@@ -12,9 +12,12 @@ import AuthLayout from "@/pages/layout/AuthLayout.tsx";
 import HomeLayout from "@/pages/layout/HomeLayout.tsx";
 import PublicLayout from "@/pages/layout/PublicLayout.tsx";
 import { LoginPage } from "@/pages/login-page.tsx";
+import Profile from "@/pages/profile.tsx";
 import { StudentDetailPage } from "@/pages/student-detail.tsx";
 import { StudentManagement } from "@/pages/student-management.tsx";
 import TimeTable from "@/pages/TimeTable";
+import UnauthorizedPage from "@/pages/unauthorized";
+import { RoleBasedAccess } from "@/components/auth";
 
 export const router = createBrowserRouter([
   {
@@ -28,37 +31,55 @@ export const router = createBrowserRouter([
       },
       {
         path: "student",
-        Component: StudentManagement,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+          <StudentManagement />
+        </RoleBasedAccess>,
         errorElement: <ErrorPage />,
       },
       {
         path: "student/:id",
-        Component: StudentDetailPage,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+          <StudentDetailPage />
+        </RoleBasedAccess>,
         // errorElement: <ErrorPage />,
       },
       {
         path: "finance",
-        Component: FinanceManagement,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER']}>
+          <FinanceManagement />
+        </RoleBasedAccess>,
       },
       {
         path: "group",
-        Component: GroupManagement,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+          <GroupManagement />
+        </RoleBasedAccess>,
       },
       {
         path: "fee",
-        Component: FeeManagement,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+          <FeeManagement />
+        </RoleBasedAccess>,
       },
       {
         path: "fee/:id",
-        Component: FeeDetail,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER']}>
+          <FeeDetail />
+        </RoleBasedAccess>,
       },
       {
         path: "group/:id",
-        Component: GroupDetail,
+        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+          <GroupDetail />
+        </RoleBasedAccess>,
       },
       {
         path: "time-table",
         Component: TimeTable,
+      },
+      {
+        path: "profile",
+        Component: Profile,
       },
     ],
   },
@@ -81,5 +102,9 @@ export const router = createBrowserRouter([
         Component: AiAssistantPage,
       },
     ],
+  },
+  {
+    path: "/unauthorized",
+    Component: UnauthorizedPage,
   },
 ]);

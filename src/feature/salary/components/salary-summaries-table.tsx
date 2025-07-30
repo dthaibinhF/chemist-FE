@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useSalary } from '@/hooks';
 import type { Teacher, TeacherMonthlySummary } from '@/types/api.types';
 import { displayDate } from '@/utils/date-formatters';
+import { formatCurrency } from '@/utils/currency-utils';
 import {
   MoreHorizontal,
   Eye,
@@ -42,12 +43,6 @@ export const SalarySummariesTable = ({ teacher, showAllTeachers = false }: Salar
     }
   }, [teacher?.id, page, size, handleFetchTeacherSalarySummaries]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
 
   const formatPercentage = (rate: number) => {
     return `${(rate * 100).toFixed(1)}%`;

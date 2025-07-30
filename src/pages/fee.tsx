@@ -79,59 +79,59 @@ const FeeManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Quản lý học phí</h1>
-          <p className="text-muted-foreground">
-            Tạo và quản lý các loại học phí cho học sinh
-          </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Quản lý học phí</h1>
+            <p className="text-muted-foreground">
+              Tạo và quản lý các loại học phí cho học sinh
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DialogAddFee />
+            <Button onClick={handleExportReport}>
+              <Download className="mr-2 h-4 w-4" />
+              Xuất báo cáo
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <DialogAddFee />
-          <Button onClick={handleExportReport}>
-            <Download className="mr-2 h-4 w-4" />
-            Xuất báo cáo
-          </Button>
-        </div>
+
+        {/* Statistics Cards */}
+        <FeeOverviewCards stats={feeStats} />
+
+        {/* Search and Filter */}
+        <FeeFilters onFiltersChange={handleFiltersChange} />
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="list">Danh sách học phí</TabsTrigger>
+            <TabsTrigger value="charts">Biểu đồ</TabsTrigger>
+            <TabsTrigger value="reports">Báo cáo</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list">
+            <FeeTable ComponentForCreate={null} />
+          </TabsContent>
+
+          <TabsContent value="charts" className="space-y-4">
+            <FeeCharts
+              monthlyRevenue={monthlyRevenueData}
+              feeDistribution={feeDistributionData}
+            />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <FeeReports
+              stats={reportStats}
+              onExportExcel={handleExportExcel}
+              onExportPDF={handleExportPDF}
+              onSendReminder={handleSendReminder}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Statistics Cards */}
-      <FeeOverviewCards stats={feeStats} />
-
-      {/* Search and Filter */}
-      <FeeFilters onFiltersChange={handleFiltersChange} />
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="list">Danh sách học phí</TabsTrigger>
-          <TabsTrigger value="charts">Biểu đồ</TabsTrigger>
-          <TabsTrigger value="reports">Báo cáo</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="list">
-          <FeeTable ComponentForCreate={null} />
-        </TabsContent>
-
-        <TabsContent value="charts" className="space-y-4">
-          <FeeCharts
-            monthlyRevenue={monthlyRevenueData}
-            feeDistribution={feeDistributionData}
-          />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <FeeReports
-            stats={reportStats}
-            onExportExcel={handleExportExcel}
-            onExportPDF={handleExportPDF}
-            onSendReminder={handleSendReminder}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
   );
 };
 

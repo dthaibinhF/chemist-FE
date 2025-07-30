@@ -34,6 +34,7 @@ export const useAuth = () => {
     error,
     accessToken,
     refreshToken,
+    isInitializing,
   } = useAppSelector((state) => state.auth);
 
   const login = useCallback(
@@ -87,6 +88,7 @@ export const useAuth = () => {
     error,
     accessToken,
     refreshToken,
+    isInitializing,
     refreshTokenAction,
     login,
     logout: logoutAction,

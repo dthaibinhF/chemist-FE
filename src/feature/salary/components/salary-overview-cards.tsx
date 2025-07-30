@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/currency-utils';
 import { Calculator, Clock, DollarSign, Users } from 'lucide-react';
 
 interface SalaryStats {
@@ -17,12 +18,6 @@ interface SalaryOverviewCardsProps {
 }
 
 export const SalaryOverviewCards = ({ stats, isLoading }: SalaryOverviewCardsProps) => {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
-    };
 
     const formatPercentage = (rate: number) => {
         return `${(rate * 100).toFixed(1)}%`;

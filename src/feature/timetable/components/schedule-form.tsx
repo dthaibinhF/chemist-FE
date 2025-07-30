@@ -44,6 +44,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
   onCancel,
 }) => {
   const { groups, handleFetchGroups, loading: loadingGroups } = useGroup();
+  console.log('initialData', initialData);
 
   const form = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleFormSchema),
@@ -96,7 +97,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error("Lỗi khi gửi form:", error);
+      toast.error(error instanceof Error ? error.message : "Lỗi không xác định");
     }
   };
 
@@ -186,7 +187,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Hình thức học</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Chọn hình thức" />

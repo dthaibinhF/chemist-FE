@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/currency-utils';
 import {
     Bar,
     BarChart,
@@ -26,14 +27,6 @@ interface FeeChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export const FeeCharts = ({ monthlyRevenue, feeDistribution }: FeeChartsProps) => {
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(value);
-    };
 
     return (
         <div className="grid gap-4 lg:grid-cols-2">

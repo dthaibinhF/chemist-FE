@@ -9,6 +9,7 @@ import {
   recalculateAllSummaries,
   updateSummaryAfterPayment,
 } from "@/redux/slice/student-payment-summary.slice";
+import { formatCurrency } from "@/utils/currency-utils";
 import { useCallback } from "react";
 
 export const useStudentPaymentSummary = () => {
@@ -99,14 +100,6 @@ export const useStudentPaymentSummary = () => {
     return statusIcons[status as keyof typeof statusIcons] || '❓';
   }, []);
 
-  const formatCurrency = useCallback((amount: number): string => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  }, []);
 
   const calculateCompletionPercentage = useCallback((
     totalPaid: number,

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { z } from 'zod/v4';
 
 import { useFee } from '@/hooks/useFee';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import type { Fee } from '@/types/api.types';
 
 import { Button } from '../ui/button';
@@ -110,7 +111,7 @@ export const FeeSelect = ({
             <SelectItem value="-1">Không chọn</SelectItem>
             {fees.map((fee) => (
               <SelectItem key={fee.id} value={fee.id?.toString() ?? ''}>
-                {fee.name} - {fee.amount?.toLocaleString('vi-VN')} VNĐ
+                {fee.name} - {formatCurrencyVND(fee.amount || 0)}
               </SelectItem>
             ))}
             <SelectItem value="new" className="text-primary font-medium">

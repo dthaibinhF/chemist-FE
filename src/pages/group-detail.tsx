@@ -10,6 +10,7 @@ import { AddStudentTab } from '@/feature/student/components/add-student-tab';
 import { useStudent } from '@/feature/student/hooks';
 import { useFee } from '@/hooks/useFee';
 import { useGroup } from '@/hooks/useGroup';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 
 export const GroupDetail = () => {
   const { id } = useParams();
@@ -87,7 +88,7 @@ export const GroupDetail = () => {
             <CardTitle className="text-sm font-medium">Học phí</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fee?.amount.toLocaleString('vi-VN')} VNĐ</div>
+            <div className="text-2xl font-bold">{fee?.amount ? formatCurrencyVND(fee.amount) : '0 VNĐ'}</div>
             <p className="text-xs text-muted-foreground">{fee?.name}</p>
           </CardContent>
         </Card>

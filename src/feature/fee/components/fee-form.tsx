@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -15,6 +16,11 @@ import { Input } from '@/components/ui/input';
 import { useFee } from '@/hooks/useFee';
 import type { Fee } from '@/types/api.types';
 import { FeeSchema, type FeeFormData } from '../schemas/fee.schema';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { vi } from 'date-fns/locale';
 
 interface FeeFormProps {
   mode: 'create' | 'edit';
@@ -30,8 +36,10 @@ export const FeeForm = ({ mode, initialData, onSuccess }: FeeFormProps) => {
     defaultValues: {
       name: initialData?.name || '',
       amount: initialData?.amount || 0,
-      start_time: initialData?.start_time ? new Date(initialData.start_time) : new Date(),
-      end_time: initialData?.end_time ? new Date(initialData.end_time) : new Date(),
+      date_range: {
+        from: initialData?.start_time ? new Date(initialData.start_time) : new Date(),
+        to: initialData?.end_time ? new Date(initialData.end_time) : new Date(),
+      },
       description: initialData?.description || '',
     },
   });
@@ -39,11 +47,25 @@ export const FeeForm = ({ mode, initialData, onSuccess }: FeeFormProps) => {
   const onSubmit = async (data: FeeFormData) => {
     try {
       if (mode === 'create') {
-        await handleCreateFee(data as Fee);
+        await handleCreateFee({
+          name: data.name,
+          amount: data.amount,
+          start_time: data.date_range.from,
+          end_time: data.date_range.to,
+          description: data.description,
+          payment_details: [],
+        } as Fee);
         toast.success('Tạo phí thành công');
       } else {
         if (!initialData?.id) return;
-        await handleUpdateFee(initialData.id, data as Fee);
+        await handleUpdateFee(initialData.id, {
+          name: data.name,
+          amount: data.amount,
+          start_time: data.date_range.from,
+          end_time: data.date_range.to,
+          description: data.description,
+          payment_details: [],
+        } as Fee);
         toast.success('Cập nhật phí thành công');
       }
       form.reset();
@@ -51,6 +73,10 @@ export const FeeForm = ({ mode, initialData, onSuccess }: FeeFormProps) => {
     } catch (error) {
       toast.error(mode === 'create' ? 'Tạo phí thất bại' : 'Cập nhật phí thất bại');
     }
+  };
+  const formatDateDisplay = (date: Date | undefined): string => {
+    if (!date) return "Chọn ngày";
+    return format(date, "dd/MM/yyyy", { locale: vi });
   };
 
   return (
@@ -84,26 +110,46 @@ export const FeeForm = ({ mode, initialData, onSuccess }: FeeFormProps) => {
         />
         <FormField
           control={form.control}
-          name="start_time"
+          name="date_range"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Ngày bắt đầu</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} value={field.value.toISOString().split('T')[0]} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="end_time"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Ngày kết thúc</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} value={field.value.toISOString().split('T')[0]} />
-              </FormControl>
+              <FormLabel className="text-sm font-medium">Thời gian áp dụng</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full h-11 justify-start text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value?.from ? (
+                        field.value.to ? (
+                          `${formatDateDisplay(field.value.from)} - ${formatDateDisplay(field.value.to)}`
+                        ) : (
+                          formatDateDisplay(field.value.from)
+                        )
+                      ) : (
+                        "Chọn khoảng thời gian"
+                      )}
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="range"
+                    defaultMonth={field.value?.from}
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    numberOfMonths={2}
+                  // disabled={(date) =>
+                  //   date < new Date(new Date().setHours(0, 0, 0, 0))
+                  // }
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
