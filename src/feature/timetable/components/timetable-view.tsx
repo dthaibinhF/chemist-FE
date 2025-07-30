@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -37,6 +37,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     handleSetFilters,
     handleSetSearchQuery,
     handleGenerateWeeklySchedule,
+    handleClearSchedule,
   } = useTimetable();
 
 
@@ -102,10 +103,26 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
   };
 
   // Handle event clicks
-  const handleEventClick = (event: CalendarEvent) => {
+  const handleEventClick = useCallback((event: CalendarEvent) => {
+    console.log('Event clicked:', event.id, event.group_name);
+
+    // If dialog is already open with a different schedule, close it first
+    if (editDialogOpen && selectedScheduleId !== event.id) {
+      setEditDialogOpen(false);
+      // Wait for dialog to close before opening new one
+      setTimeout(() => {
+        handleClearSchedule();
+        setSelectedScheduleId(event.id);
+        setEditDialogOpen(true);
+      }, 100);
+      return;
+    }
+
+    // Clear any existing schedule data before setting new ID
+    handleClearSchedule();
     setSelectedScheduleId(event.id);
     setEditDialogOpen(true);
-  };
+  }, [editDialogOpen, selectedScheduleId, handleClearSchedule]);
 
   // Handle weekly schedule generation
   const handleWeeklyGeneration = async (data: {

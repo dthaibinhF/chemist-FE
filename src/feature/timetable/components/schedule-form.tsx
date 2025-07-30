@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -22,12 +22,13 @@ import {
 import RoomSelect from "@/components/features/room-select";
 import TeacherSelect from "@/components/features/teacher-select";
 
-import { groupService } from "@/service/group.service";
-import type { Group, Schedule } from "@/types/api.types";
+import type { Schedule } from "@/types/api.types";
 import { scheduleFormSchema, type ScheduleFormData } from "../schemas/timetable.schema";
 import {
   formatApiDateTimeForInput,
 } from "@/utils/timezone-utils";
+import { useGroup } from "@/hooks/useGroup";
+import { toast } from "sonner";
 
 interface ScheduleFormProps {
   onSubmit: (data: ScheduleFormData) => Promise<void>;
@@ -42,8 +43,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
   loading = false,
   onCancel,
 }) => {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loadingOptions, setLoadingOptions] = useState(true);
+  const { groups, handleFetchGroups, loading: loadingGroups } = useGroup();
 
   const form = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleFormSchema),
@@ -62,17 +62,35 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const groupsData = await groupService.getAllGroups();
-        setGroups(groupsData);
+        await handleFetchGroups();
       } catch (error) {
-        console.error("Lỗi khi tải danh sách:", error);
-      } finally {
-        setLoadingOptions(false);
+        toast.error("Lỗi khi tải danh sách nhóm");
       }
     };
 
     loadOptions();
   }, []);
+
+  // Reset form when initialData changes (when schedule data loads)
+  useEffect(() => {
+    if (initialData) {
+      console.log('Resetting form with new data:', initialData);
+      // Use setTimeout to prevent rapid form resets that can cause DOM issues
+      const timeoutId = setTimeout(() => {
+        form.reset({
+          group_id: initialData.group_id || 0,
+          start_time: initialData.start_time ? formatApiDateTimeForInput(initialData.start_time) : "",
+          end_time: initialData.end_time ? formatApiDateTimeForInput(initialData.end_time) : "",
+          delivery_mode: initialData.delivery_mode || "",
+          meeting_link: initialData.meeting_link || "",
+          teacher_id: initialData.teacher_id || 0,
+          room_id: initialData.room?.id || 0,
+        });
+      }, 0);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [initialData, form]);
 
   const handleSubmit = async (data: ScheduleFormData) => {
     try {
@@ -82,7 +100,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({
     }
   };
 
-  if (loadingOptions) {
+  if (loadingGroups) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="text-sm text-muted-foreground">Đang tải...</div>

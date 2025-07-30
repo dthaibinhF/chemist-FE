@@ -164,6 +164,9 @@ export const timeTableSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearSchedule: (state) => {
+      state.schedule = null;
+    },
     resetState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -306,6 +309,7 @@ export const {
   setFilters,
   setSearchQuery,
   clearError,
+  clearSchedule,
   resetState,
 } = timeTableSlice.actions;
 

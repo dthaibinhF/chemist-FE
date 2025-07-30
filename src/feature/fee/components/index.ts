@@ -1,8 +1,7 @@
 export { DialogAddFee } from "./dialog-add-fee";
 export { DialogEditFee } from "./dialog-edit-fee";
 export { default as FeeTable } from "./fee-table";
-export { FormCreateFee } from "./form-create-fee";
-export { FormEditFee } from "./form-edit-fee";
+export { FeeForm } from "./fee-form";
 
 // New components
 export { FeeCharts } from "./fee-charts";

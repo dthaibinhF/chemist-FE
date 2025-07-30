@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import {
   Dialog,
@@ -27,17 +27,30 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
   const {
     handleUpdateSchedule,
     handleFetchSchedule,
+    handleClearSchedule,
     schedule,
     loading
   } = useTimetable();
 
+  const currentScheduleIdRef = useRef<number | null>(null);
 
   // Load schedule data when dialog opens
   useEffect(() => {
-    if (open && scheduleId) {
+    if (open && scheduleId && scheduleId !== currentScheduleIdRef.current) {
+      console.log('Loading schedule for ID:', scheduleId);
+      currentScheduleIdRef.current = scheduleId;
       handleFetchSchedule(scheduleId);
     }
   }, [open, scheduleId, handleFetchSchedule]);
+
+  // Clear schedule data when dialog closes
+  useEffect(() => {
+    if (!open) {
+      // Clear the schedule state when dialog closes to prevent stale data
+      handleClearSchedule();
+      currentScheduleIdRef.current = null;
+    }
+  }, [open, handleClearSchedule]);
 
   const handleSubmit = async (data: ScheduleFormData) => {
     if (!scheduleId) return;
@@ -55,7 +68,7 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
         delivery_mode: data.delivery_mode,
         meeting_link: data.meeting_link || "",
         teacher_id: data.teacher_id,
-        room: { id: data.room_id },
+        room_id: data.room_id,
       };
 
       await handleUpdateSchedule(scheduleId, scheduleData as any);
@@ -66,18 +79,31 @@ export const EditScheduleDialog: React.FC<EditScheduleDialogProps> = ({
   };
 
   const handleClose = () => {
+    // Clear schedule data before closing to prevent stale state
+    handleClearSchedule();
     onOpenChange(false);
   };
 
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (currentScheduleIdRef.current) {
+        handleClearSchedule();
+        currentScheduleIdRef.current = null;
+      }
+    };
+  }, [handleClearSchedule]);
+
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog key={`edit-dialog-${scheduleId}`} open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa lịch học</DialogTitle>
         </DialogHeader>
         {schedule || loading ? (
           <ScheduleForm
+            key={`schedule-form-${scheduleId}`}
             onSubmit={handleSubmit}
             initialData={schedule}
             loading={loading}

@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,37 +14,42 @@ import {
 import { Input } from '@/components/ui/input';
 import { useFee } from '@/hooks/useFee';
 import type { Fee } from '@/types/api.types';
+import { FeeSchema, type FeeFormData } from '../schemas/fee.schema';
 
-const FeeSchema = z.object({
-  name: z.string().min(1, { message: 'Hãy nhập tên phí' }),
-  amount: z.coerce.number().min(1, { message: 'Số tiền phải lớn hơn 0' }),
-  start_time: z.coerce.date(),
-  end_time: z.coerce.date(),
-  description: z.string().optional(),
-});
+interface FeeFormProps {
+  mode: 'create' | 'edit';
+  initialData?: Fee;
+  onSuccess: () => void;
+}
 
-export const FormCreateFee = ({ setOpen }: { setOpen: (open: boolean) => void }) => {
-  const { handleCreateFee, loading } = useFee();
+export const FeeForm = ({ mode, initialData, onSuccess }: FeeFormProps) => {
+  const { handleCreateFee, handleUpdateFee, loading } = useFee();
 
-  const form = useForm<z.infer<typeof FeeSchema>>({
+  const form = useForm<FeeFormData>({
     resolver: zodResolver(FeeSchema),
     defaultValues: {
-      name: '',
-      amount: 0,
-      start_time: new Date(),
-      end_time: new Date(),
-      description: '',
+      name: initialData?.name || '',
+      amount: initialData?.amount || 0,
+      start_time: initialData?.start_time ? new Date(initialData.start_time) : new Date(),
+      end_time: initialData?.end_time ? new Date(initialData.end_time) : new Date(),
+      description: initialData?.description || '',
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof FeeSchema>) => {
+  const onSubmit = async (data: FeeFormData) => {
     try {
-      await handleCreateFee(data as Fee);
-      toast.success('Tạo phí thành công');
+      if (mode === 'create') {
+        await handleCreateFee(data as Fee);
+        toast.success('Tạo phí thành công');
+      } else {
+        if (!initialData?.id) return;
+        await handleUpdateFee(initialData.id, data as Fee);
+        toast.success('Cập nhật phí thành công');
+      }
       form.reset();
-      setOpen(false);
+      onSuccess();
     } catch (error) {
-      toast.error('Tạo phí thất bại');
+      toast.error(mode === 'create' ? 'Tạo phí thất bại' : 'Cập nhật phí thất bại');
     }
   };
 
@@ -118,7 +122,10 @@ export const FormCreateFee = ({ setOpen }: { setOpen: (open: boolean) => void })
           )}
         />
         <Button type="submit" disabled={loading}>
-          {loading ? 'Đang tạo...' : 'Tạo phí'}
+          {loading
+            ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...')
+            : (mode === 'create' ? 'Tạo phí' : 'Cập nhật phí')
+          }
         </Button>
       </form>
     </Form>

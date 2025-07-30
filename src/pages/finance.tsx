@@ -7,7 +7,7 @@ import { OverduePaymentAlerts } from '@/components/common/overdue-payment-alerts
 import { EnhancedPaymentSummaryTable } from '@/components/common/enhanced-payment-summary-table';
 import { FinanceCalendar } from '@/components/common/finance-calendar';
 import { PaymentHistoryTable } from '@/feature/payment/components/payment-history-table';
-import { DialogAddPayment } from '@/feature/payment/components/dialog-add-payment';
+import { DialogCreatePayment } from '@/feature/payment/components/dialog-create-payment';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -93,13 +93,7 @@ export const FinanceManagement = () => {
     toast.info('Đã chọn ngày: ' + date.toLocaleDateString('vi-VN'));
   }, []);
 
-  const handleAddPaymentSuccess = useCallback(() => {
-    setOpenAddPayment(false);
-    // Refresh data after adding payment
-    handleFetchDashboardStatistics();
-    handleFetchPaymentDetails();
-    toast.success('Thanh toán đã được tạo thành công');
-  }, [handleFetchDashboardStatistics, handleFetchPaymentDetails]);
+  // Note: DialogCreatePayment handles success internally with toast notifications
 
   // Add refresh function for child components
   const handleRefreshDashboardData = useCallback(() => {
@@ -257,10 +251,9 @@ export const FinanceManagement = () => {
       </Tabs>
 
       {/* Enhanced Add Payment Dialog */}
-      <DialogAddPayment
+      <DialogCreatePayment
         open={openAddPayment}
         onOpenChange={setOpenAddPayment}
-        onSuccess={handleAddPaymentSuccess}
       />
     </div>
   );

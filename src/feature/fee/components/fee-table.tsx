@@ -14,7 +14,11 @@ import { LoaderCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { DialogAddFee } from './dialog-add-fee';
 import { DialogEditFee } from './dialog-edit-fee';
 
-const FeeTable = () => {
+interface FeeTableProps {
+  ComponentForCreate?: React.ReactNode | null;
+}
+
+const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
   const { fees, loading, handleFetchFees, handleDeleteFee } = useFee();
 
   useEffect(() => {
@@ -108,7 +112,7 @@ const FeeTable = () => {
 
   return (
     <div>
-      <DataTable columns={columns} data={fees} ComponentForCreate={<DialogAddFee />} />
+      <DataTable columns={columns} data={fees} ComponentForCreate={ComponentForCreate} />
     </div>
   );
 };

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import type { Fee } from '@/types/api.types';
 
-import { FormEditFee } from './form-edit-fee';
+import { FeeForm } from './fee-form';
 
 interface DialogEditFeeProps {
   fee: Fee;
@@ -29,7 +29,7 @@ export const DialogEditFee = ({ fee, children }: DialogEditFeeProps) => {
           <DialogTitle>Cập nhật phí</DialogTitle>
           <DialogDescription>Cập nhật thông tin phí</DialogDescription>
         </DialogHeader>
-        <FormEditFee setOpen={setIsOpen} fee={fee} />
+        <FeeForm mode="edit" initialData={fee} onSuccess={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>
   );

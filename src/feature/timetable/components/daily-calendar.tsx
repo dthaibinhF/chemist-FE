@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Calendar, MapPin, User, Clock, Video, ExternalLink } from "lucide-react";
 
 import type { CalendarEvent, TimeSlot } from "../types/timetable.types";
-import { 
-  generateTimeSlots, 
-  formatDateFull, 
-  formatTime, 
-  isToday, 
+import {
+  generateTimeSlots,
+  formatDateFull,
+  formatTime,
+  isToday,
   isEventActive,
   getEventDuration
 } from "../utils/calendar-utils";
@@ -50,8 +50,12 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({
   };
 
   const handleEventClick = (event: CalendarEvent) => {
-    if (onEventClick) {
-      onEventClick(event);
+    try {
+      if (onEventClick) {
+        onEventClick(event);
+      }
+    } catch (error) {
+      console.error('Error handling event click:', error);
     }
   };
 
@@ -96,7 +100,7 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({
             </span>
           )}
         </h2>
-        
+
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={handleToday} size="sm">
             <Calendar className="w-4 h-4 mr-1" />
@@ -132,13 +136,14 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({
                     <div className="space-y-2">
                       {slot.events.map((event) => (
                         <div
-                          key={event.id}
-                          className={`p-4 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                            event.color
-                          } ${
-                            isEventActive(event) ? 'ring-2 ring-green-400 shadow-lg' : ''
-                          }`}
-                          onClick={() => handleEventClick(event)}
+                          key={`event-${event.id}-${event.start.getTime()}`}
+                          className={`p-4 rounded-lg cursor-pointer transition-all hover:shadow-md ${event.color
+                            } ${isEventActive(event) ? 'ring-2 ring-green-400 shadow-lg' : ''
+                            }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEventClick(event);
+                          }}
                         >
                           <div className="flex items-start justify-between mb-3">
                             <div>
@@ -164,15 +169,14 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({
                                   Đang diễn ra
                                 </span>
                               )}
-                              <span className={`text-sm px-2 py-1 rounded ${
-                                event.delivery_mode === 'ONLINE' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : event.delivery_mode === 'HYBRID'
+                              <span className={`text-sm px-2 py-1 rounded ${event.delivery_mode === 'ONLINE'
+                                ? 'bg-green-100 text-green-800'
+                                : event.delivery_mode === 'HYBRID'
                                   ? 'bg-yellow-100 text-yellow-800'
                                   : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {event.delivery_mode === 'ONLINE' ? 'Trực tuyến' : 
-                                 event.delivery_mode === 'HYBRID' ? 'Kết hợp' : 'Trực tiếp'}
+                                }`}>
+                                {event.delivery_mode === 'ONLINE' ? 'Trực tuyến' :
+                                  event.delivery_mode === 'HYBRID' ? 'Kết hợp' : 'Trực tiếp'}
                               </span>
                             </div>
                           </div>

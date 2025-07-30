@@ -16,7 +16,7 @@ import {
   Target
 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
-import { DialogAddPayment } from './dialog-add-payment';
+import { DialogCreatePayment } from './dialog-create-payment';
 import { PaymentHistoryTable } from './payment-history-table';
 
 interface StudentPaymentProps {
@@ -25,7 +25,7 @@ interface StudentPaymentProps {
   feeId?: number;
 }
 
-export const StudentPayment = ({ studentId, studentName, feeId }: StudentPaymentProps) => {
+export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) => {
   const [openAddPayment, setOpenAddPayment] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -119,10 +119,7 @@ export const StudentPayment = ({ studentId, studentName, feeId }: StudentPayment
     );
   }, [paymentSummaries]);
 
-  const handleAddPaymentSuccess = () => {
-    handleFetchPaymentDetailByStudentId(studentId);
-    handleFetchPaymentSummariesByStudent(studentId);
-  };
+  // Note: DialogCreatePayment handles success internally with toast notifications
 
   if (loading || summaryLoading) {
     return (
@@ -440,12 +437,9 @@ export const StudentPayment = ({ studentId, studentName, feeId }: StudentPayment
         </CardContent>
       </Card>
 
-      <DialogAddPayment
+      <DialogCreatePayment
         open={openAddPayment}
         onOpenChange={setOpenAddPayment}
-        onSuccess={handleAddPaymentSuccess}
-        preselectedStudentId={studentId}
-        preselectedFeeId={feeId}
       />
     </div>
   );

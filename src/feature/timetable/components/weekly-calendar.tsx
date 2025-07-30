@@ -49,8 +49,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
   };
 
   const handleEventClick = (event: CalendarEvent) => {
-    if (onEventClick) {
-      onEventClick(event);
+    try {
+      if (onEventClick) {
+        onEventClick(event);
+      }
+    } catch (error) {
+      console.error('Error handling event click:', error);
     }
   };
 
@@ -135,11 +139,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
                 ) : (
                   dayEvents.sort((a, b) => a.start.getTime() - b.start.getTime()).map((event) => (
                     <div
-                      key={event.id}
+                      key={`event-${event.id}-${event.start.getTime()}`}
                       className={`p-2 rounded-md cursor-pointer transition-all hover:shadow-md ${event.color
                         } ${isEventActive(event) ? 'ring-2 ring-green-400 shadow-lg' : ''
                         }`}
-                      onClick={() => handleEventClick(event)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEventClick(event);
+                      }}
                     >
                       {/* Event Title */}
                       <div className="font-medium text-sm truncate mb-1">

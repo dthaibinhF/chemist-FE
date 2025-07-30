@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-import { FormCreateFee } from './form-create-fee';
+import { FeeForm } from './fee-form';
 
 export const DialogAddFee = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +25,7 @@ export const DialogAddFee = () => {
           <DialogTitle>Tạo phí mới</DialogTitle>
           <DialogDescription>Tạo phí mới để áp dụng cho các nhóm học</DialogDescription>
         </DialogHeader>
-        <FormCreateFee setOpen={setIsOpen} />
+        <FeeForm mode="create" onSuccess={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>
   );

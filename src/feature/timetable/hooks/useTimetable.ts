@@ -19,6 +19,7 @@ import {
   setFilters,
   setSearchQuery,
   clearError,
+  clearSchedule,
   resetState,
 } from "@/redux/slice/time-table.slice";
 
@@ -131,6 +132,10 @@ export const useTimetable = () => {
     dispatch(clearError());
   }, [dispatch]);
 
+  const handleClearSchedule = useCallback(() => {
+    dispatch(clearSchedule());
+  }, [dispatch]);
+
   const handleResetState = useCallback(() => {
     dispatch(resetState());
   }, [dispatch]);
@@ -208,6 +213,7 @@ export const useTimetable = () => {
     handleSetFilters,
     handleSetSearchQuery,
     handleClearError,
+    handleClearSchedule,
     handleResetState,
 
     // Helper functions

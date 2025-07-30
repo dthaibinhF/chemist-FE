@@ -11,15 +11,14 @@ import { FeeOverviewCards } from '@/feature/fee/components/fee-overview-cards';
 import { FeeReports } from '@/feature/fee/components/fee-reports';
 import FeeTable from '@/feature/fee/components/fee-table';
 
-import { DialogCreatePayment } from '@/feature/payment/components';
 import { useFee } from '@/hooks/useFee';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { DialogAddFee } from '@/feature/fee/components/dialog-add-fee';
 
 const FeeManagement = () => {
   usePageTitle('Quản lý học phí');
   const [activeTab, setActiveTab] = useState('list');
   const { fees } = useFee();
-  const [open, setOpen] = useState(false);
   // Mock data cho thống kê - sẽ thay bằng data thực từ API
   const feeStats = {
     totalFees: fees?.length || 0,
@@ -90,7 +89,7 @@ const FeeManagement = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <DialogCreatePayment open={open} onOpenChange={setOpen} />
+          <DialogAddFee />
           <Button onClick={handleExportReport}>
             <Download className="mr-2 h-4 w-4" />
             Xuất báo cáo
@@ -113,7 +112,7 @@ const FeeManagement = () => {
         </TabsList>
 
         <TabsContent value="list">
-          <FeeTable />
+          <FeeTable ComponentForCreate={null} />
         </TabsContent>
 
         <TabsContent value="charts" className="space-y-4">
