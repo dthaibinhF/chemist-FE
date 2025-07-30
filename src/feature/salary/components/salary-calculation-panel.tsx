@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useSalary } from '@/hooks';
 import type { Teacher, TeacherMonthlySummary } from '@/types/api.types';
+import { formatCurrency } from '@/utils/currency-utils';
 import { Calculator, Users, RefreshCw, TrendingUp } from 'lucide-react';
 
 const calculationSchema = z.object({
@@ -55,12 +56,6 @@ export const SalaryCalculationPanel = ({ teacher, onCalculationComplete }: Salar
     },
   });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
 
   const formatPercentage = (rate: number) => {
     return `${(rate * 100).toFixed(1)}%`;

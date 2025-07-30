@@ -228,7 +228,7 @@ export const StudentDetailPage = () => {
                     <div className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4 text-muted-foreground" />
                       <p>
-                        {selectedStudent.student_details?.[0]?.school_class?.name ||
+                        {selectedStudent.student_details?.[0]?.class?.name ||
                           'Chưa cập nhật'}
                       </p>
                     </div>

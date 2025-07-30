@@ -1,36 +1,25 @@
-import { IReferenceData } from "@/components/file-view-and-picker/media";
-import axios from "axios";
-
-// Loading animation component với dấu 3 chấm nhảy nhảy
-const LoadingDots = () => {
-  return (
-    <div className="flex space-x-1">
-      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-    </div>
-  );
-};
-
-export const getReferenceData = async (): Promise<IReferenceData> => {
-  const response = await axios.get('https://vsdp-api.development.thanhlp18.info/api/v1/public/applicant/reference-data');
-  return response.data;
-};
+import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
+import { useEffect, useState } from "react";
 
 const Dashboard = () => {
-
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
+  useEffect(() => {
+    console.log(date);
+  }, [date]);
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-
-      {/* Loading animation */}
-      {true && (
-        <div className="flex justify-center items-center p-8">
-          <LoadingDots />
-        </div>
-      )}
-
-
+      <Calendar
+        mode="range"
+        month={date?.from ?? new Date()}
+        numberOfMonths={2}
+        selected={date}
+        onSelect={setDate}
+        className="rounded-lg border shadow-sm"
+      />
     </div>
   );
 };

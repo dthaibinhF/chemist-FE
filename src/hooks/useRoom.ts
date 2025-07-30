@@ -14,7 +14,7 @@ export const useRoom = () => {
   const { rooms, room, loading, error } = useAppSelector((state) => state.room);
 
   const handleFetchRooms = useCallback(() => {
-    dispatch(fetchRooms());
+    return dispatch(fetchRooms());
   }, [dispatch]);
 
   const handleFetchRoom = useCallback(

@@ -59,7 +59,7 @@ export const FinanceCalendar = ({ paymentEvents, onDateSelect }: FinanceCalendar
             case 'paid':
                 return <Badge variant="default" className="bg-green-500">Đã thanh toán</Badge>;
             case 'pending':
-                return <Badge variant="secondary">Chưa thanh toán</Badge>;
+                return <Badge variant="secondary">Còn thiếu</Badge>;
             case 'overdue':
                 return <Badge variant="destructive">Quá hạn</Badge>;
             default:
@@ -169,7 +169,7 @@ export const FinanceCalendar = ({ paymentEvents, onDateSelect }: FinanceCalendar
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 bg-yellow-100 rounded"></div>
-                                    <span>Chưa thanh toán</span>
+                                    <span>Còn thiếu</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 bg-red-100 rounded"></div>

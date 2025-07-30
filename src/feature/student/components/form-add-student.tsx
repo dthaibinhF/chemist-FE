@@ -24,8 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Group } from '@/service';
-import { gradeService, groupService } from '@/service';
-import type { Grade, Student } from '@/types/api.types';
+import { gradeService, groupService, schoolService } from '@/service';
+import type { Grade, School, Student } from '@/types/api.types';
 
 import { toast } from 'sonner';
 import { useStudent } from '../hooks';
@@ -43,7 +43,7 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
+  const [schools, setSchools] = useState<School[]>([]);
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentFormSchema),
     defaultValues: {
@@ -53,19 +53,21 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
       grade: gradeId?.toString() || '',
       group: groupId?.toString() || '',
       academic_year: '',
-      school_class: '',
+      class: '',
     },
   });
 
   const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [gradesData, groupsData] = await Promise.all([
+      const [gradesData, groupsData, schoolsData] = await Promise.all([
         gradeService.getAllGrades(),
         groupService.getAllGroups(),
+        schoolService.getAllSchools(),
       ]);
       setGrades(gradesData);
       setGroups(groupsData);
+      setSchools(schoolsData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -87,11 +89,11 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
           parent_phone: data.parent_phone,
           student_details: [
             {
-              ...(data.school ? { school: grades.find(g => g.id?.toString() === data.school) } : {}),
+              ...(data.school ? { school: schools.find(s => s.id?.toString() === data.school) } : {}),
               ...(data.grade ? { grade: grades.find(g => g.id?.toString() === data.grade) } : {}),
               ...(data.group ? { group_id: Number(data.group) } : {}),
               ...(data.academic_year ? { academic_year: grades.find(g => g.id?.toString() === data.academic_year) } : {}),
-              ...(data.school_class ? { school_class: grades.find(g => g.id?.toString() === data.school_class) } : {}),
+              ...(data.class ? { class: grades.find(g => g.id?.toString() === data.class) } : {}),
             },
           ] as Partial<import('@/types/api.types').StudentDetail>[],
         };

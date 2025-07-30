@@ -31,6 +31,7 @@ import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
 import { getCurrentStudentDetail } from '@/lib/student-utils';
 import { PaymentDetail, PaymentStatus } from '@/types/api.types';
 import { handlePaymentApiError } from '@/utils/payment-utils';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Plus } from 'lucide-react';
 import { useEffect } from 'react';
@@ -216,7 +217,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                         <SelectContent >
                                             {fees.map((fee) => (
                                                 <SelectItem key={fee.id} value={fee.id?.toString() || ''}>
-                                                    {fee.name} - {fee.amount?.toLocaleString('vi-VN')} VNĐ
+                                                    {fee.name} - {formatCurrencyVND(fee.amount || 0)}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

@@ -277,7 +277,7 @@ export const AddStudentCsvFile = ({ groupId, gradeId, onStudentAdded }: AddStude
           student_details: [
             {
               school: school,
-              school_class: schoolClass,
+              class: schoolClass,
               academic_year: academicYear,
               group_id: groupId,
               grade: grade,

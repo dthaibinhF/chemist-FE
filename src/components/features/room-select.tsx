@@ -53,24 +53,16 @@ const RoomSelect: FC<RoomSelectProps> = ({ handleSelect, value, placeholder = "C
     }, [rooms, handleFetchRooms]);
 
     useEffect(() => {
-        console.log('RoomSelect: value or rooms changed', {
-            value,
-            valueType: typeof value,
-            roomsLength: rooms.length,
-            currentSelectedValue: selectedValue
-        });
 
         if (value !== undefined && value !== null && value !== 0) {
             const stringValue = value.toString();
             // Only update if different to avoid unnecessary re-renders
             if (stringValue !== selectedValue) {
-                console.log('RoomSelect: updating selectedValue', { from: selectedValue, to: stringValue });
                 setSelectedValue(stringValue);
             }
         } else {
             // Handle empty/zero values
             if (selectedValue !== '') {
-                console.log('RoomSelect: clearing selectedValue');
                 setSelectedValue('');
             }
         }

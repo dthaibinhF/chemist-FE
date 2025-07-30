@@ -43,7 +43,7 @@ interface GroupFormProps {
 }
 
 export const GroupForm = ({ mode, initialData, onSuccess }: GroupFormProps) => {
-  const { handleCreateGroup, handleUpdateGroup, loading } = useGroup();
+  const { handleCreateGroup, handleUpdateGroup, loading: loadingGroup } = useGroup();
   const { grades, handleFetchGrades, loading: loadingGrades } = useGrade();
   const { fees, handleFetchFees, loading: loadingFees } = useFee();
   const {
@@ -157,8 +157,12 @@ export const GroupForm = ({ mode, initialData, onSuccess }: GroupFormProps) => {
     }
   };
 
-  if (loading || loadingGrades || loadingAcademicYears || loadingFees) {
-    return <div>Loading...</div>;
+  if (loadingGroup || loadingGrades || loadingAcademicYears || loadingFees) {
+    return <div className="flex space-x-1 justify-center items-center">
+      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+    </div>;
   }
 
   return (
@@ -186,8 +190,8 @@ export const GroupForm = ({ mode, initialData, onSuccess }: GroupFormProps) => {
                 <FormItem>
                   <FormLabel>Loại nhóm</FormLabel>
                   <FormControl>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       value={field.value}
                       defaultValue={field.value}
                     >
@@ -272,8 +276,8 @@ export const GroupForm = ({ mode, initialData, onSuccess }: GroupFormProps) => {
             name="group_schedules"
             fields={form.watch('group_schedules')}
           />
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Đang xử lý...' : (mode === 'create' ? 'Tạo nhóm' : 'Cập nhật nhóm')}
+          <Button type="submit" disabled={loadingGroup}>
+            {loadingGroup ? 'Đang xử lý...' : (mode === 'create' ? 'Tạo nhóm' : 'Cập nhật nhóm')}
           </Button>
         </form>
       </Form>

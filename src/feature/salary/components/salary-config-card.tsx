@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useSalary } from '@/hooks';
 import type { Teacher, SalaryType } from '@/types/api.types';
+import { formatCurrency } from '@/utils/currency-utils';
 import { Edit, Save, X, DollarSign, Clock } from 'lucide-react';
 
 const salaryConfigSchema = z.object({
@@ -44,12 +45,6 @@ export const SalaryConfigCard = ({ teacher, onConfigUpdate }: SalaryConfigCardPr
     },
   });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
 
   const getSalaryTypeLabel = (type: SalaryType) => {
     return type === 'PER_LESSON' ? 'Theo buổi học' : 'Lương cố định';

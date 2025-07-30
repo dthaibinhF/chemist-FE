@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/currency-utils';
 import { AlertCircle, DollarSign, Users } from 'lucide-react';
 
 interface FeeStats {
@@ -15,12 +16,6 @@ interface FeeOverviewCardsProps {
 }
 
 export const FeeOverviewCards = ({ stats }: FeeOverviewCardsProps) => {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
-    };
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

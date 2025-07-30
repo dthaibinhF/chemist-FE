@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePayment } from '@/hooks/usePayment';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import {
   AlertTriangle,
   CheckCircle,
@@ -32,7 +33,6 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
     paymentSummaries,
     loading: summaryLoading,
     handleFetchPaymentSummariesByStudent,
-    formatCurrency,
     getPaymentStatusIcon,
     calculateCompletionPercentage
   } = useStudentPaymentSummary();
@@ -148,7 +148,7 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
             <div className="mt-2 space-y-1">
               {overdueObligations.slice(0, 3).map((obligation, index) => (
                 <div key={index} className="text-sm">
-                  • {obligation.fee_name}: {formatCurrency(obligation.outstanding_amount)}
+                  • {obligation.fee_name}: {formatCurrencyVND(obligation.outstanding_amount)}
                   {obligation.due_date && ` (Hạn: ${new Date(obligation.due_date).toLocaleDateString('vi-VN')})`}
                 </div>
               ))}
@@ -169,7 +169,7 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
             <div className="mt-2 space-y-1">
               {urgentObligations.slice(0, 2).map((obligation, index) => (
                 <div key={index} className="text-sm">
-                  • {obligation.fee_name}: {formatCurrency(obligation.outstanding_amount)}
+                  • {obligation.fee_name}: {formatCurrencyVND(obligation.outstanding_amount)}
                   {obligation.due_date && ` (Hạn: ${new Date(obligation.due_date).toLocaleDateString('vi-VN')})`}
                 </div>
               ))}
@@ -195,15 +195,15 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{formatCurrency(summaryStats.totalObligations)}</div>
+              <div className="text-2xl font-bold text-blue-600">{formatCurrencyVND(summaryStats.totalObligations)}</div>
               <div className="text-sm text-muted-foreground">Tổng học phí</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(summaryStats.totalPaid)}</div>
+              <div className="text-2xl font-bold text-green-600">{formatCurrencyVND(summaryStats.totalPaid)}</div>
               <div className="text-sm text-muted-foreground">Đã thanh toán</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{formatCurrency(summaryStats.totalOutstanding)}</div>
+              <div className="text-2xl font-bold text-orange-600">{formatCurrencyVND(summaryStats.totalOutstanding)}</div>
               <div className="text-sm text-muted-foreground">Còn thiếu</div>
             </div>
             <div className="text-center">
@@ -311,15 +311,15 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
                         <div className="grid grid-cols-3 gap-4 text-sm mb-3">
                           <div>
                             <div className="text-muted-foreground">Tổng phí</div>
-                            <div className="font-semibold">{formatCurrency(summary.total_amount_due)}</div>
+                            <div className="font-semibold">{formatCurrencyVND(summary.total_amount_due)}</div>
                           </div>
                           <div>
                             <div className="text-muted-foreground">Đã đóng</div>
-                            <div className="font-semibold text-green-600">{formatCurrency(summary.total_amount_paid)}</div>
+                            <div className="font-semibold text-green-600">{formatCurrencyVND(summary.total_amount_paid)}</div>
                           </div>
                           <div>
                             <div className="text-muted-foreground">Còn thiếu</div>
-                            <div className="font-semibold text-orange-600">{formatCurrency(summary.outstanding_amount)}</div>
+                            <div className="font-semibold text-orange-600">{formatCurrencyVND(summary.outstanding_amount)}</div>
                           </div>
                         </div>
 
@@ -410,16 +410,16 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Tổng học phí</span>
-                        <span className="font-semibold">{formatCurrency(summaryStats.totalObligations)}</span>
+                        <span className="font-semibold">{formatCurrencyVND(summaryStats.totalObligations)}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Đã thanh toán</span>
-                        <span className="font-semibold text-green-600">{formatCurrency(summaryStats.totalPaid)}</span>
+                        <span className="font-semibold text-green-600">{formatCurrencyVND(summaryStats.totalPaid)}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Còn phải trả</span>
-                        <span className="font-semibold text-orange-600">{formatCurrency(summaryStats.totalOutstanding)}</span>
+                        <span className="font-semibold text-orange-600">{formatCurrencyVND(summaryStats.totalOutstanding)}</span>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between">

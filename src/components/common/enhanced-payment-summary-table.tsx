@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
 import { cn } from '@/lib/utils';
+import { formatCurrencyVND } from '@/utils/currency-utils';
 import { PaymentStatus } from '@/types/api.types';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -58,7 +59,6 @@ export const EnhancedPaymentSummaryTable = ({
     error,
     handleFetchPaymentSummariesByGroup,
     handleFetchPaymentSummariesByStudent,
-    formatCurrency,
     // getPaymentStatusColor,
     getPaymentStatusIcon,
     calculateCompletionPercentage
@@ -422,7 +422,7 @@ export const EnhancedPaymentSummaryTable = ({
                           <div className="flex items-center justify-between text-xs">
                             <span>{completionRate}%</span>
                             <span className="text-muted-foreground">
-                              {formatCurrency(item.total_amount_paid)} / {formatCurrency(item.total_amount_due)}
+                              {formatCurrencyVND(item.total_amount_paid)} / {formatCurrencyVND(item.total_amount_due)}
                             </span>
                           </div>
                           <Progress value={completionRate} className="h-2" />
@@ -432,7 +432,7 @@ export const EnhancedPaymentSummaryTable = ({
                       <TableCell>
                         <div className="space-y-1">
                           <p className="font-medium text-destructive">
-                            {formatCurrency(item.outstanding_amount)}
+                            {formatCurrencyVND(item.outstanding_amount)}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             còn lại

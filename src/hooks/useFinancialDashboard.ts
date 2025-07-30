@@ -16,6 +16,7 @@ import {
   updateOverdueStatuses,
 } from "@/redux/slice/financial-dashboard.slice";
 import { FinancialStatisticsDTO } from "@/types/api.types";
+import { formatCurrency } from "@/utils/currency-utils";
 import { useCallback } from "react";
 
 export const useFinancialDashboard = () => {
@@ -79,14 +80,6 @@ export const useFinancialDashboard = () => {
     return (stats.total_revenue / stats.total_amount_due) * 100;
   }, []);
 
-  const formatCurrency = useCallback((amount: number): string => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  }, []);
 
   const calculateGrowthRate = useCallback((current: number, previous: number): number => {
     if (previous === 0) return current > 0 ? 100 : 0;
@@ -158,7 +151,7 @@ export const useFinancialDashboard = () => {
         color: '#4ECDC4'
       },
       {
-        name: 'Thanh toán một phần',
+        name: 'Còn thiếu',
         value: stats.partial_payments_count,
         color: '#FF6B6B'
       },

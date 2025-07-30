@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { formatCurrency } from '@/utils/currency-utils';
 import { DollarSign, Download, FileText, Mail, TrendingUp, Users } from 'lucide-react';
 
 interface FeeReportStats {
@@ -26,12 +27,6 @@ export const FeeReports = ({
     onExportPDF,
     onSendReminder
 }: FeeReportsProps) => {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
-    };
 
     const paymentRate = stats.paidStudents + stats.unpaidStudents > 0
         ? ((stats.paidStudents / (stats.paidStudents + stats.unpaidStudents)) * 100).toFixed(1)

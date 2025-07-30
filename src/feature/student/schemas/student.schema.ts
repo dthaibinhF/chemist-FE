@@ -15,7 +15,7 @@ export const studentFormSchema = z.object({
       );
     }, "Số điện thoại không hợp lệ"),
   school: z.string().optional(),
-  school_class: z.string().optional(),
+  class: z.string().optional(),
   academic_year: z.string().optional(),
   grade: z.string().optional(),
   group: z.string().optional(),
