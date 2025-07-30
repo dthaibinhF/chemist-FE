@@ -16,7 +16,6 @@ import {
   Target
 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
-import { DialogCreatePayment } from './dialog-create-payment';
 import { PaymentHistoryTable } from './payment-history-table';
 
 interface StudentPaymentProps {
@@ -26,7 +25,6 @@ interface StudentPaymentProps {
 }
 
 export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) => {
-  const [openAddPayment, setOpenAddPayment] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
   const { loading, paymentDetails, handleFetchPaymentDetailByStudentId } = usePayment();
