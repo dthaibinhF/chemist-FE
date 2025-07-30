@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { DialogAddGroup } from './dialog-add-group';
 import GroupDialogEdit from './group-dialog-edit';
 import { useGroup } from '@/hooks/useGroup';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 // import { EditGroupDialog } from './edit-group-dialog';
 
 interface GroupTableProps {
@@ -26,6 +27,7 @@ const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
   const [sortedGroups, setSortedGroups] = useState<Group[]>([]);
   const navigate = useNavigate();
   const revalidate = useRevalidator();
+  const { group: groupPermissions } = useRolePermissions();
 
   const handleViewGroup = useCallback((group: Group) => {
     navigate(`/group/${group.id}`);
@@ -133,31 +135,61 @@ const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
     {
       id: 'actions',
       header: 'Thao tác',
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Mở menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleViewGroup(row.original)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Xem chi tiết
-            </DropdownMenuItem>
-            <GroupDialogEdit group={row.original} variant="dropdown" />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => deleteGroup(row.original)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Xóa
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        const actionItems = [
+          { 
+            label: 'Xem chi tiết', 
+            icon: Eye, 
+            action: () => handleViewGroup(row.original), 
+            show: true 
+          },
+          { 
+            label: 'Chỉnh sửa', 
+            component: <GroupDialogEdit group={row.original} variant="dropdown" />, 
+            show: groupPermissions.canManageGroups 
+          },
+          { 
+            label: 'Xóa', 
+            icon: Trash2, 
+            action: () => deleteGroup(row.original), 
+            show: groupPermissions.canManageGroups,
+            destructive: true 
+          }
+        ].filter(item => item.show);
+
+        if (actionItems.length === 0) {
+          return null;
+        }
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Mở menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {actionItems.map((item, index) => (
+                <div key={index}>
+                  {item.component ? (
+                    item.component
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={item.action}
+                      className={item.destructive ? "text-destructive focus:text-destructive" : ""}
+                    >
+                      {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                      {item.label}
+                    </DropdownMenuItem>
+                  )}
+                  {item.destructive && index < actionItems.length - 1 && <DropdownMenuSeparator />}
+                </div>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
 
     }
   ];
@@ -169,7 +201,7 @@ const GroupTable: React.FC<GroupTableProps> = ({ academicYearId, gradeId }) => {
         pagination={false}
         columns={columns}
         data={sortedGroups}
-        ComponentForCreate={<DialogAddGroup />}
+        ComponentForCreate={groupPermissions.canManageGroups ? <DialogAddGroup /> : undefined}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import UserItem from "@/components/common/user-item.tsx";
@@ -13,6 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar.tsx";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 const items = {
   navMain: [
@@ -55,6 +56,11 @@ const items = {
           url: "/time-table",
           isActive: false,
         },
+        {
+          title: "Profile",
+          url: "/profile",
+          isActive: false,
+        },
       ],
     },
   ],
@@ -62,9 +68,51 @@ const items = {
 
 const AppSideBar = () => {
   const [render, setRender] = useState<number>(1);
+  const {
+    student,
+    financial,
+    group: groupPermissions,
+    timetable,
+    isAuthenticated
+  } = useRolePermissions();
+
+  const filteredItems = useMemo(() => {
+    if (!isAuthenticated) {
+      return { navMain: [] };
+    }
+
+    return {
+      navMain: items.navMain.map(navGroup => ({
+        ...navGroup,
+        items: navGroup.items.filter(item => {
+          switch (item.url) {
+            case '/student':
+              // Route requires: ADMIN, MANAGER, TEACHER
+              return student.canViewAllStudents || student.canViewOwnStudentData;
+            case '/finance':
+              // Route requires: ADMIN, MANAGER only
+              return financial.canViewAllFinances;
+            case '/group':
+              // Route requires: ADMIN, MANAGER, TEACHER  
+              return groupPermissions.canViewGroups || groupPermissions.canViewOwnGroups;
+            case '/fee':
+              // Route requires: ADMIN, MANAGER, TEACHER
+              return financial.canManageFees || financial.canViewAllFinances;
+            case 'dashboard':
+            case '/ai-assistant':
+            case '/time-table':
+            case '/profile':
+              return true;
+            default:
+              return true;
+          }
+        })
+      }))
+    };
+  }, [student, financial, groupPermissions, timetable, isAuthenticated]);
 
   function handleClick(item: { url: string; isActive: boolean }) {
-    items.navMain.map((listObj) =>
+    filteredItems.navMain.map((listObj) =>
       listObj.items.map((itemObj) => {
         if (itemObj.url === item.url) {
           itemObj.isActive = true;
@@ -74,7 +122,7 @@ const AppSideBar = () => {
     setRender(render + 1);
   }
 
-  useEffect(() => {}, [render]);
+  useEffect(() => { }, [render]);
 
   const setActive = (item: {
     title: string;
@@ -90,8 +138,7 @@ const AppSideBar = () => {
         <UserItem />
       </SidebarHeader>
       <SidebarContent>
-        {/* We create a SidebarGroup for each parent. */}
-        {items.navMain.map((item) => (
+        {filteredItems.navMain.map((item) => (
           <SidebarGroup key={item.title}>
             <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
             <SidebarGroupContent>

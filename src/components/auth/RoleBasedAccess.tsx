@@ -55,13 +55,13 @@ export const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
   debug = false
 }) => {
   const { account, isAuthenticated } = useAuth();
-  
+
   // Use override role for testing, otherwise get from authenticated account
   const currentUserRole = overrideRole || account?.role_name;
-  
+
   // Check if user has permission
   const hasAccess = hasPermission(currentUserRole, allowedRoles);
-  
+
   // Debug logging in development
   if (debug && process.env.NODE_ENV === 'development') {
     console.log('RoleBasedAccess Debug:', {
@@ -72,12 +72,12 @@ export const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
       account: account ? { id: account.id, role: account.role_name } : null
     });
   }
-  
+
   // Render children if user has access, otherwise render fallback
   if (hasAccess) {
     return <>{children}</>;
   }
-  
+
   return <>{fallback}</>;
 };
 
@@ -99,9 +99,9 @@ export const withRoleBasedAccess = (
         <Component {...props} />
       </RoleBasedAccess>
     );
-    
+
     WrappedComponent.displayName = `withRoleBasedAccess(${Component.displayName || Component.name})`;
-    
+
     return WrappedComponent;
   };
 };

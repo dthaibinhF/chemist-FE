@@ -5,6 +5,7 @@ export const StudentManagement = () => {
   usePageTitle('Quản lý học sinh');
 
   return (
+
     <div className="grid grid-cols-[2fr_1fr] gap-4 overflow-hidden">
       <div className="space-y-4 min-w-0">
         <StudentTable />

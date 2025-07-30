@@ -20,6 +20,7 @@ const GroupManagement = () => {
   }, [handleFetchAcademicYears, handleFetchGrades]);
 
   return (
+
     <div className="space-y-6">
       {/* Filters Section */}
       <div className="flex items-center gap-4">
