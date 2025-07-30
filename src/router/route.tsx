@@ -15,6 +15,7 @@ import { LoginPage } from "@/pages/login-page.tsx";
 import { StudentDetailPage } from "@/pages/student-detail.tsx";
 import { StudentManagement } from "@/pages/student-management.tsx";
 import TimeTable from "@/pages/TimeTable";
+import UnauthorizedPage from "@/pages/unauthorized";
 
 export const router = createBrowserRouter([
   {
@@ -81,5 +82,9 @@ export const router = createBrowserRouter([
         Component: AiAssistantPage,
       },
     ],
+  },
+  {
+    path: "/unauthorized",
+    Component: UnauthorizedPage,
   },
 ]);
