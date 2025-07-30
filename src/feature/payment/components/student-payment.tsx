@@ -436,11 +436,6 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
           </Tabs>
         </CardContent>
       </Card>
-
-      <DialogCreatePayment
-        open={openAddPayment}
-        onOpenChange={setOpenAddPayment}
-      />
     </div>
   );
 };
