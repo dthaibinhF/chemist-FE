@@ -410,3 +410,37 @@ export interface PaymentWithSummaryUpdateDTO extends Omit<PaymentDetail, 'id'> {
   academicYearId: number;
   groupId: number;
 }
+
+// Add bulk schedule request/response types
+export interface BulkScheduleRequest {
+  group_ids: number[];
+  start_date: string;
+  end_date: string;
+}
+
+export interface BulkScheduleResponse {
+  success: boolean;
+  message: string;
+  total_groups_processed: number;
+  successful_groups: number;
+  failed_groups: number;
+  total_schedules_generated: number;
+  generated_schedules: Schedule[][];
+  errors: string[];
+}
+
+// Add update mode types for future schedule updates
+export enum ScheduleUpdateMode {
+  SINGLE_OCCURRENCE = "SINGLE_OCCURRENCE",
+  ALL_FUTURE_OCCURRENCES = "ALL_FUTURE_OCCURRENCES"
+}
+
+export interface ScheduleUpdateModeRequest {
+  update_mode: ScheduleUpdateMode;
+  start_time: string;
+  end_time: string;
+  delivery_mode: string;
+  teacher_id?: number;
+  room_id?: number;
+  meeting_link?: string;
+}

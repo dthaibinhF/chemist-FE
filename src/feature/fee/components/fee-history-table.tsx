@@ -5,6 +5,8 @@ import { Fee, PaymentDetail } from '@/types/api.types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
 
 interface FeeHistoryTableProps {
     fee?: Fee;
@@ -39,7 +41,10 @@ const formatDate = (dateString: string | Date | undefined) => {
     }
 };
 
+
+
 export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false, openCreatePayment, setOpenCreatePayment }: FeeHistoryTableProps) => {
+    const navigate = useNavigate();
     const getPaymentStatusBadge = (student_id: number, fee_id: number, paymentDetails: PaymentDetail[]) => {
         //find payment detail by student_id and payment_id
         const detail = paymentDetails.filter(payment => payment.student_id === student_id && payment.fee_id === fee_id);
@@ -51,6 +56,13 @@ export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false, openCr
         return <Badge variant="secondary" className="w-full bg-red-100">Chưa thanh toán đủ</Badge>;
     };
 
+    const handleViewStudent = useCallback(
+        (studentId: number) => {
+            navigate(`/student/${studentId}`);
+        },
+        [navigate]
+    );
+
     const columns: ColumnDef<PaymentDetail>[] = [
         {
             accessorKey: 'student_name',
@@ -58,7 +70,12 @@ export const FeeHistoryTable = ({ fee, paymentDetails, isLoading = false, openCr
             cell: ({ row }) => {
                 return (
                     <div className="font-medium">
-                        {row.getValue('student_name')}
+                        <button
+                            onClick={() => handleViewStudent(row.original.student_id)}
+                            className="text-left hover:text-primary hover:underline cursor-pointer transition-colors"
+                        >
+                            {row.original.student_name}
+                        </button>
                     </div>
                 );
             },

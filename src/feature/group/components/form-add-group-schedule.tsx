@@ -41,6 +41,7 @@ export const FormAddGroupSchedule = ({ control, name }: FormAddGroupSchedule) =>
 
   const handleAddSchedule = () => {
     append({
+      id: 0,
       day_of_week: 'MONDAY',
       start_time: '07:00:00', // Default to 7 AM Vietnam time
       end_time: '09:00:00',   // Default to 09 AM Vietnam time

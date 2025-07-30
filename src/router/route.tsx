@@ -8,7 +8,9 @@ import FeeManagement from "@/pages/fee.tsx";
 import FinanceManagement from "@/pages/finance.tsx";
 import { GroupDetail } from "@/pages/group-detail";
 import GroupManagement from "@/pages/group.tsx";
+import AuthLayout from "@/pages/layout/AuthLayout.tsx";
 import HomeLayout from "@/pages/layout/HomeLayout.tsx";
+import PublicLayout from "@/pages/layout/PublicLayout.tsx";
 import { LoginPage } from "@/pages/login-page.tsx";
 import { StudentDetailPage } from "@/pages/student-detail.tsx";
 import { StudentManagement } from "@/pages/student-management.tsx";
@@ -55,10 +57,6 @@ export const router = createBrowserRouter([
         Component: GroupDetail,
       },
       {
-        path: "ai-assistant",
-        Component: AiAssistantPage,
-      },
-      {
         path: "time-table",
         Component: TimeTable,
       },
@@ -66,6 +64,22 @@ export const router = createBrowserRouter([
   },
   {
     path: "/login",
-    Component: LoginPage,
+    Component: AuthLayout,
+    children: [
+      {
+        index: true,
+        Component: LoginPage,
+      },
+    ],
+  },
+  {
+    path: "/ai-assistant",
+    Component: PublicLayout,
+    children: [
+      {
+        index: true,
+        Component: AiAssistantPage,
+      },
+    ],
   },
 ]);

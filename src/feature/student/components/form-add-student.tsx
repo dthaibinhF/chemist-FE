@@ -30,6 +30,7 @@ import type { Grade, Student } from '@/types/api.types';
 import { toast } from 'sonner';
 import { useStudent } from '../hooks';
 import { StudentFormData, studentFormSchema } from '../schemas/student.schema';
+import AcademicYearSelect from '@/components/features/academic-year-select';
 
 interface FormAddStudentProps {
   groupId?: number;
@@ -110,6 +111,10 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
     form.setValue('school', value);
   };
 
+  const handleAcademicYearSelect = (value: string) => {
+    form.setValue('academic_year', value);
+  };
+
   return (
     <div className="w-full">
       <Form {...form}>
@@ -153,21 +158,20 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
               )}
             />
           </div>
-
+          <FormField
+            control={form.control}
+            name="school"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className="text-sm font-medium">Trường</FormLabel>
+                <FormControl>
+                  <SchoolSelect value={field.value} handleSelect={handleSchoolSelect} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="school"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className="text-sm font-medium">Trường</FormLabel>
-                  <FormControl>
-                    <SchoolSelect value={field.value} handleSelect={handleSchoolSelect} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
@@ -224,6 +228,20 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="academic_year"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className="text-sm font-medium">Năm học</FormLabel>
+                  <FormControl>
+                    <AcademicYearSelect value={field.value} handleSelect={handleAcademicYearSelect} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
@@ -248,6 +266,6 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
           </div>
         </form>
       </Form>
-    </div>
+    </div >
   );
 };

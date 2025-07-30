@@ -28,7 +28,6 @@ const RoomSchema = z.object({
 const RoomSelect: FC<RoomSelectProps> = ({ handleSelect, value, placeholder = "Chọn phòng", disabled = false }) => {
     const { rooms, handleFetchRooms, handleCreateRoom } = useRoom();
     const [selectedValue, setSelectedValue] = useState<string>(() => {
-        console.log('RoomSelect: value', value);
         // Better initial value handling
         if (value !== undefined && value !== null && value !== 0) {
             return value.toString();

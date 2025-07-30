@@ -22,14 +22,17 @@ This is a React + TypeScript + Vite frontend application for a school management
 
 ## Key Technologies & Architecture
 
-- **Frontend**: React 19 + TypeScript + Vite
+- **Frontend**: React 19 + TypeScript + Vite 6.3.1 with SWC
 - **UI Framework**: Radix UI primitives with shadcn/ui components
-- **Styling**: TailwindCSS v4 
+- **Styling**: TailwindCSS v4 with custom design system
 - **State Management**: Redux Toolkit with feature-based slices
 - **Routing**: React Router DOM v7
 - **Forms**: React Hook Form with Zod validation
-- **AI Integration**: Google Gemini AI with custom tool engine
+- **HTTP Client**: Axios with automatic token refresh
+- **Date/Time**: date-fns + date-fns-tz for timezone support
+- **AI Integration**: Google Gemini AI with streaming chat interface
 - **Database Integration**: PostgreSQL via MCP server for AI assistant
+- **Build Tool**: Vite with React SWC for fast compilation
 
 ## Development Commands
 
@@ -104,13 +107,18 @@ All API services are located in `src/service/` and follow CRUD patterns:
 - Feature-specific components in `src/components/features/`
 - All components use TypeScript and follow consistent naming conventions
 
-## AI Assistant Feature
+## AI Assistant Feature (FULLY IMPLEMENTED)
 
-- Integrated Google Gemini AI with custom tool engine
-- Located in `src/feature/ai-assistant/`
-- Connects to PostgreSQL database via MCP (Model Context Protocol) server
-- Tools engine provides database access and API integration capabilities
-- Custom UI components for chat interface in `src/components/ui/kibo-ui/`
+- **Complete Streaming Chat Interface**: Real-time AI conversations using EventSource
+- **Backend Integration**: Spring AI backend with Claude 3.5 Sonnet at `/api/v1/ai/` endpoints
+- **Public Access**: Available at `/ai-assistant` route without authentication requirement
+- **Role-based Responses**: Different AI behavior for PUBLIC vs authenticated users (ADMIN, TEACHER, STUDENT, etc.)
+- **Vietnamese Language Support**: Natural Vietnamese conversation with appropriate formality
+- **Service Layer**: `aiService` in `src/service/ai.service.ts` with streaming and standard API methods
+- **Feature Structure**: Complete implementation in `src/feature/ai-assistant/components/AIChat.tsx`
+- **Public Layout**: Custom `PublicLayout` for unauthenticated access with login prompts
+- **UI Components**: Uses existing kibo-ui components (`AIConversation`, `AIMessage`, `AIInput`, `AIResponse`)
+- **Backend Tools**: Connects to PostgreSQL database via Spring AI @Tool annotations for function calling
 
 ## Authentication
 
@@ -122,7 +130,8 @@ All API services are located in `src/service/` and follow CRUD patterns:
 ## Environment Setup
 
 Required environment variables:
-- `VITE_GEMINI_API_KEY` - For AI assistant functionality
+- `VITE_GEMINI_API_KEY` - For AI assistant functionality  
+- `VITE_SERVER_ROOT_URL` - Backend API base URL (defaults to development server)
 
 ## File Upload & Media
 
@@ -309,3 +318,62 @@ This system ensures consistent timezone handling across the entire application w
 - **Always test with `npm run build` before ending development**
   - This ensures the entire project compiles without errors
   - Catches potential build-time issues before committing code
+- **Feature-based organization**: Keep related code grouped by business domain
+- **TypeScript coverage**: Maintain 100% TypeScript usage with proper typing
+- **Component reusability**: Build modular, composable components
+- **Error handling**: Use comprehensive error boundaries and user feedback
+- **Performance**: Implement memoization, debouncing, and lazy loading where appropriate
+
+## Key Application Features
+
+### Completed Core Features
+- **Student Management**: Complete CRUD with CSV import/export functionality
+- **Teacher Management**: Advanced search, filtering, and bulk operations
+- **Fee Management**: Comprehensive fee tracking, due date management, and reporting
+- **Payment System**: Bulk payment generation, tracking, and financial overview
+- **Group/Class Management**: Schedule integration, room assignments, and enrollment
+- **Timetable/Schedule System**: Interactive calendar with daily/weekly views and conflict detection
+- **AI Assistant**: Streaming chat with database integration and role-based responses
+- **Dashboard Analytics**: Real-time statistics, financial overview, and KPI tracking
+- **Salary Management**: Teacher salary calculation, payment tracking, and reporting
+- **Authentication**: JWT-based with role-based access control (ADMIN, TEACHER, STUDENT)
+
+### Architecture Patterns
+
+#### State Management Patterns
+- **Redux Toolkit**: Feature-based slices with createAsyncThunk for API calls
+- **Normalized State**: Efficient data structures with entity adapters
+- **Typed Hooks**: Custom `useAppDispatch` and `useAppSelector` for type safety
+- **Middleware**: Automatic serialization checking and immutability enforcement
+
+#### Component Architecture
+- **Composition over Inheritance**: Radix UI primitives with custom styling layers
+- **Feature Isolation**: Components organized by business domain
+- **Reusable Abstractions**: Common patterns extracted into shared components
+- **Accessibility First**: WCAG AA compliance built into component design
+
+#### Service Layer Patterns  
+- **Centralized HTTP Client**: `api-client.ts` handles authentication and error responses
+- **Domain Services**: Each feature has dedicated service classes with consistent CRUD methods
+- **Error Handling**: Standardized error responses with user-friendly messages
+- **Token Management**: Automatic JWT refresh and request retry on auth failures
+
+## Development Workflow
+
+### Code Organization Guidelines
+- **Absolute Imports**: Use `@/` alias for all imports from `src/`
+- **Consistent Naming**: PascalCase for components, camelCase for functions/variables
+- **File Naming**: kebab-case for file names, consistent with component names
+- **Export Patterns**: Named exports preferred, default exports for main components
+
+### Testing Integration Points
+- **Component Testing**: Components designed for easy unit testing isolation
+- **Service Mocking**: Service layer abstraction enables easy API mocking
+- **Redux Testing**: Slice testing patterns with mock store setup
+- **E2E Ready**: Clean component selectors and predictable state management
+
+### Build and Deployment
+- **Development**: Port 3005 with Vite HMR and React SWC compilation
+- **Production Build**: TypeScript checking, bundling optimization, and asset processing
+- **Environment Variables**: Development/production environment configuration
+- **Static Analysis**: ESLint + Prettier for code quality and formatting

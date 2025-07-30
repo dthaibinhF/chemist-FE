@@ -30,19 +30,24 @@ export type AIResponseProps = HTMLAttributes<HTMLDivElement> & {
 
 const components: Options["components"] = {
   ol: ({ node, children, className, ...props }) => (
-    <ol className={cn("ml-4 list-outside list-decimal", className)} {...props}>
+    <ol className={cn("ml-4 mb-3 list-outside list-decimal space-y-1", className)} {...props}>
       {children}
     </ol>
   ),
   li: ({ node, children, className, ...props }) => (
-    <li className={cn("py-1", className)} {...props}>
+    <li className={cn("leading-relaxed", className)} {...props}>
       {children}
     </li>
   ),
   ul: ({ node, children, className, ...props }) => (
-    <ul className={cn("ml-4 list-outside list-decimal", className)} {...props}>
+    <ul className={cn("ml-4 mb-3 list-outside list-disc space-y-1", className)} {...props}>
       {children}
     </ul>
+  ),
+  p: ({ node, children, className, ...props }) => (
+    <p className={cn("mb-3 leading-relaxed", className)} {...props}>
+      {children}
+    </p>
   ),
   strong: ({ node, children, className, ...props }) => (
     <span className={cn("font-semibold", className)} {...props}>

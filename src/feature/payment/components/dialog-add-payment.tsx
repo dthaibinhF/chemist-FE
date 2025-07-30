@@ -117,33 +117,35 @@ export const DialogAddPayment = ({
     mode: 'onChange',
   });
 
-  // Load initial data
+  // Load initial data and set preselected values
   useEffect(() => {
     if (open) {
       handleFetchFees();
       loadStudents();
       handleFetchGroups();
+      
+      // Set preselected values when dialog opens
+      if (preselectedStudentId) {
+        form.setValue('student_id', preselectedStudentId);
+      }
+      if (preselectedFeeId) {
+        form.setValue('fee_id', preselectedFeeId);
+      }
     }
-  }, [open, handleFetchFees, loadStudents, handleFetchGroups]);
+  }, [open, handleFetchFees, loadStudents, handleFetchGroups, preselectedStudentId, preselectedFeeId]);
 
-  // Load student payment summaries when student is selected
+  // Combined form watcher to avoid multiple subscriptions
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
+      // Handle student selection and fetch payment summaries
       if (name === 'student_id' && value.student_id && value.student_id > 0) {
         handleFetchPaymentSummariesByStudent(value.student_id);
       }
-    });
-    return () => subscription.unsubscribe();
-  }, [handleFetchPaymentSummariesByStudent]);
 
-  // Find relevant payment summary when student and fee are selected
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      const { student_id, fee_id } = value;
-
-      if (student_id && fee_id && paymentSummaries.length > 0) {
+      // Handle payment summary selection when both student and fee are selected
+      if ((name === 'student_id' || name === 'fee_id') && value.student_id && value.fee_id && paymentSummaries.length > 0) {
         const summary = paymentSummaries.find(
-          s => s.student_id === student_id && s.fee_id === fee_id
+          s => s.student_id === value.student_id && s.fee_id === value.fee_id
         );
         setSelectedPaymentSummary(summary || null);
 
@@ -152,12 +154,10 @@ export const DialogAddPayment = ({
           form.setValue('group_id', summary.group_id);
           form.setValue('academic_year_id', summary.academic_year_id);
         }
-      } else {
-        setSelectedPaymentSummary(null);
       }
     });
     return () => subscription.unsubscribe();
-  }, [paymentSummaries, form]);
+  }, [handleFetchPaymentSummariesByStudent, paymentSummaries]);
 
   // Calculate payment preview with enhanced validation
   const calculatePaymentPreview = (amount: number, discount: number) => {
@@ -284,8 +284,7 @@ export const DialogAddPayment = ({
       console.log('Payment summary updated');
 
       toast.success('Tạo thanh toán thành công');
-      form.reset();
-      onOpenChange(false);
+      handleDialogClose(false);
       onSuccess?.(paymentDetail);
 
       // Refresh payment summaries to show updated data
@@ -294,15 +293,25 @@ export const DialogAddPayment = ({
       }
 
     } catch (error) {
-      console.error('Payment creation error:', error);
       const friendlyError = handlePaymentApiError(error);
       toast.error(friendlyError);
     }
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
+  const handleDialogClose = (newOpen: boolean) => {
     if (!newOpen) {
-      form.reset();
+      // Reset all states when dialog closes
+      form.reset({
+        fee_id: 0,
+        student_id: 0,
+        pay_method: '',
+        amount: 0,
+        description: '',
+        have_discount: 0,
+        group_id: 0,
+        academic_year_id: 0,
+        due_date: '',
+      });
       setSelectedPaymentSummary(null);
       setPaymentPreview(null);
     }
@@ -310,7 +319,7 @@ export const DialogAddPayment = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -579,7 +588,7 @@ export const DialogAddPayment = ({
           <Button
             type="button"
             variant="outline"
-            onClick={() => handleOpenChange(false)}
+            onClick={() => handleDialogClose(false)}
           >
             Hủy
           </Button>

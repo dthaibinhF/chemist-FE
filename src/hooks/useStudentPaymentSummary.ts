@@ -137,7 +137,7 @@ export const useStudentPaymentSummary = () => {
     handleDeletePaymentSummary,
     handleRecalculateAllSummaries,
 
-    // Helper Functions
+    // Helper Functionss
     getPaymentStatusColor,
     getPaymentStatusIcon,
     formatCurrency,

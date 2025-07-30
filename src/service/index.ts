@@ -1,5 +1,6 @@
 // Export tất cả các service
 export { academicYearService } from "./academic-year.service";
+export { aiService } from "./ai.service";
 export { attendanceService } from "./attendance-service";
 export { dashboardService } from "./dashboard.service";
 export { feeService } from "./fee.service";
@@ -53,3 +54,11 @@ export type {
   TeacherMonthlySummary,
   TeacherSearchParams,
 } from "@/types/api.types";
+
+// Export AI service types
+export type {
+  AIResponse,
+  ChatMessage,
+  ConversationalChatRequest,
+  SimpleChatRequest,
+} from "./ai.service";
