@@ -212,9 +212,9 @@ export const GenerateWeeklyScheduleDialog: React.FC<GenerateWeeklyScheduleDialog
                         selected={field.value}
                         onSelect={field.onChange}
                         numberOfMonths={2}
-                        disabled={(date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0))
-                        }
+                      // disabled={(date) =>
+                      //   date < new Date(new Date().setHours(0, 0, 0, 0))
+                      // }
                       />
                     </PopoverContent>
                   </Popover>

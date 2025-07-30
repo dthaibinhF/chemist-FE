@@ -49,6 +49,7 @@ const GroupSchema = z.object({
     grade_id: z.number().min(1, { message: 'Hãy chọn khối lớp' }),
     group_schedules: z.array(
         z.object({
+            id: z.number().optional(),
             day_of_week: z.enum(daysOfWeek, { message: 'Hãy chọn ngày trong tuần' }),
             start_time: z.string().min(1, { message: 'Hãy chọn thời gian bắt đầu' }),
             end_time: z.string().min(1, { message: 'Hãy chọn thời gian kết thúc' }),
@@ -80,6 +81,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
         if (!schedules || schedules.length === 0) {
             return [
                 {
+                    id: 0,
                     day_of_week: 'MONDAY' as const,
                     start_time: '08:00:00',
                     end_time: '10:00:00',
@@ -100,6 +102,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
             // Converting schedule to form format
 
             return {
+                id: schedule.id || 0,
                 day_of_week: schedule.day_of_week,
                 // GroupSchedule times are already in Vietnam local time (LocalTimeString)
                 // No conversion needed - use as-is
@@ -158,6 +161,7 @@ const GroupDialogEdit = ({ group, variant = 'button' }: GroupDialogEditProps) =>
                 academic_year_id: data.academic_year_id,
                 grade_id: data.grade_id,
                 group_schedules: data.group_schedules.map((schedule) => ({
+                    id: schedule.id || 0,
                     day_of_week: schedule.day_of_week,
                     // GroupSchedule times should remain in Vietnam local time (LocalTimeString)
                     // No conversion needed - send as-is

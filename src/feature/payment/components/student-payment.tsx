@@ -24,9 +24,10 @@ import { PaymentHistoryTable } from './payment-history-table';
 interface StudentPaymentProps {
   studentId: number;
   studentName?: string;
+  feeId?: number;
 }
 
-export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) => {
+export const StudentPayment = ({ studentId, studentName, feeId }: StudentPaymentProps) => {
   const [openAddPayment, setOpenAddPayment] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -120,9 +121,9 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
     );
   }, [paymentSummaries]);
 
-  const handleAddPayment = () => {
-    setOpenAddPayment(false);
-    // DialogAddPayment already handles data refresh through Redux
+  const handleAddPaymentSuccess = () => {
+    handleFetchPaymentDetailByStudentId(studentId);
+    handleFetchPaymentSummariesByStudent(studentId);
   };
 
   if (loading || summaryLoading) {
@@ -269,10 +270,15 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
             </CardTitle>
             <CardDescription>Quản lý chi tiết các giao dịch và học phí thanh toán</CardDescription>
           </div>
-          <Button size="sm" onClick={() => setOpenAddPayment(true)}>
+          {/* TODO: Add button to add payment fix bug it blink when open dialog */}
+          {/* <Button
+            onClick={() => setOpenAddPayment(true)}
+            variant="default"
+            disabled={!feeId || loading || summaryLoading}
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Thêm thanh toán
-          </Button>
+          </Button> */}
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -439,8 +445,9 @@ export const StudentPayment = ({ studentId, studentName }: StudentPaymentProps) 
       <DialogAddPayment
         open={openAddPayment}
         onOpenChange={setOpenAddPayment}
-        onSuccess={handleAddPayment}
+        onSuccess={handleAddPaymentSuccess}
         preselectedStudentId={studentId}
+        preselectedFeeId={feeId}
       />
     </div>
   );

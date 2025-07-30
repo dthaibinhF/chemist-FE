@@ -281,7 +281,7 @@ export const StudentDetailPage = () => {
         {/* Sidebar (1/3) */}
         <div className="space-y-6">
           {/* Student Status */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Thống kê</CardTitle>
             </CardHeader>
@@ -301,10 +301,10 @@ export const StudentDetailPage = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Additional Information */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Thông tin bổ sung</CardTitle>
             </CardHeader>
@@ -334,11 +334,11 @@ export const StudentDetailPage = () => {
                 ) : null}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
       {/* Payment History */}
-      <StudentPayment studentId={Number(id)} />
+      <StudentPayment studentId={Number(id)} feeId={feeId} />
     </div>
   );
 };

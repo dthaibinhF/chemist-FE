@@ -38,7 +38,7 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
             Thêm thủ công
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="min-w-2xl">
           <DialogHeader>
             <DialogTitle>Thêm học sinh thủ công</DialogTitle>
             <DialogDescription>Điền thông tin học sinh vào form dưới đây</DialogDescription>
