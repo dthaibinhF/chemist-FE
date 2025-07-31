@@ -1,4 +1,4 @@
-import type { BulkScheduleRequest, BulkScheduleResponse, Schedule, ScheduleUpdateModeRequest } from "@/types/api.types";
+import type { BulkScheduleRequest, Schedule } from "@/types/api.types";
 import type { TimetableFilterData, TimetableSearchData } from "@/feature/timetable/schemas/timetable.schema";
 
 import { createApiClient } from "./api-client";
@@ -91,11 +91,11 @@ export const timeTableService = {
 };
 
 // Add bulk generation methods
-export const generateBulkSchedulesForGroups = async (request: BulkScheduleRequest): Promise<BulkScheduleResponse> => {
+export const generateBulkSchedulesForGroups = async (request: BulkScheduleRequest): Promise<Schedule[][]> => {
   const response = await apiClient.post("/bulk/selected-groups", request);
   return response.data;
 }
-export const generateBulkSchedulesForAllGroups = async (startDate: string, endDate: string): Promise<BulkScheduleResponse> => {
+export const generateBulkSchedulesForAllGroups = async (startDate: string, endDate: string): Promise<Schedule[]> => {
   const response = await apiClient.post("/bulk/all-groups", null, { params: { startDate: startDate, endDate: endDate } });
   return response.data;
 }
@@ -108,10 +108,7 @@ export const triggerAutoGeneration = async (): Promise<string> => {
   const response = await apiClient.post("/auto-generation/trigger");
   return response.data;
 }
-export const updateScheduleWithMode = async (id: number, request: ScheduleUpdateModeRequest): Promise<BulkScheduleResponse> => {
-  const response = await apiClient.put(`/${id}`, request);
-  return response.data;
-}
+
 export const getFutureSchedulesCount = async (id: number): Promise<number> => {
   const response = await apiClient.get(`/${id}/future-count`);
   return response.data;

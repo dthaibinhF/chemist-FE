@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Calendar, CalendarDays, CalendarCheck } from "lucide-react";
+import { Plus, Calendar, CalendarDays, CalendarCheck, Users } from "lucide-react";
 
 import { useTimetable } from "../hooks/useTimetable";
 import { WeeklyCalendar } from "./weekly-calendar";
@@ -11,6 +11,7 @@ import { CreateScheduleDialog } from "./create-schedule-dialog";
 import { EditScheduleDialog } from "./edit-schedule-dialog";
 import { TimetableFilters } from "./timetable-filters";
 import { GenerateWeeklyScheduleDialog } from "./generate-weekly-schedule-dialog";
+import { BulkScheduleGenerationDialog } from "./bulk-schedule-generation-dialog";
 import { convertScheduleToEvent, getWeekStart } from "../utils/calendar-utils";
 import type { CalendarEvent } from "../types/timetable.types";
 import { format } from "date-fns";
@@ -45,6 +46,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [generateWeeklyDialogOpen, setGenerateWeeklyDialogOpen] = useState(false);
+  const [bulkGenerationDialogOpen, setBulkGenerationDialogOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
 
   // Convert schedules to calendar events
@@ -148,6 +150,13 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     }
   };
 
+  // Handle bulk schedule generation success
+  const handleBulkGenerationSuccess = useCallback((generatedCount: number) => {
+    // Refresh schedules to show the newly generated ones
+    handleFetchSchedules();
+    toast.success(`Đã tạo thành công ${generatedCount} lịch học`);
+  }, [handleFetchSchedules]);
+
   // Handle event edit (for future use)
   // const handleEventEdit = (event: CalendarEvent) => {
   //   setSelectedScheduleId(event.id);
@@ -197,6 +206,13 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
         </div>
 
         <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setBulkGenerationDialogOpen(true)}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Tạo hàng loạt
+          </Button>
           <Button
             variant="outline"
             onClick={() => setGenerateWeeklyDialogOpen(true)}
@@ -282,6 +298,12 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
         onOpenChange={setGenerateWeeklyDialogOpen}
         onGenerate={handleWeeklyGeneration}
         loading={loading}
+      />
+
+      <BulkScheduleGenerationDialog
+        open={bulkGenerationDialogOpen}
+        onOpenChange={setBulkGenerationDialogOpen}
+        onSuccess={handleBulkGenerationSuccess}
       />
 
       {/* Empty State */}

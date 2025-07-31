@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import type { Schedule } from "@/types/api.types";
+import type { Schedule, BulkScheduleRequest } from "@/types/api.types";
 import type { TimetableFilterData, TimetableSearchData } from "../schemas/timetable.schema";
 
 import {
@@ -14,13 +14,25 @@ import {
   updateSchedule,
   deleteSchedule,
   generateWeeklySchedule,
+  // Bulk generation async thunks
+  bulkGenerateSchedulesForGroups,
+  bulkGenerateSchedulesForAllGroups,
+  bulkGenerateNextWeekSchedules,
+  bulkTriggerAutoGeneration,
+  // Actions
   setViewMode,
   setSelectedDate,
   setFilters,
   setSearchQuery,
   clearError,
   clearSchedule,
+  setBulkGenerationProgress,
+  clearBulkGenerationResults,
   resetState,
+  // Selectors
+  selectBulkGenerationLoading,
+  selectBulkGenerationProgress,
+  selectBulkGenerationResults,
 } from "@/redux/slice/time-table.slice";
 
 export const useTimetable = () => {
@@ -35,6 +47,11 @@ export const useTimetable = () => {
     filters,
     searchQuery,
   } = useAppSelector((state) => state.timeTable);
+
+  // Bulk generation state
+  const bulkGenerationLoading = useAppSelector(selectBulkGenerationLoading);
+  const bulkGenerationProgress = useAppSelector(selectBulkGenerationProgress);
+  const bulkGenerationResults = useAppSelector(selectBulkGenerationResults);
 
   // Fetch actions
   const handleFetchSchedules = useCallback(() => {
@@ -97,6 +114,40 @@ export const useTimetable = () => {
     },
     [dispatch]
   );
+
+  // Bulk generation actions
+  const handleBulkGenerateSchedulesForGroups = useCallback(
+    (request: BulkScheduleRequest) => {
+      return dispatch(bulkGenerateSchedulesForGroups(request));
+    },
+    [dispatch]
+  );
+
+  const handleBulkGenerateSchedulesForAllGroups = useCallback(
+    (startDate: string, endDate: string) => {
+      return dispatch(bulkGenerateSchedulesForAllGroups({ startDate, endDate }));
+    },
+    [dispatch]
+  );
+
+  const handleBulkGenerateNextWeekSchedules = useCallback(() => {
+    return dispatch(bulkGenerateNextWeekSchedules());
+  }, [dispatch]);
+
+  const handleBulkTriggerAutoGeneration = useCallback(() => {
+    return dispatch(bulkTriggerAutoGeneration());
+  }, [dispatch]);
+
+  const handleSetBulkGenerationProgress = useCallback(
+    (progress: { total: number; completed: number; errors: number; currentStep: string }) => {
+      dispatch(setBulkGenerationProgress(progress));
+    },
+    [dispatch]
+  );
+
+  const handleClearBulkGenerationResults = useCallback(() => {
+    dispatch(clearBulkGenerationResults());
+  }, [dispatch]);
 
   // UI state actions
   const handleSetViewMode = useCallback(
@@ -194,6 +245,11 @@ export const useTimetable = () => {
     filters,
     searchQuery,
 
+    // Bulk generation state
+    bulkGenerationLoading,
+    bulkGenerationProgress,
+    bulkGenerationResults,
+
     // Fetch actions
     handleFetchSchedules,
     handleFetchWeeklySchedules,
@@ -206,6 +262,14 @@ export const useTimetable = () => {
     handleUpdateSchedule,
     handleDeleteSchedule,
     handleGenerateWeeklySchedule,
+
+    // Bulk generation actions
+    handleBulkGenerateSchedulesForGroups,
+    handleBulkGenerateSchedulesForAllGroups,
+    handleBulkGenerateNextWeekSchedules,
+    handleBulkTriggerAutoGeneration,
+    handleSetBulkGenerationProgress,
+    handleClearBulkGenerationResults,
 
     // UI state actions
     handleSetViewMode,
