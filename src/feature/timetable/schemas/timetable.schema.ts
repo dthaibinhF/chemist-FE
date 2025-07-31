@@ -42,3 +42,35 @@ export const timetableSearchSchema = z.object({
 });
 
 export type TimetableSearchData = z.infer<typeof timetableSearchSchema>;
+
+// Bulk schedule generation schema
+export const bulkScheduleGenerationSchema = z.object({
+  generation_mode: z.enum(['selected-groups', 'all-groups', 'next-week', 'auto-trigger']),
+  group_ids: z.array(z.number()).optional(),
+  start_date: z.date().optional(),
+  end_date: z.date().optional(),
+}).refine((data) => {
+  // For selected-groups and all-groups modes, dates and groups are required
+  if (data.generation_mode === 'selected-groups') {
+    return data.group_ids && data.group_ids.length > 0 && data.start_date && data.end_date;
+  }
+  if (data.generation_mode === 'all-groups') {
+    return data.start_date && data.end_date;
+  }
+  // For next-week and auto-trigger, no additional validation needed
+  return true;
+}, {
+  message: "Vui lòng điền đầy đủ thông tin theo chế độ được chọn",
+  path: ["generation_mode"],
+}).refine((data) => {
+  // Validate date range
+  if (data.start_date && data.end_date) {
+    return data.end_date >= data.start_date;
+  }
+  return true;
+}, {
+  message: "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu",
+  path: ["end_date"],
+});
+
+export type BulkScheduleGenerationData = z.infer<typeof bulkScheduleGenerationSchema>;

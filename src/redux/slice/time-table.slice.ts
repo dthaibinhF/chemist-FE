@@ -1,10 +1,15 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "sonner";
 
-import type { Schedule } from "@/types/api.types";
+import type { Schedule, BulkScheduleRequest } from "@/types/api.types";
 import type { TimetableFilterData, TimetableSearchData } from "@/feature/timetable/schemas/timetable.schema";
-import { timeTableService } from "@/service/time-table.service";
-
+import {
+  timeTableService,
+  generateBulkSchedulesForGroups,
+  generateBulkSchedulesForAllGroups,
+  generateNextWeekSchedules,
+  triggerAutoGeneration
+} from "@/service/time-table.service";
 // Extended state interface with timetable-specific features
 interface TimeTableState {
   schedules: Schedule[];
@@ -15,6 +20,15 @@ interface TimeTableState {
   selectedDate: string;
   filters: TimetableFilterData;
   searchQuery: string;
+  // Bulk generation state
+  bulkGenerationLoading: boolean;
+  bulkGenerationProgress: {
+    total: number;
+    completed: number;
+    errors: number;
+    currentStep: string;
+  };
+  bulkGenerationResults: Schedule[][] | string | null;
 }
 
 const initialState: TimeTableState = {
@@ -26,7 +40,73 @@ const initialState: TimeTableState = {
   selectedDate: new Date().toISOString(),
   filters: {},
   searchQuery: "",
+  // Bulk generation initial state
+  bulkGenerationLoading: false,
+  bulkGenerationProgress: {
+    total: 0,
+    completed: 0,
+    errors: 0,
+    currentStep: "",
+  },
+  bulkGenerationResults: null,
 };
+
+// Bulk generation async thunks
+export const bulkGenerateSchedulesForGroups = createAsyncThunk(
+  "timeTable/bulkGenerateSchedulesForGroups",
+  async (request: BulkScheduleRequest, { rejectWithValue }) => {
+    try {
+      const response = await generateBulkSchedulesForGroups(request);
+      toast.success(`Tạo thành công ${response.length} lịch học cho ${response.length} nhóm`);
+      return response;
+    } catch (error: any) {
+      toast.error("Tạo lịch học hàng loạt thất bại");
+      return rejectWithValue(error.response?.data?.message || "Không thể tạo lịch học hàng loạt");
+    }
+  }
+);
+
+export const bulkGenerateSchedulesForAllGroups = createAsyncThunk(
+  "timeTable/bulkGenerateSchedulesForAllGroups",
+  async ({ startDate, endDate }: { startDate: string; endDate: string }, { rejectWithValue }) => {
+    try {
+      const response = await generateBulkSchedulesForAllGroups(startDate, endDate);
+      toast.success(`Tạo thành công ${response.length} lịch học cho tất cả nhóm`);
+      return response;
+    } catch (error: any) {
+      toast.error("Tạo lịch học cho tất cả nhóm thất bại");
+      return rejectWithValue(error.response?.data?.message || "Không thể tạo lịch học cho tất cả nhóm");
+    }
+  }
+);
+
+export const bulkGenerateNextWeekSchedules = createAsyncThunk(
+  "timeTable/bulkGenerateNextWeekSchedules",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await generateNextWeekSchedules();
+      toast.success("Tạo lịch học tuần tới thành công");
+      return response;
+    } catch (error: any) {
+      toast.error("Tạo lịch học tuần tới thất bại");
+      return rejectWithValue(error.response?.data?.message || "Không thể tạo lịch học tuần tới");
+    }
+  }
+);
+
+export const bulkTriggerAutoGeneration = createAsyncThunk(
+  "timeTable/bulkTriggerAutoGeneration",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await triggerAutoGeneration();
+      toast.success("Kích hoạt tự động tạo lịch thành công");
+      return response;
+    } catch (error: any) {
+      toast.error("Kích hoạt tự động tạo lịch thất bại");
+      return rejectWithValue(error.response?.data?.message || "Không thể kích hoạt tự động tạo lịch");
+    }
+  }
+);
 
 // Enhanced async thunks
 export const fetchSchedules = createAsyncThunk(
@@ -167,6 +247,24 @@ export const timeTableSlice = createSlice({
     clearSchedule: (state) => {
       state.schedule = null;
     },
+    // Bulk generation reducers
+    setBulkGenerationProgress: (state, action: PayloadAction<{
+      total: number;
+      completed: number;
+      errors: number;
+      currentStep: string;
+    }>) => {
+      state.bulkGenerationProgress = action.payload;
+    },
+    clearBulkGenerationResults: (state) => {
+      state.bulkGenerationResults = null;
+      state.bulkGenerationProgress = {
+        total: 0,
+        completed: 0,
+        errors: 0,
+        currentStep: "",
+      };
+    },
     resetState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -299,6 +397,68 @@ export const timeTableSlice = createSlice({
       .addCase(generateWeeklySchedule.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+
+      // Bulk generate schedules for groups
+      .addCase(bulkGenerateSchedulesForGroups.pending, (state) => {
+        state.bulkGenerationLoading = true;
+        state.error = null;
+        state.bulkGenerationResults = null;
+      })
+      .addCase(bulkGenerateSchedulesForGroups.fulfilled, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.bulkGenerationResults = action.payload;
+        // Add generated schedules to the existing ones
+        state.schedules.push(...action.payload.flat());
+      })
+      .addCase(bulkGenerateSchedulesForGroups.rejected, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Bulk generate schedules for all groups
+      .addCase(bulkGenerateSchedulesForAllGroups.pending, (state) => {
+        state.bulkGenerationLoading = true;
+        state.error = null;
+        state.bulkGenerationResults = null;
+      })
+      .addCase(bulkGenerateSchedulesForAllGroups.fulfilled, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.bulkGenerationResults = [action.payload];
+        // Add generated schedules to the existing ones
+        state.schedules.push(...action.payload.flat());
+      })
+      .addCase(bulkGenerateSchedulesForAllGroups.rejected, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Bulk generate next week schedules
+      .addCase(bulkGenerateNextWeekSchedules.pending, (state) => {
+        state.bulkGenerationLoading = true;
+        state.error = null;
+      })
+      .addCase(bulkGenerateNextWeekSchedules.fulfilled, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.bulkGenerationResults = action.payload;
+      })
+      .addCase(bulkGenerateNextWeekSchedules.rejected, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Bulk trigger auto generation
+      .addCase(bulkTriggerAutoGeneration.pending, (state) => {
+        state.bulkGenerationLoading = true;
+        state.error = null;
+      })
+      .addCase(bulkTriggerAutoGeneration.fulfilled, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.bulkGenerationResults = action.payload;
+      })
+      .addCase(bulkTriggerAutoGeneration.rejected, (state, action) => {
+        state.bulkGenerationLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
@@ -310,6 +470,8 @@ export const {
   setSearchQuery,
   clearError,
   clearSchedule,
+  setBulkGenerationProgress,
+  clearBulkGenerationResults,
   resetState,
 } = timeTableSlice.actions;
 
@@ -332,3 +494,11 @@ export const selectFilters = (state: { timeTable: TimeTableState }) =>
   state.timeTable.filters;
 export const selectSearchQuery = (state: { timeTable: TimeTableState }) =>
   state.timeTable.searchQuery;
+
+// Bulk generation selectors
+export const selectBulkGenerationLoading = (state: { timeTable: TimeTableState }) =>
+  state.timeTable.bulkGenerationLoading;
+export const selectBulkGenerationProgress = (state: { timeTable: TimeTableState }) =>
+  state.timeTable.bulkGenerationProgress;
+export const selectBulkGenerationResults = (state: { timeTable: TimeTableState }) =>
+  state.timeTable.bulkGenerationResults;
