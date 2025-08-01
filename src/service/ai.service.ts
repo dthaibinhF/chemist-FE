@@ -229,7 +229,9 @@ export class AIService {
     // Thêm thông tin user context nếu có
     if (userAccount) {
       params.append("user_id", userAccount.id.toString());
-      params.append("user_role", userAccount.role_name);
+      // Use primary role name for backward compatibility, fallback to legacy role_name
+      const roleName = userAccount.primary_role_name || userAccount.role_name || 'PUBLIC';
+      params.append("user_role", roleName);
       params.append("user_name", userAccount.name);
     }
 

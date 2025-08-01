@@ -102,7 +102,44 @@ export const extractRoleName = (jwtRole?: string | null): string => {
 };
 
 /**
- * Checks if a user role has permission for a specific action
+ * Extracts multiple role names from JWT authorities array
+ * @param jwtRoles - Array of role strings from JWT token (e.g., ["ROLE_ADMIN", "ROLE_TEACHER"])
+ * @returns Array of clean role names (e.g., ["ADMIN", "TEACHER"])
+ */
+export const extractMultipleRoles = (jwtRoles?: string[] | null): string[] => {
+  if (!Array.isArray(jwtRoles) || jwtRoles.length === 0) {
+    return [ROLE_NAMES.PUBLIC];
+  }
+
+  const cleanRoles = jwtRoles.map(extractRoleName).filter(role => role !== ROLE_NAMES.PUBLIC);
+  return cleanRoles.length > 0 ? cleanRoles : [ROLE_NAMES.PUBLIC];
+};
+
+/**
+ * Gets primary role from a role array (first role or highest priority role)
+ * @param roles - Array of role names
+ * @returns Primary role name
+ */
+export const getPrimaryRole = (roles?: string[] | null): string => {
+  if (!Array.isArray(roles) || roles.length === 0) {
+    return ROLE_NAMES.PUBLIC;
+  }
+
+  // Role hierarchy for priority (highest to lowest)
+  const roleHierarchy = [ROLE_NAMES.ADMIN, ROLE_NAMES.MANAGER, ROLE_NAMES.TEACHER, ROLE_NAMES.STUDENT, ROLE_NAMES.PARENT];
+  
+  for (const hierarchyRole of roleHierarchy) {
+    if (roles.includes(hierarchyRole)) {
+      return hierarchyRole;
+    }
+  }
+
+  // Return first role if no hierarchy match
+  return roles[0] || ROLE_NAMES.PUBLIC;
+};
+
+/**
+ * Checks if a user role has permission for a specific action (single role version)
  * @param userRole - User's role from JWT token (with or without ROLE_ prefix)
  * @param allowedRoles - Array of role names that have permission
  * @returns Boolean indicating if user has permission
@@ -113,7 +150,68 @@ export const hasPermission = (userRole: string | null | undefined, allowedRoles:
 };
 
 /**
- * Checks if a user role has a specific named permission
+ * Checks if any of the user's roles has permission for a specific action (multi-role version)
+ * @param userRoles - Array of user's roles or single role string
+ * @param allowedRoles - Array of role names that have permission
+ * @returns Boolean indicating if user has permission
+ */
+export const hasAnyRolePermission = (
+  userRoles: string[] | string | null | undefined, 
+  allowedRoles: string[]
+): boolean => {
+  // Handle single role (legacy support)
+  if (typeof userRoles === 'string') {
+    return hasPermission(userRoles, allowedRoles);
+  }
+
+  // Handle multiple roles
+  if (!Array.isArray(userRoles) || userRoles.length === 0) {
+    return hasPermission(null, allowedRoles);
+  }
+
+  const cleanRoles = userRoles.map(extractRoleName);
+  return cleanRoles.some(role => allowedRoles.includes(role));
+};
+
+/**
+ * Checks if user has ALL specified roles
+ * @param userRoles - Array of user's roles
+ * @param requiredRoles - Array of roles that are all required
+ * @returns Boolean indicating if user has all required roles
+ */
+export const hasAllRoles = (
+  userRoles: string[] | string | null | undefined,
+  requiredRoles: string[]
+): boolean => {
+  // Handle single role
+  if (typeof userRoles === 'string') {
+    return requiredRoles.length === 1 && hasPermission(userRoles, requiredRoles);
+  }
+
+  // Handle multiple roles
+  if (!Array.isArray(userRoles) || userRoles.length === 0) {
+    return false;
+  }
+
+  const cleanRoles = userRoles.map(extractRoleName);
+  return requiredRoles.every(role => cleanRoles.includes(role));
+};
+
+/**
+ * Checks if user has a specific role
+ * @param userRoles - Array of user's roles or single role string
+ * @param targetRole - Role to check for
+ * @returns Boolean indicating if user has the target role
+ */
+export const hasRole = (
+  userRoles: string[] | string | null | undefined,
+  targetRole: string
+): boolean => {
+  return hasAnyRolePermission(userRoles, [targetRole]);
+};
+
+/**
+ * Checks if a user role has a specific named permission (single role version)
  * @param userRole - User's role from JWT token 
  * @param permission - Permission key from PERMISSIONS object
  * @returns Boolean indicating if user has the permission
@@ -124,6 +222,20 @@ export const hasNamedPermission = (
 ): boolean => {
   const allowedRoles = PERMISSIONS[permission];
   return hasPermission(userRole, allowedRoles);
+};
+
+/**
+ * Checks if any of user's roles has a specific named permission (multi-role version)
+ * @param userRoles - Array of user's roles or single role string
+ * @param permission - Permission key from PERMISSIONS object
+ * @returns Boolean indicating if user has the permission
+ */
+export const hasAnyRoleNamedPermission = (
+  userRoles: string[] | string | null | undefined,
+  permission: keyof typeof PERMISSIONS
+): boolean => {
+  const allowedRoles = PERMISSIONS[permission];
+  return hasAnyRolePermission(userRoles, allowedRoles);
 };
 
 /**
@@ -151,7 +263,36 @@ export const isRole = (userRole: string | null | undefined, targetRole: string):
 };
 
 /**
- * Utility functions for common role checks
+ * Multi-role utility functions for common role checks
+ */
+export const multiRoleCheckers = {
+  isAdmin: (userRoles: string[] | string | null | undefined) => hasRole(userRoles, ROLE_NAMES.ADMIN),
+  isManager: (userRoles: string[] | string | null | undefined) => hasRole(userRoles, ROLE_NAMES.MANAGER),
+  isTeacher: (userRoles: string[] | string | null | undefined) => hasRole(userRoles, ROLE_NAMES.TEACHER),
+  isStudent: (userRoles: string[] | string | null | undefined) => hasRole(userRoles, ROLE_NAMES.STUDENT),
+  isParent: (userRoles: string[] | string | null | undefined) => hasRole(userRoles, ROLE_NAMES.PARENT),
+  isPublic: (userRoles: string[] | string | null | undefined) => {
+    if (typeof userRoles === 'string') {
+      return isRole(userRoles, ROLE_NAMES.PUBLIC);
+    }
+    if (!Array.isArray(userRoles) || userRoles.length === 0) {
+      return true;
+    }
+    return userRoles.every(role => extractRoleName(role) === ROLE_NAMES.PUBLIC);
+  },
+  isAuthenticated: (userRoles: string[] | string | null | undefined) => !multiRoleCheckers.isPublic(userRoles),
+  isAdminOrManager: (userRoles: string[] | string | null | undefined) =>
+    multiRoleCheckers.isAdmin(userRoles) || multiRoleCheckers.isManager(userRoles),
+  isStaffMember: (userRoles: string[] | string | null | undefined) =>
+    multiRoleCheckers.isAdmin(userRoles) || multiRoleCheckers.isManager(userRoles) || multiRoleCheckers.isTeacher(userRoles),
+  hasAnyRole: (userRoles: string[] | string | null | undefined, targetRoles: string[]) =>
+    hasAnyRolePermission(userRoles, targetRoles),
+  hasAllRoles: (userRoles: string[] | string | null | undefined, targetRoles: string[]) =>
+    hasAllRoles(userRoles, targetRoles)
+};
+
+/**
+ * Legacy single-role utility functions for backward compatibility
  */
 export const roleCheckers = {
   isAdmin: (userRole: string | null | undefined) => isRole(userRole, ROLE_NAMES.ADMIN),
@@ -175,12 +316,74 @@ export type RoleName = typeof ROLE_NAMES[keyof typeof ROLE_NAMES];
 export type Permission = keyof typeof PERMISSIONS;
 
 /**
- * Default export with commonly used functions
+ * Account helper functions to work with TAccount type
+ */
+export const accountHelpers = {
+  /**
+   * Get current role name from account (prioritizes primary_role_name, falls back to legacy role_name)
+   */
+  getCurrentRoleName: (account: { primary_role_name?: string; role_name?: string } | null): string => {
+    if (!account) return ROLE_NAMES.PUBLIC;
+    return account.primary_role_name || account.role_name || ROLE_NAMES.PUBLIC;
+  },
+
+  /**
+   * Get all role names from account
+   */
+  getAllRoleNames: (account: { role_names?: string[]; role_name?: string } | null): string[] => {
+    if (!account) return [ROLE_NAMES.PUBLIC];
+    if (account.role_names && account.role_names.length > 0) {
+      return account.role_names.map(extractRoleName);
+    }
+    if (account.role_name) {
+      return [extractRoleName(account.role_name)];
+    }
+    return [ROLE_NAMES.PUBLIC];
+  },
+
+  /**
+   * Check if account has specific role
+   */
+  hasRole: (account: { role_names?: string[]; role_name?: string } | null, roleName: string): boolean => {
+    const roles = accountHelpers.getAllRoleNames(account);
+    return roles.includes(extractRoleName(roleName));
+  },
+
+  /**
+   * Check if account has any of the specified roles
+   */
+  hasAnyRole: (account: { role_names?: string[]; role_name?: string } | null, roleNames: string[]): boolean => {
+    const roles = accountHelpers.getAllRoleNames(account);
+    return roleNames.some(role => roles.includes(extractRoleName(role)));
+  },
+
+  /**
+   * Check if account has permission for a specific action
+   */
+  hasPermission: (account: { role_names?: string[]; role_name?: string } | null, permission: keyof typeof PERMISSIONS): boolean => {
+    const roles = accountHelpers.getAllRoleNames(account);
+    const allowedRoles = PERMISSIONS[permission];
+    return roles.some(role => allowedRoles.includes(role));
+  }
+};
+
+/**
+ * Default export with commonly used functions (multi-role focused)
  */
 export default {
   ROLES,
   ROLE_NAMES,
   PERMISSIONS,
+  // Multi-role functions (recommended)
+  hasAnyRolePermission,
+  hasAnyRoleNamedPermission,
+  hasRole,
+  extractMultipleRoles,
+  getPrimaryRole,
+  ...multiRoleCheckers,
+  // Account helpers
+  accountHelpers,
+  // Legacy single-role functions (for backward compatibility)
   hasPermission,
   hasNamedPermission,
   extractRoleName,

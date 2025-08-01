@@ -2,30 +2,31 @@ import { useMemo } from 'react';
 
 import { useAuth } from '@/feature/auth/hooks/useAuth';
 import {
-  hasNamedPermission,
-  extractRoleName,
-  roleCheckers,
+  multiRoleCheckers,
+  accountHelpers,
   type Permission
 } from '@/utils/rbac-utils';
 
 /**
- * Hook that provides role-based permission checking utilities
+ * Hook that provides role-based permission checking utilities (UPDATED FOR MULTI-ROLE SUPPORT)
  * 
  * This hook consolidates all permission logic and provides convenient
  * boolean flags for common permission checks throughout the application.
+ * Supports both single-role legacy accounts and new multi-role accounts.
  * 
  * @returns Object with permission flags and role information
  */
 export const useRolePermissions = () => {
   const { account, isAuthenticated } = useAuth();
 
-  // Get clean role name from JWT token
-  const userRole = useMemo(() => extractRoleName(account?.role_name), [account?.role_name]);
+  // Get current role and all roles for the user
+  const userRole = useMemo(() => accountHelpers.getCurrentRoleName(account), [account]);
+  const allUserRoles = useMemo(() => accountHelpers.getAllRoleNames(account), [account]);
 
-  // Permission checker function for any named permission
+  // Multi-role permission checker function for any named permission
   const hasPermission = useMemo(() =>
-    (permission: Permission) => hasNamedPermission(account?.role_name, permission),
-    [account?.role_name]
+    (permission: Permission) => accountHelpers.hasPermission(account, permission),
+    [account]
   );
 
   // Dashboard permissions
@@ -92,19 +93,22 @@ export const useRolePermissions = () => {
     canCreateTimetableEvents: hasPermission('CREATE_TIMETABLE_EVENTS'),
   }), [hasPermission]);
 
-  // Role checker utilities
+  // Multi-role checker utilities
   const roleInfo = useMemo(() => ({
-    userRole,
-    isAdmin: roleCheckers.isAdmin(account?.role_name),
-    isManager: roleCheckers.isManager(account?.role_name),
-    isTeacher: roleCheckers.isTeacher(account?.role_name),
-    isStudent: roleCheckers.isStudent(account?.role_name),
-    isParent: roleCheckers.isParent(account?.role_name),
-    isPublic: roleCheckers.isPublic(account?.role_name),
-    isAuthenticated: roleCheckers.isAuthenticated(account?.role_name),
-    isAdminOrManager: roleCheckers.isAdminOrManager(account?.role_name),
-    isStaffMember: roleCheckers.isStaffMember(account?.role_name),
-  }), [account?.role_name, userRole]);
+    userRole, // Primary role for legacy compatibility
+    allUserRoles, // All roles the user has
+    isAdmin: multiRoleCheckers.isAdmin(allUserRoles),
+    isManager: multiRoleCheckers.isManager(allUserRoles),
+    isTeacher: multiRoleCheckers.isTeacher(allUserRoles),
+    isStudent: multiRoleCheckers.isStudent(allUserRoles),
+    isParent: multiRoleCheckers.isParent(allUserRoles),
+    isPublic: multiRoleCheckers.isPublic(allUserRoles),
+    isAuthenticated: multiRoleCheckers.isAuthenticated(allUserRoles),
+    isAdminOrManager: multiRoleCheckers.isAdminOrManager(allUserRoles),
+    isStaffMember: multiRoleCheckers.isStaffMember(allUserRoles),
+    hasRole: (role: string) => accountHelpers.hasRole(account, role),
+    hasAnyRole: (roles: string[]) => accountHelpers.hasAnyRole(account, roles),
+  }), [account, userRole, allUserRoles]);
 
   return {
     // Core permission checker
@@ -136,7 +140,7 @@ export const useRolePermissions = () => {
 };
 
 /**
- * Hook for checking a single permission
+ * Hook for checking a single permission (UPDATED FOR MULTI-ROLE SUPPORT)
  * Useful when you only need to check one specific permission
  * 
  * @param permission - The permission to check
@@ -144,11 +148,11 @@ export const useRolePermissions = () => {
  */
 export const usePermission = (permission: Permission): boolean => {
   const { account } = useAuth();
-  return hasNamedPermission(account?.role_name, permission);
+  return accountHelpers.hasPermission(account, permission);
 };
 
 /**
- * Hook for checking multiple permissions at once
+ * Hook for checking multiple permissions at once (UPDATED FOR MULTI-ROLE SUPPORT)
  * 
  * @param permissions - Array of permissions to check
  * @returns Object with permission results
@@ -160,11 +164,28 @@ export const usePermissions = (permissions: Permission[]) => {
     const results: Record<string, boolean> = {};
 
     permissions.forEach(permission => {
-      results[permission] = hasNamedPermission(account?.role_name, permission);
+      results[permission] = accountHelpers.hasPermission(account, permission);
     });
 
     return results;
-  }, [account?.role_name, permissions]);
+  }, [account, permissions]);
+};
+
+/**
+ * Hook for role-based checks (NEW - Multi-role specific)
+ * 
+ * @param roles - Role or array of roles to check
+ * @returns Boolean indicating if user has any of the specified roles
+ */
+export const useHasRole = (roles: string | string[]): boolean => {
+  const { account } = useAuth();
+  
+  return useMemo(() => {
+    if (typeof roles === 'string') {
+      return accountHelpers.hasRole(account, roles);
+    }
+    return accountHelpers.hasAnyRole(account, roles);
+  }, [account, roles]);
 };
 
 export default useRolePermissions;
