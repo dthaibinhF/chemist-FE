@@ -11,6 +11,7 @@ import type {
   TCredentials,
 } from "@/feature/auth/types/auth.type.ts";
 import { useAppDispatch, useAppSelector } from "@/redux/hook.ts";
+import { accountHelpers, PERMISSIONS } from "@/utils/rbac-utils";
 
 import {
   loginWithEmailAndPassword,
@@ -81,7 +82,29 @@ export const useAuth = () => {
     }
   }, [dispatch, logoutAction]);
 
+  // Multi-role helper functions
+  const hasRole = useCallback((role: string) => {
+    return accountHelpers.hasRole(account, role);
+  }, [account]);
+
+  const hasAnyRole = useCallback((roles: string[]) => {
+    return accountHelpers.hasAnyRole(account, roles);
+  }, [account]);
+
+  const hasPermission = useCallback((permission: keyof typeof PERMISSIONS) => {
+    return accountHelpers.hasPermission(account, permission);
+  }, [account]);
+
+  const getCurrentRole = useCallback(() => {
+    return accountHelpers.getCurrentRoleName(account);
+  }, [account]);
+
+  const getAllRoles = useCallback(() => {
+    return accountHelpers.getAllRoleNames(account);
+  }, [account]);
+
   return {
+    // Core auth state
     account,
     isAuthenticated,
     isLoading,
@@ -89,8 +112,20 @@ export const useAuth = () => {
     accessToken,
     refreshToken,
     isInitializing,
+    
+    // Auth actions
     refreshTokenAction,
     login,
     logout: logoutAction,
+    
+    // Multi-role helpers
+    hasRole,
+    hasAnyRole,
+    hasPermission,
+    getCurrentRole,
+    getAllRoles,
+    
+    // Legacy compatibility
+    userRole: getCurrentRole(), // For backward compatibility with single-role logic
   };
 };

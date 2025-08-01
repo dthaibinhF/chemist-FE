@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useAuth } from '@/feature/auth/hooks/useAuth';
-import { hasPermission } from '@/utils/rbac-utils';
+import { hasPermission, accountHelpers } from '@/utils/rbac-utils';
 
 /**
  * Props for the RoleBasedAccess component
@@ -56,20 +56,34 @@ export const RoleBasedAccess: React.FC<RoleBasedAccessProps> = ({
 }) => {
   const { account, isAuthenticated } = useAuth();
 
-  // Use override role for testing, otherwise get from authenticated account
-  const currentUserRole = overrideRole || account?.role_name;
-
-  // Check if user has permission
-  const hasAccess = hasPermission(currentUserRole, allowedRoles);
+  // Check if user has permission using multi-role aware function
+  let hasAccess = false;
+  
+  if (overrideRole) {
+    // Use override role for testing (legacy single role support)
+    hasAccess = hasPermission(overrideRole, allowedRoles);
+  } else if (account) {
+    // Use account helper that handles both single and multiple roles
+    hasAccess = accountHelpers.hasAnyRole(account, allowedRoles);
+  }
 
   // Debug logging in development
   if (debug && process.env.NODE_ENV === 'development') {
+    const currentUserRoles = account ? accountHelpers.getAllRoleNames(account) : [];
+    const currentUserRole = account ? accountHelpers.getCurrentRoleName(account) : overrideRole;
+    
     console.log('RoleBasedAccess Debug:', {
       currentUserRole,
+      currentUserRoles,
       allowedRoles,
       hasAccess,
       isAuthenticated,
-      account: account ? { id: account.id, role: account.role_name } : null
+      account: account ? { 
+        id: account.id, 
+        legacy_role: account.role_name,
+        primary_role: account.primary_role_name,
+        all_roles: account.role_names 
+      } : null
     });
   }
 
@@ -113,11 +127,13 @@ export const withRoleBasedAccess = (
  * ```tsx
  * const MyComponent = () => {
  *   const canEdit = useRoleBasedAccess(['ADMIN', 'MANAGER']);
+ *   const isAdmin = useRoleBasedAccess(['ADMIN']);
  *   
  *   return (
  *     <div>
  *       <ViewOnlyContent />
  *       {canEdit && <EditButton />}
+ *       {isAdmin && <AdminPanel />}
  *     </div>
  *   );
  * };
@@ -125,7 +141,42 @@ export const withRoleBasedAccess = (
  */
 export const useRoleBasedAccess = (allowedRoles: string[]): boolean => {
   const { account } = useAuth();
-  return hasPermission(account?.role_name, allowedRoles);
+  return accountHelpers.hasAnyRole(account, allowedRoles);
+};
+
+/**
+ * Enhanced hook that provides multiple role checking utilities
+ * 
+ * @example
+ * ```tsx
+ * const MyComponent = () => {
+ *   const roleAccess = useMultiRoleAccess();
+ *   
+ *   return (
+ *     <div>
+ *       <ViewOnlyContent />
+ *       {roleAccess.hasAnyRole(['ADMIN', 'MANAGER']) && <EditButton />}
+ *       {roleAccess.hasRole('ADMIN') && <AdminPanel />}
+ *       {roleAccess.hasAllRoles(['TEACHER', 'MANAGER']) && <SpecialFeature />}
+ *       <p>Current roles: {roleAccess.allRoles.join(', ')}</p>
+ *     </div>
+ *   );
+ * };
+ * ```
+ */
+export const useMultiRoleAccess = () => {
+  const { account } = useAuth();
+  
+  return {
+    hasRole: (role: string) => accountHelpers.hasRole(account, role),
+    hasAnyRole: (roles: string[]) => accountHelpers.hasAnyRole(account, roles),
+    hasPermission: (permission: keyof typeof import('@/utils/rbac-utils').PERMISSIONS) => 
+      accountHelpers.hasPermission(account, permission),
+    currentRole: accountHelpers.getCurrentRoleName(account),
+    allRoles: accountHelpers.getAllRoleNames(account),
+    isAuthenticated: account !== null,
+    account
+  };
 };
 
 export default RoleBasedAccess;
