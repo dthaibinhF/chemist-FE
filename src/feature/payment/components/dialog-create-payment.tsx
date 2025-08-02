@@ -50,7 +50,7 @@ type PaymentFormData = z.infer<typeof PaymentSchema>;
 
 interface DialogCreatePaymentProps {
     open: boolean;
-    onOpenChange: (open: boolean) => void;
+    onOpenChange?: (open: boolean) => void;
 }
 
 export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentProps) => {
@@ -155,10 +155,15 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
     return (
         <Dialog key={open ? 'open' : 'closed'} open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button>
+                {
+                    onOpenChange 
+                    ? null
+                    : <Button>
                     <Plus className="mr-2 h-4 w-4" />
                     Thêm thanh toán
                 </Button>
+                }
+                
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
