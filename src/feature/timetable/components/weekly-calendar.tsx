@@ -86,7 +86,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({
       </div>
     );
   }
-  console.log('weekData', weekData);
   return (
     <div className="space-y-4">
       {/* Week Navigation */}
