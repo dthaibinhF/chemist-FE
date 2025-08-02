@@ -63,6 +63,17 @@ const items = {
         },
       ],
     },
+    {
+      title: "Quản trị hệ thống",
+      url: "#",
+      items: [
+        {
+          title: "Quản lý người dùng",
+          url: "/admin/users",
+          isActive: false,
+        },
+      ],
+    },
   ],
 };
 
@@ -73,6 +84,7 @@ const AppSideBar = () => {
     financial,
     group: groupPermissions,
     timetable,
+    admin,
     isAuthenticated
   } = useRolePermissions();
 
@@ -98,6 +110,9 @@ const AppSideBar = () => {
             case '/fee':
               // Route requires: ADMIN, MANAGER, TEACHER
               return financial.canManageFees || financial.canViewAllFinances;
+            case '/admin/users':
+              // Route requires: ADMIN only
+              return admin.canManageUsers;
             case 'dashboard':
             case '/ai-assistant':
             case '/time-table':
@@ -107,9 +122,9 @@ const AppSideBar = () => {
               return true;
           }
         })
-      }))
+      })).filter(navGroup => navGroup.items.length > 0)
     };
-  }, [student, financial, groupPermissions, timetable, isAuthenticated]);
+  }, [student, financial, groupPermissions, timetable, admin, isAuthenticated]);
 
   function handleClick(item: { url: string; isActive: boolean }) {
     filteredItems.navMain.map((listObj) =>

@@ -17,6 +17,7 @@ import { StudentDetailPage } from "@/pages/student-detail.tsx";
 import { StudentManagement } from "@/pages/student-management.tsx";
 import TimeTable from "@/pages/TimeTable";
 import UnauthorizedPage from "@/pages/unauthorized";
+import UserManagement from "@/pages/admin/user-management";
 import { RoleBasedAccess } from "@/components/auth";
 
 export const router = createBrowserRouter([
@@ -80,6 +81,12 @@ export const router = createBrowserRouter([
       {
         path: "profile",
         Component: Profile,
+      },
+      {
+        path: "admin/users",
+        element: <RoleBasedAccess allowedRoles={['ADMIN']}>
+          <UserManagement />
+        </RoleBasedAccess>,
       },
     ],
   },

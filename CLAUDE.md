@@ -33,11 +33,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Code is organized by business domains in `src/feature/`:
 - `auth/` - Authentication & authorization with JWT tokens
 - `student/` - Student management with CSV import/export
+- `student/:id` - Student detail page
 - `group/` - Group management and scheduling
+- `group/:id` - Group detail
 - `payment/` - Payment processing and bulk operations
 - `salary/` - Salary calculations and management
 - `timetable/` - Schedule management with calendar views
 - `fee/` - Fee management and tracking
+- `fee/:id` - Fee detail
 
 #### Redux State Management
 Each feature has its own Redux slice following RTK patterns:

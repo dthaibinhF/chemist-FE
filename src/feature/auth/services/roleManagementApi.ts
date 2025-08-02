@@ -1,7 +1,7 @@
 import type { TAccount } from "@/feature/auth/types/auth.type.ts";
 import { createApiClient } from "@/service/api-client.ts";
 
-const apiClient = createApiClient("auth");
+const apiClient = createApiClient("");
 
 /**
  * Role Management API Services
@@ -52,7 +52,7 @@ export const setAccountRoles = async (accountId: number, roleIds: number[]): Pro
  * @returns Array of available roles
  */
 export const getAllRoles = async () => {
-  const response = await apiClient.get('/roles');
+  const response = await apiClient.get('/role');
   return response.data;
 };
 
