@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import GroupTable from '@/feature/group/components/group-table';
 import { useAcademicYear } from '@/hooks/useAcademicYear';
 import { useGrade } from '@/hooks/useGrade';
@@ -20,7 +26,6 @@ const GroupManagement = () => {
   }, [handleFetchAcademicYears, handleFetchGrades]);
 
   return (
-
     <div className="space-y-6">
       {/* Filters Section */}
       <div className="flex items-center gap-4">

@@ -1,16 +1,20 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { RoleBasedAccess } from '@/components/auth/RoleBasedAccess';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GroupDialogEdit from '@/feature/group/components/group-dialog-edit';
+import { GroupScheduleTab } from '@/feature/group/components/group-schedule-tab';
 import { StudentTable } from '@/feature/student/components';
 import { AddStudentTab } from '@/feature/student/components/add-student-tab';
 import { useStudent } from '@/feature/student/hooks';
 import { useFee } from '@/hooks/useFee';
 import { useGroup } from '@/hooks/useGroup';
 import { formatCurrencyVND } from '@/utils/currency-utils';
+import { displayDayEnum, displayTimeRange } from '@/utils/date-formatters';
+import { PERMISSIONS } from '@/utils/rbac-utils';
 
 export const GroupDetail = () => {
   const { id } = useParams();
@@ -54,41 +58,50 @@ export const GroupDetail = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">{group.name}</h2>
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             <p className="text-muted-foreground">Chi tiết nhóm học</p>
-            <Badge variant='outline'>{group.level}</Badge>
+            <Badge variant="outline">{group.level}</Badge>
           </div>
         </div>
-        <div className='flex items-center gap-2'>
-          <GroupDialogEdit group={group} />
-          <AddStudentTab groupId={group.id} gradeId={group.grade_id} />
+        <div className="flex items-center gap-2">
+          <RoleBasedAccess allowedRoles={PERMISSIONS.MANAGE_GROUPS}>
+            <GroupDialogEdit group={group} />
+          </RoleBasedAccess>
+          <RoleBasedAccess allowedRoles={PERMISSIONS.MANAGE_GROUPS}>
+            <AddStudentTab groupId={group.id} gradeId={group.grade_id} />
+          </RoleBasedAccess>
         </div>
-
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* <Card>
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Thời gian học</CardTitle>
           </CardHeader>
           <CardContent>
             {group.group_schedules?.map((schedule) => {
               return (
-                <div key={schedule.id} className='flex items-center gap-2'>
-                  <span className='text-sm font-medium'>{displayDayEnum(schedule.day_of_week)}</span>
-                  <span className='text-sm text-muted-foreground'>{displayTimeRange(schedule.start_time, schedule.end_time)}</span>
+                <div key={schedule.id} className="flex items-center gap-2">
+                  <span className="text-sm font-medium">
+                    {displayDayEnum(schedule.day_of_week)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {displayTimeRange(schedule.start_time, schedule.end_time)}
+                  </span>
                 </div>
-              )
+              );
             })}
           </CardContent>
-        </Card> */}
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Học phí</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{fee?.amount ? formatCurrencyVND(fee.amount) : '0 VNĐ'}</div>
+            <div className="text-2xl font-bold">
+              {fee?.amount ? formatCurrencyVND(fee.amount) : '0 VNĐ'}
+            </div>
             <p className="text-xs text-muted-foreground">{fee?.name}</p>
           </CardContent>
         </Card>
@@ -116,7 +129,6 @@ export const GroupDetail = () => {
         <TabsList>
           <TabsTrigger value="students">Danh sách học sinh</TabsTrigger>
           <TabsTrigger value="schedule">Lịch học</TabsTrigger>
-          <TabsTrigger value="attendance">Điểm danh</TabsTrigger>
         </TabsList>
 
         <TabsContent value="students" className="space-y-4">
@@ -126,9 +138,10 @@ export const GroupDetail = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="schedule">{/* Schedule content */}</TabsContent>
-        <TabsContent value="attendance">{/* Attendance content */}</TabsContent>
+        <TabsContent value="schedule">
+          <GroupScheduleTab groupId={group.id || 0} groupName={group.name} />
+        </TabsContent>
       </Tabs>
-    </div >
+    </div>
   );
 };
