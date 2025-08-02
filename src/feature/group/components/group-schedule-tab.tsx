@@ -31,7 +31,7 @@ const scheduleToCalendarEvent = (schedule: Schedule): CalendarEvent => {
 };
 
 export const GroupScheduleTab: React.FC<GroupScheduleTabProps> = ({ groupId, groupName }) => {
-  const { loading, handleFetchFilteredSchedules, getSchedulesByGroup } = useTimetable();
+  const { schedules, loading, handleFetchFilteredSchedules, getSchedulesByGroup } = useTimetable();
 
   const [selectedWeek, setSelectedWeek] = useState(new Date());
 
@@ -44,7 +44,7 @@ export const GroupScheduleTab: React.FC<GroupScheduleTabProps> = ({ groupId, gro
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     const groupSchedulesList = getSchedulesByGroup(groupId);
     return groupSchedulesList.map(scheduleToCalendarEvent);
-  }, [groupId, getSchedulesByGroup]);
+  }, [schedules, groupId, getSchedulesByGroup]);
 
   const handleEventClick = (event: CalendarEvent) => {
     console.log('Schedule event clicked:', event);
@@ -93,7 +93,7 @@ export const GroupScheduleTab: React.FC<GroupScheduleTabProps> = ({ groupId, gro
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z"
                   />
                 </svg>
               </div>
