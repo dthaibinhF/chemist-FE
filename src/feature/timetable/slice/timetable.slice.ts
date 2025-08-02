@@ -121,8 +121,8 @@ const timetableSlice = createSlice({
       // Convert any Date objects in filters to ISO strings
       const serializedFilters = {
         ...action.payload,
-        start_date: action.payload.start_date,
-        end_date: action.payload.end_date,
+        start_date: action.payload.startDate,
+        end_date: action.payload.endDate,
       };
       state.filters = serializedFilters;
     },

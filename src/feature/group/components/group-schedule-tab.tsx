@@ -6,29 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { WeeklyCalendar } from '@/feature/timetable/components/weekly-calendar';
 import { useTimetable } from '@/feature/timetable/hooks/useTimetable';
 import type { CalendarEvent } from '@/feature/timetable/types/timetable.types';
-import type { Schedule } from '@/types/api.types';
+import { convertScheduleToEvent } from '@/feature/timetable/utils/calendar-utils';
 import { PERMISSIONS } from '@/utils/rbac-utils';
 
 interface GroupScheduleTabProps {
   groupId: number;
   groupName: string;
 }
-
-const scheduleToCalendarEvent = (schedule: Schedule): CalendarEvent => {
-  return {
-    id: schedule.id || 0,
-    title: schedule.group_name,
-    start: new Date(schedule.start_time),
-    end: new Date(schedule.end_time),
-    group_name: schedule.group_name,
-    teacher_name: schedule.teacher_name,
-    room_name: schedule.room?.name || 'Chưa xác định',
-    delivery_mode: schedule.delivery_mode,
-    meeting_link: schedule.meeting_link,
-    color: 'bg-blue-100 text-blue-900',
-    textColor: 'text-blue-900',
-  };
-};
 
 export const GroupScheduleTab: React.FC<GroupScheduleTabProps> = ({ groupId, groupName }) => {
   const { schedules, loading, handleFetchFilteredSchedules, getSchedulesByGroup } = useTimetable();
@@ -37,13 +21,13 @@ export const GroupScheduleTab: React.FC<GroupScheduleTabProps> = ({ groupId, gro
 
   useEffect(() => {
     if (groupId) {
-      handleFetchFilteredSchedules({ group_id: groupId });
+      handleFetchFilteredSchedules({ groupId: groupId });
     }
   }, [groupId, handleFetchFilteredSchedules]);
 
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     const groupSchedulesList = getSchedulesByGroup(groupId);
-    return groupSchedulesList.map(scheduleToCalendarEvent);
+    return groupSchedulesList.map(convertScheduleToEvent);
   }, [schedules, groupId, getSchedulesByGroup]);
 
   const handleEventClick = (event: CalendarEvent) => {

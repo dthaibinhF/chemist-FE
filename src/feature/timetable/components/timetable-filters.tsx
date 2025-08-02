@@ -182,10 +182,10 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
             </Badge>
           )}
 
-          {filters.group_id && (
+          {filters.groupId && (
             <Badge variant="secondary" className="flex items-center">
               <Users className="w-3 h-3 mr-1" />
-              {filterOptions.groups.find(g => g.value === filters.group_id)?.label}
+              {filterOptions.groups.find(g => g.value === filters.groupId)?.label}
               <Button
                 variant="ghost"
                 size="sm"
@@ -197,10 +197,10 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
             </Badge>
           )}
 
-          {filters.room_id && (
+          {filters.roomId && (
             <Badge variant="secondary" className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />
-              {filterOptions.rooms.find(r => r.value === filters.room_id)?.label}
+              {filterOptions.rooms.find(r => r.value === filters.roomId)?.label}
               <Button
                 variant="ghost"
                 size="sm"
@@ -212,10 +212,10 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
             </Badge>
           )}
 
-          {filters.teacher_id && (
+          {filters.teacherId && (
             <Badge variant="secondary" className="flex items-center">
               <User className="w-3 h-3 mr-1" />
-              {filterOptions.teachers.find(t => t.value === filters.teacher_id)?.label}
+              {filterOptions.teachers.find(t => t.value === filters.teacherId)?.label}
               <Button
                 variant="ghost"
                 size="sm"
@@ -250,7 +250,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nhóm học</label>
                 <Select
-                  value={filters.group_id?.toString() || ""}
+                  value={filters.groupId?.toString() || ""}
                   onValueChange={(value) => handleFilterChange('group_id', value ? parseInt(value) : undefined)}
                 >
                   <SelectTrigger>
@@ -271,7 +271,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phòng học</label>
                 <Select
-                  value={filters.room_id?.toString() || ""}
+                  value={filters.roomId?.toString() || ""}
                   onValueChange={(value) => handleFilterChange('room_id', value ? parseInt(value) : undefined)}
                 >
                   <SelectTrigger>
@@ -292,7 +292,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Giáo viên</label>
                 <Select
-                  value={filters.teacher_id?.toString() || ""}
+                  value={filters.teacherId?.toString() || ""}
                   onValueChange={(value) => handleFilterChange('teacher_id', value ? parseInt(value) : undefined)}
                 >
                   <SelectTrigger>
@@ -313,7 +313,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Hình thức</label>
                 <Select
-                  value={filters.delivery_mode || ""}
+                  value={filters.deliveryMode || ""}
                   onValueChange={(value) => handleFilterChange('delivery_mode', value || undefined)}
                 >
                   <SelectTrigger>
@@ -335,7 +335,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
                 <label className="text-sm font-medium">Từ ngày</label>
                 <Input
                   type="date"
-                  value={formatDateForInput(filters.start_date)}
+                  value={formatDateForInput(filters.startDate)}
                   onChange={(e) => handleDateRangeChange('start_date', e.target.value)}
                 />
               </div>
@@ -343,7 +343,7 @@ export const TimetableFilters: React.FC<TimetableFiltersProps> = ({
                 <label className="text-sm font-medium">Đến ngày</label>
                 <Input
                   type="date"
-                  value={formatDateForInput(filters.end_date)}
+                  value={formatDateForInput(filters.endDate)}
                   onChange={(e) => handleDateRangeChange('end_date', e.target.value)}
                 />
               </div>
