@@ -1,8 +1,10 @@
-import { StudentStatsCards, StudentTable } from '@/feature/student/components';
+import { StudentSchoolChart, StudentStatsCards, StudentTable } from '@/feature/student/components';
+import { useStudent } from '@/feature/student/hooks/useStudent';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 export const StudentManagement = () => {
   usePageTitle('Quản lý học sinh');
+  const { students } = useStudent();
 
   return (
 
@@ -10,8 +12,9 @@ export const StudentManagement = () => {
       <div className="space-y-4 min-w-0">
         <StudentTable />
       </div>
-      <div className="min-w-0">
-        <StudentStatsCards students={[]} />
+      <div className="space-y-4 min-w-0">
+        <StudentSchoolChart students={students} />
+        <StudentStatsCards students={students} />
       </div>
     </div>
   );
