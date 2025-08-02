@@ -21,9 +21,11 @@ import {
   Clock,
   DollarSign,
   TrendingUp,
-  Calendar
+  Calendar,
+  Plus
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { router } from '@/router/route';
 
 interface PaymentHistoryTableProps {
   studentId?: number;
@@ -35,6 +37,7 @@ interface PaymentHistoryTableProps {
   enableExport?: boolean;
   title?: string;
   description?: string;
+  onOpenAddPayment?: () => void;
 }
 
 const getPaymentMethodLabel = (method: string) => {
@@ -101,6 +104,7 @@ export const PaymentHistoryTable = ({
   feeId,
   paymentDetails: externalPaymentDetails,
   isLoading: externalLoading,
+  onOpenAddPayment,
   showSummary = false,
   showFilters = true,
   enableExport = false,
@@ -257,22 +261,30 @@ export const PaymentHistoryTable = ({
       cell: ({ row }) => {
         return (
           <div className="font-medium">
-            {row.getValue('fee_name')}
+            <Button onClick={() => {
+              return router.navigate(`/fee/${row.original.fee_id}`);
+            }} variant="link" size="sm" className="text-gray-700 hover:text-gray-600">
+              {row.getValue('fee_name')}
+            </Button>
           </div>
         );
       },
     },
-    // {
-    //   accessorKey: 'student_name',
-    //   header: 'Học sinh',
-    //   cell: ({ row }: { row: any }) => {
-    //     return (
-    //       <div className="font-medium">
-    //         {row.getValue('student_name')}
-    //       </div>
-    //     );
-    //   },
-    // },
+    {
+      accessorKey: 'student_name',
+      header: 'Học sinh',
+      cell: ({ row }: { row: any }) => {
+        return (
+          <div className="font-medium">
+            <Button onClick={() => {
+              return router.navigate(`/student/${row.original.student_id}`);
+            }} variant="link" size="sm" className="text-blue-500 hover:text-blue-600">
+              {row.getValue('student_name')}
+            </Button>
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'amount',
       header: 'Số tiền',
@@ -575,6 +587,10 @@ export const PaymentHistoryTable = ({
             data={filteredPaymentDetails}
             pagination={true} filterColumn="fee_name"
             filterPlaceholder="Tìm kiếm phí..."
+            ComponentForCreate={onOpenAddPayment ? <Button onClick={() => onOpenAddPayment()}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm thanh toán
+          </Button> : undefined}
           />
         </CardContent>
       </Card>

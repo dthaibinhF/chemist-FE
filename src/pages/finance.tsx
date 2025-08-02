@@ -17,7 +17,7 @@ import { usePayment } from '@/hooks/usePayment';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
 import { useRolePermissions } from '@/hooks/useRolePermissions';
 import { SalaryManagementTab } from '@/feature/salary/components';
-import { Plus, TrendingUp, AlertTriangle, BarChart3, Calendar as CalendarIcon, Users } from 'lucide-react';
+import { Plus, TrendingUp, Users } from 'lucide-react';
 
 // Import the FinanceFilters component and type
 import { FinanceFilters, FinanceFilters as FinanceFiltersComponent } from '@/components/common/finance-filters';
@@ -27,13 +27,14 @@ export const FinanceManagement = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [openAddPayment, setOpenAddPayment] = useState(false);
   const { financial, teacher } = useRolePermissions();
-  // State for filters (currently not actively used but maintained for future features)
-  // const [filters, setFilters] = useState<FinanceFilters>({
-  //   dateRange: { from: undefined, to: undefined },
-  //   feeType: 'all',
-  //   paymentStatus: 'all',
-  //   searchTerm: ''
-  // });
+  
+  // State for filters
+  const [filters, setFilters] = useState<FinanceFilters>({
+    dateRange: { from: undefined, to: undefined },
+    feeType: 'all',
+    paymentStatus: 'all',
+    searchTerm: ''
+  });
 
   // Enhanced hooks for real data
   const {
@@ -46,12 +47,9 @@ export const FinanceManagement = () => {
     paymentDetails,
     loading: paymentLoading,
     handleFetchPaymentDetails,
-    // handleDeletePaymentDetail, // Commented out - not currently used
   } = usePayment();
 
-  const {
-    // loading: summaryLoading, // Commented out - not currently used
-  } = useStudentPaymentSummary();
+  const {} = useStudentPaymentSummary();
 
   // Load initial data
   useEffect(() => {
@@ -62,33 +60,14 @@ export const FinanceManagement = () => {
 
 
   const handleFiltersChange = useCallback((newFilters: FinanceFilters) => {
-    // setFilters(newFilters); // Commented out until filters are actively used
-    console.log('Filters changed:', newFilters);
-    toast.success('Đã cập nhật bộ lọc');
-  }, []);
+    setFilters(newFilters);
+    
+    // Only show toast for non-search filter changes to avoid spam during typing
+    if (newFilters.searchTerm === filters.searchTerm) {
+      toast.success('Đã cập nhật bộ lọc');
+    }
+  }, [filters.searchTerm]);
 
-  // Commented out unused handlers - can be enabled when needed
-  // const handlePaymentEdit = useCallback((paymentId: number) => {
-  //   console.log('Edit payment:', paymentId);
-  //   toast.info('Chức năng chỉnh sửa thanh toán');
-  // }, []);
-
-  // const handlePaymentDelete = useCallback(async (paymentId: number) => {
-  //   try {
-  //     handleDeletePaymentDetail(paymentId);
-  //     toast.success('Đã xóa thanh toán thành công');
-  //     // Refresh data after deletion
-  //     handleFetchDashboardStatistics();
-  //     handleFetchPaymentDetails();
-  //   } catch (error) { 
-  //     toast.error('Xóa thanh toán thất bại');
-  //   }
-  // }, [handleDeletePaymentDetail, handleFetchDashboardStatistics, handleFetchPaymentDetails]);
-
-  // const handlePaymentView = useCallback((paymentId: number) => {
-  //   console.log('View payment:', paymentId);
-  //   toast.info('Xem chi tiết thanh toán');
-  // }, []);
 
   const handleDateSelect = useCallback((date: Date) => {
     console.log('Selected date:', date);
@@ -104,9 +83,64 @@ export const FinanceManagement = () => {
     handleFetchPaymentDetails();
   }, [handleFetchDashboardStatistics, handleFetchOverdueStatistics, handleFetchPaymentDetails]);
 
-  // Convert payment details to calendar events (memoized)
+  // Filter payment details based on current filters
+  const filteredPaymentDetails = useMemo(() => {
+    return paymentDetails.filter(payment => {
+      // Date range filter
+      if (filters.dateRange.from || filters.dateRange.to) {
+        const paymentDate = payment.create_at ? new Date(payment.create_at) : null;
+        if (paymentDate) {
+          if (filters.dateRange.from && paymentDate < filters.dateRange.from) return false;
+          if (filters.dateRange.to && paymentDate > filters.dateRange.to) return false;
+        }
+      }
+
+      // Payment status filter
+      if (filters.paymentStatus !== 'all') {
+        const statusMap = {
+          'paid': 'PAID',
+          'pending': 'PENDING', 
+          'overdue': 'OVERDUE'
+        };
+        if (payment.payment_status !== statusMap[filters.paymentStatus as keyof typeof statusMap]) return false;
+      }
+
+      // Fee type filter (simplified mapping)
+      if (filters.feeType !== 'all') {
+        const feeTypeMappings = {
+          'hoc_phi': ['học phí', 'tuition'],
+          'phi_co_so': ['phí cơ sở', 'facility'],
+          'phi_khac': ['phí khác', 'other']
+        };
+        
+        const feeTypeKey = filters.feeType as keyof typeof feeTypeMappings;
+        if (feeTypeKey && feeTypeMappings[feeTypeKey]) {
+          const feeName = (payment.fee_name || '').toLowerCase();
+          const matchesType = feeTypeMappings[feeTypeKey].some(keyword => 
+            feeName.includes(keyword.toLowerCase())
+          );
+          if (!matchesType) return false;
+        }
+      }
+
+      // Search term filter
+      if (filters.searchTerm) {
+        const searchTerm = filters.searchTerm.toLowerCase();
+        const studentName = (payment.student_name || '').toLowerCase();
+        const feeName = (payment.fee_name || '').toLowerCase();
+        
+        if (!studentName.includes(searchTerm) && !feeName.includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [paymentDetails, filters]);
+
+  // Convert filtered payment details to calendar events (memoized)
   const paymentEvents = useMemo(() =>
-    paymentDetails.map(payment => ({
+    filteredPaymentDetails.map(payment => ({
       id: payment.id || 0,
       date: payment.create_at ? new Date(payment.create_at) : new Date(),
       studentName: payment.student_name || '',
@@ -115,7 +149,7 @@ export const FinanceManagement = () => {
       status: payment.payment_status === 'PAID' ? 'paid' as const :
         payment.payment_status === 'OVERDUE' ? 'overdue' as const :
           'pending' as const
-    })), [paymentDetails]
+    })), [filteredPaymentDetails]
   );
 
   if (dashboardLoading) {
@@ -155,7 +189,7 @@ export const FinanceManagement = () => {
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="payments">Thanh toán</TabsTrigger>
-          <TabsTrigger value="obligations">Nghĩa vụ</TabsTrigger>
+          <TabsTrigger value="obligations">Học phí</TabsTrigger>
           <TabsTrigger value="charts">Biểu đồ</TabsTrigger>
           <TabsTrigger value="calendar">Lịch</TabsTrigger>
           {(teacher.canViewAllSalaries || teacher.canViewOwnSalary) && (
@@ -169,53 +203,34 @@ export const FinanceManagement = () => {
             <PaymentStatusCharts />
 
             {/* Quick Actions */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Users className="h-5 w-5" />
-                    <span>Thao tác nhanh</span>
-                  </CardTitle>
-                  <CardDescription>Các tác vụ quản lý thanh toán thường dùng</CardDescription>
-                </div>
-                {financial.canCreatePayments && (
-                  <Button onClick={() => setOpenAddPayment(true)}>
+            {financial.canCreatePayments && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Users className="h-5 w-5" />
+                      <span>Thao tác nhanh</span>
+                    </CardTitle>
+                    <CardDescription>Các tác vụ quản lý thanh toán thường dùng</CardDescription>
+                  </div>
+                  {financial.canCreatePayments ? <Button onClick={() => setOpenAddPayment(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Thêm thanh toán
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card className="p-4 text-center hover:bg-muted/50 cursor-pointer transition-colors">
-                    <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                    <div className="text-sm font-medium">Báo cáo doanh thu</div>
-                  </Card>
-                  <Card className="p-4 text-center hover:bg-muted/50 cursor-pointer transition-colors">
-                    <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-orange-600" />
-                    <div className="text-sm font-medium">Quản lý nợ quá hạn</div>
-                  </Card>
-                  <Card className="p-4 text-center hover:bg-muted/50 cursor-pointer transition-colors">
-                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                    <div className="text-sm font-medium">Phân tích xu hướng</div>
-                  </Card>
-                  <Card className="p-4 text-center hover:bg-muted/50 cursor-pointer transition-colors">
-                    <CalendarIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                    <div className="text-sm font-medium">Lịch thanh toán</div>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+                  </Button> : null}
+                </CardHeader>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">
           <PaymentHistoryTable
-            paymentDetails={paymentDetails}
+            paymentDetails={filteredPaymentDetails}
             isLoading={paymentLoading}
             showSummary={true}
-            showFilters={true}
+            showFilters={false}
             enableExport={true}
+            onOpenAddPayment={() => setOpenAddPayment(true)}
             title="Quản lý thanh toán toàn hệ thống"
             description="Tất cả các giao dịch thanh toán trong hệ thống"
           />
@@ -229,18 +244,6 @@ export const FinanceManagement = () => {
           <div className="grid gap-6">
             <PaymentStatusCharts />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Phân tích chi tiết</CardTitle>
-                <CardDescription>Thống kê sâu và xu hướng thanh toán</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4" />
-                  <div>Biểu đồ phân tích chi tiết đang được phát triển</div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </TabsContent>
 
@@ -259,12 +262,15 @@ export const FinanceManagement = () => {
       </Tabs>
 
       {/* Enhanced Add Payment Dialog - Only render if user can create payments */}
-      {financial.canCreatePayments && (
+      {financial.canCreatePayments ? (
         <DialogCreatePayment
           open={openAddPayment}
           onOpenChange={setOpenAddPayment}
         />
-      )}
+      ) : <DialogCreatePayment
+          open={false}
+          onOpenChange={() => {}}
+        />}
     </div>
   );
 };
