@@ -193,7 +193,7 @@ export const StudentDetailPage = () => {
       {/* Phần nội dung chính */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Thông tin học tập (2/3) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
           {/* Thông tin học tập chi tiết */}
           <Card>
             <CardHeader>
@@ -279,7 +279,7 @@ export const StudentDetailPage = () => {
         </div>
 
         {/* Sidebar (1/3) */}
-        <div className="space-y-6">
+        {/* <div className="space-y-6"> */}
           {/* Student Status */}
           {/* <Card>
             <CardHeader>
@@ -335,7 +335,7 @@ export const StudentDetailPage = () => {
               </div>
             </CardContent>
           </Card> */}
-        </div>
+        {/* </div> */}
       </div>
       {/* Payment History */}
       <StudentPayment studentId={Number(id)} feeId={feeId} />

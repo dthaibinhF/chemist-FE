@@ -9,7 +9,6 @@ import { WeeklyCalendar } from "./weekly-calendar";
 import { DailyCalendar } from "./daily-calendar";
 import { CreateScheduleDialog } from "./create-schedule-dialog";
 import { EditScheduleDialog } from "./edit-schedule-dialog";
-import { TimetableFilters } from "./timetable-filters";
 import { GenerateWeeklyScheduleDialog } from "./generate-weekly-schedule-dialog";
 import { BulkScheduleGenerationDialog } from "./bulk-schedule-generation-dialog";
 import { convertScheduleToEvent, getWeekStart } from "../utils/calendar-utils";
@@ -28,15 +27,14 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     error,
     viewMode,
     selectedDate,
-    filters,
-    searchQuery,
+    // filters,
+    // searchQuery,
     handleFetchSchedules,
-    handleFetchFilteredSchedules,
-    handleSearchSchedules,
+    // handleSearchSchedules,
     handleSetViewMode,
     handleSetSelectedDate,
-    handleSetFilters,
-    handleSetSearchQuery,
+    // handleSetFilters,
+    // handleSetSearchQuery,
     handleGenerateWeeklySchedule,
     handleClearSchedule,
   } = useTimetable();
@@ -59,35 +57,35 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
     handleFetchSchedules();
   }, [handleFetchSchedules]);
 
-  // Handle filters and search
-  const handleFiltersChange = async (newFilters: typeof filters) => {
-    handleSetFilters(newFilters);
+  // // Handle filters and search
+  // const handleFiltersChange = async (newFilters: typeof filters) => {
+  //   handleSetFilters(newFilters);
 
-    // Apply filters if any are set
-    if (Object.values(newFilters).some(Boolean)) {
-      await handleFetchFilteredSchedules(newFilters);
-    } else {
-      // If no filters, load all schedules
-      await handleFetchSchedules();
-    }
-  };
+  //   // Apply filters if any are set
+  //   if (Object.values(newFilters).some(Boolean)) {
+  //     await handleFetchFilteredSchedules(newFilters);
+  //   } else {
+  //     // If no filters, load all schedules
+  //     await handleFetchSchedules();
+  //   }
+  // };
 
-  const handleSearchChange = async (query: string) => {
-    handleSetSearchQuery(query);
+  // const handleSearchChange = async (query: string) => {
+  //   handleSetSearchQuery(query);
 
-    // Apply search if query exists
-    if (query.trim()) {
-      await handleSearchSchedules({ search: query });
-    } else {
-      // If no search query and no filters, load all schedules
-      if (!Object.values(filters).some(Boolean)) {
-        await handleFetchSchedules();
-      } else {
-        // If search is cleared but filters exist, apply filters
-        await handleFetchFilteredSchedules(filters);
-      }
-    }
-  };
+  //   // Apply search if query exists
+  //   if (query.trim()) {
+  //     await handleSearchSchedules({ search: query });
+  //   } else {
+  //     // If no search query and no filters, load all schedules
+  //     if (!Object.values(filters).some(Boolean)) {
+  //       await handleFetchSchedules();
+  //     } else {
+  //       // If search is cleared but filters exist, apply filters
+  //       await handleFetchFilteredSchedules(filters);
+  //     }
+  //   }
+  // };
 
   // Handle view mode changes
   const handleTabChange = (value: string) => {
@@ -228,13 +226,13 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ className }) => {
       </div>
 
       {/* Filters */}
-      <TimetableFilters
+      {/* <TimetableFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         className="mb-6"
-      />
+      /> */}
 
       {/* View Mode Tabs */}
       <Tabs
