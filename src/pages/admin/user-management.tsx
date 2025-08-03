@@ -1,16 +1,11 @@
 import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Plus, Edit, Trash2, UserCheck, UserX } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Dialog,
   DialogContent,
@@ -36,7 +31,7 @@ import * as z from "zod";
 import { toast } from "sonner";
 
 import type { TAccount, TRole } from "@/feature/auth/types/auth.type";
-import { getAllAccounts, registerAccount, deleteAccount, deactivateAccount, reactivateAccount } from "@/service/account.service";
+import { getAllAccounts, registerAccount } from "@/service/account.service";
 import { getAllRoles } from "@/feature/auth/services/roleManagementApi";
 
 const createUserSchema = z.object({
@@ -100,40 +95,40 @@ const UserManagement = () => {
     }
   };
 
-  const handleDeleteUser = async (accountId: number) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) return;
+  // const handleDeleteUser = async (accountId: number) => {
+  //   if (!confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) return;
 
-    try {
-      await deleteAccount(accountId);
-      toast.success("Xóa tài khoản thành công");
-      loadData();
-    } catch (error) {
-      toast.error("Lỗi khi xóa tài khoản");
-      console.error("Error deleting user:", error);
-    }
-  };
+  //   try {
+  //     await deleteAccount(accountId);
+  //     toast.success("Xóa tài khoản thành công");
+  //     loadData();
+  //   } catch (error) {
+  //     toast.error("Lỗi khi xóa tài khoản");
+  //     console.error("Error deleting user:", error);
+  //   }
+  // };
 
-  const handleDeactivateUser = async (accountId: number) => {
-    try {
-      await deactivateAccount(accountId);
-      toast.success("Vô hiệu hóa tài khoản thành công");
-      loadData();
-    } catch (error) {
-      toast.error("Lỗi khi vô hiệu hóa tài khoản");
-      console.error("Error deactivating user:", error);
-    }
-  };
+  // const handleDeactivateUser = async (accountId: number) => {
+  //   try {
+  //     await deactivateAccount(accountId);
+  //     toast.success("Vô hiệu hóa tài khoản thành công");
+  //     loadData();
+  //   } catch (error) {
+  //     toast.error("Lỗi khi vô hiệu hóa tài khoản");
+  //     console.error("Error deactivating user:", error);
+  //   }
+  // };
 
-  const handleReactivateUser = async (accountId: number) => {
-    try {
-      await reactivateAccount(accountId);
-      toast.success("Kích hoạt lại tài khoản thành công");
-      loadData();
-    } catch (error) {
-      toast.error("Lỗi khi kích hoạt lại tài khoản");
-      console.error("Error reactivating user:", error);
-    }
-  };
+  // const handleReactivateUser = async (accountId: number) => {
+  //   try {
+  //     await reactivateAccount(accountId);
+  //     toast.success("Kích hoạt lại tài khoản thành công");
+  //     loadData();
+  //   } catch (error) {
+  //     toast.error("Lỗi khi kích hoạt lại tài khoản");
+  //     console.error("Error reactivating user:", error);
+  //   }
+  // };
 
   const columns: ColumnDef<TAccount>[] = [
     {
@@ -176,54 +171,54 @@ const UserManagement = () => {
         );
       },
     },
-    {
-      id: "actions",
-      header: "Thao tác",
-      cell: ({ row }) => {
-        const account = row.original;
-        const isActive = !account.deactivateAt;
+    // {
+    //   id: "actions",
+    //   header: "Thao tác",
+    //   cell: ({ row }) => {
+    //     const account = row.original;
+    //     const isActive = !account.deactivateAt;
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Edit className="mr-2 h-4 w-4" />
-                Chỉnh sửa
-              </DropdownMenuItem>
-              {isActive ? (
-                <DropdownMenuItem
-                  onClick={() => handleDeactivateUser(account.id)}
-                  className="text-yellow-600"
-                >
-                  <UserX className="mr-2 h-4 w-4" />
-                  Vô hiệu hóa
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => handleReactivateUser(account.id)}
-                  className="text-green-600"
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  Kích hoạt lại
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={() => handleDeleteUser(account.id)}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Xóa
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
+    //     return (
+    //       <DropdownMenu>
+    //         <DropdownMenuTrigger asChild>
+    //           <Button variant="ghost" className="h-8 w-8 p-0">
+    //             <MoreHorizontal className="h-4 w-4" />
+    //           </Button>
+    //         </DropdownMenuTrigger>
+    //         <DropdownMenuContent align="end">
+    //           <DropdownMenuItem>
+    //             <Edit className="mr-2 h-4 w-4" />
+    //             Chỉnh sửa
+    //           </DropdownMenuItem>
+    //           {isActive ? (
+    //             <DropdownMenuItem
+    //               onClick={() => handleDeactivateUser(account.id)}
+    //               className="text-yellow-600"
+    //             >
+    //               <UserX className="mr-2 h-4 w-4" />
+    //               Vô hiệu hóa
+    //             </DropdownMenuItem>
+    //           ) : (
+    //             <DropdownMenuItem
+    //               onClick={() => handleReactivateUser(account.id)}
+    //               className="text-green-600"
+    //             >
+    //               <UserCheck className="mr-2 h-4 w-4" />
+    //               Kích hoạt lại
+    //             </DropdownMenuItem>
+    //           )}
+    //           <DropdownMenuItem
+    //             onClick={() => handleDeleteUser(account.id)}
+    //             className="text-red-600"
+    //           >
+    //             <Trash2 className="mr-2 h-4 w-4" />
+    //             Xóa
+    //           </DropdownMenuItem>
+    //         </DropdownMenuContent>
+    //       </DropdownMenu>
+    //     );
+    //   },
+    // },
   ];
 
 
