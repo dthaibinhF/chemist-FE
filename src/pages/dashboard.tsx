@@ -1,130 +1,80 @@
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
-import { DateRange } from "react-day-picker";
 import { useEffect, useState } from "react";
-import { BarChart3, Users, DollarSign, GraduationCap } from "lucide-react";
+import { BarChart3, GraduationCap } from "lucide-react";
+import { EnhancedFinanceOverviewCards } from "@/components/common/enhanced-finance-overview-cards";
+import { StudentStatsCards } from "@/feature/student/components/student-stats-cards";
+import { WeeklyCalendar } from "@/feature/timetable/components/weekly-calendar";
+import { useStudent } from "@/feature/student/hooks/useStudent";
+import { useTimetable } from "@/feature/timetable/hooks/useTimetable";
+import { convertScheduleToEvent } from "@/feature/timetable/utils/calendar-utils";
 
 const Dashboard = () => {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
-  });
+  const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
   const { dashboard, financial, student, admin } = useRolePermissions();
+  const { students, loading: studentLoading, loadStudents } = useStudent();
+  const { schedules, loading: scheduleLoading, handleFetchWeeklySchedules } = useTimetable();
+
+  const calendarEvents = schedules.map(convertScheduleToEvent);
 
   useEffect(() => {
-    console.log(date);
-  }, [date]);
+    if (student.canViewAllStudents || student.canViewOwnStudentData) {
+      loadStudents();
+    }
+    
+    // Calculate week start and end dates
+    const startOfWeek = new Date(selectedWeek);
+    startOfWeek.setDate(selectedWeek.getDate() - selectedWeek.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+    handleFetchWeeklySchedules(
+      startOfWeek.toISOString().split('T')[0],
+      endOfWeek.toISOString().split('T')[0]
+    );
+  }, [student.canViewAllStudents, student.canViewOwnStudentData, loadStudents, selectedWeek, handleFetchWeeklySchedules]);
 
   return (
     <div className="p-6 space-y-6">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {dashboard.canViewStatistics && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tổng quan hệ thống</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12,345</div>
-              <p className="text-xs text-muted-foreground">Hoạt động hệ thống</p>
-            </CardContent>
-          </Card>
-        )}
+      {/* Financial Overview Cards */}
+      {(financial.canViewAllFinances || financial.canViewOwnPayments) && (
+        <EnhancedFinanceOverviewCards />
+      )}
 
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {(student.canViewAllStudents || student.canViewOwnStudentData) && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Học sinh</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">1,234</div>
-              <p className="text-xs text-muted-foreground">
-                {student.canViewAllStudents ? "Tổng số học sinh" : "Học sinh của tôi"}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {(financial.canViewAllFinances || financial.canViewOwnPayments) && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tài chính</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₫123,456,789</div>
-              <p className="text-xs text-muted-foreground">
-                {financial.canViewAllFinances ? "Tổng doanh thu" : "Thanh toán của tôi"}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {admin.canManageUsers && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Quản trị</CardTitle>
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">56</div>
-              <p className="text-xs text-muted-foreground">Người dùng hệ thống</p>
-            </CardContent>
-          </Card>
+          <div className="col-span-full">
+            {studentLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Đang tải dữ liệu học sinh...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <StudentStatsCards students={students} />
+            )}
+          </div>
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Lịch làm việc</CardTitle>
-            <CardDescription>Chọn khoảng thời gian để xem lịch</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="range"
-              month={date?.from ?? new Date()}
-              numberOfMonths={1}
-              selected={date}
-              onSelect={setDate}
-              className="rounded-lg border shadow-sm"
-            />
-          </CardContent>
-        </Card>
-
-        {dashboard.canViewStatistics && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Hoạt động gần đây</CardTitle>
-              <CardDescription>Các hoạt động mới nhất trong hệ thống</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">Học sinh mới đăng ký</p>
-                    <p className="text-sm text-muted-foreground">5 phút trước</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">Thanh toán được xử lý</p>
-                    <p className="text-sm text-muted-foreground">10 phút trước</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">Nhóm học mới tạo</p>
-                    <p className="text-sm text-muted-foreground">15 phút trước</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Weekly Calendar */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lịch học tuần</CardTitle>
+          <CardDescription>Lịch học và hoạt động giảng dạy trong tuần</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WeeklyCalendar
+            events={calendarEvents}
+            selectedWeek={selectedWeek}
+            onWeekChange={setSelectedWeek}
+            loading={scheduleLoading}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };
