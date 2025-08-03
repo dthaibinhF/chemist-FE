@@ -17,15 +17,21 @@ import { DialogEditFee } from './dialog-edit-fee';
 
 interface FeeTableProps {
   ComponentForCreate?: React.ReactNode | null;
+  data?: Fee[];
 }
 
-const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
+const FeeTable = ({ ComponentForCreate = <DialogAddFee />, data }: FeeTableProps) => {
   const { fees, loading, handleFetchFees, handleDeleteFee } = useFee();
   const { financial } = useRolePermissions();
 
   useEffect(() => {
-    handleFetchFees();
-  }, [handleFetchFees]);
+    if (!data) {
+      handleFetchFees();
+    }
+  }, [handleFetchFees, data]);
+
+  // Use provided data or fallback to fees from hook
+  const displayData = data || fees;
 
   const columns: ColumnDef<Fee>[] = [
     {
@@ -141,7 +147,7 @@ const FeeTable = ({ ComponentForCreate = <DialogAddFee /> }: FeeTableProps) => {
     <div>
       <DataTable 
         columns={columns} 
-        data={fees} 
+        data={displayData} 
         ComponentForCreate={financial.canManageFees ? ComponentForCreate : undefined} 
       />
     </div>
