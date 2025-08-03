@@ -85,6 +85,8 @@ export interface PaymentDetail extends BaseDTO {
   due_date: Date;
   generated_amount: number;
   is_overdue: boolean;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface StudentPaymentSummary extends BaseDTO {

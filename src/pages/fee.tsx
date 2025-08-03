@@ -92,7 +92,7 @@ const FeeManagement = () => {
     return filtered;
   }, [fees, filters]);
 
-  // Calculate real statistics from fee data
+  // Calculate real statistics from payment data
   const feeStats = useMemo(() => {
     if (!fees || fees.length === 0) {
       return {
@@ -104,12 +104,31 @@ const FeeManagement = () => {
       };
     }
 
-    const totalRevenue = fees.reduce((sum, fee) => sum + fee.amount, 0);
-    const totalPaymentDetails = fees.reduce((sum, fee) => sum + (fee.payment_details?.length || 0), 0);
+    // Calculate actual revenue from payments
+    const totalRevenue = fees.reduce((sum, fee) => {
+      return sum + (fee.payment_details?.reduce((paymentSum, payment) => paymentSum + payment.amount, 0) || 0);
+    }, 0);
+
+    // Get unique students who have made payments
+    const paidStudentIds = new Set<number>();
+    const allStudentIds = new Set<number>();
     
-    // Estimate paid/unpaid based on payment_details
-    const paidStudents = Math.floor(totalPaymentDetails * 0.7); // Assume 70% paid
-    const unpaidStudents = Math.max(0, totalPaymentDetails - paidStudents);
+    fees.forEach(fee => {
+      if (fee.payment_details && fee.payment_details.length > 0) {
+        fee.payment_details.forEach(payment => {
+          allStudentIds.add(payment.student_id);
+          // Check if student has paid full amount for this fee
+          const studentPayments = fee.payment_details.filter(p => p.student_id === payment.student_id);
+          const totalPaid = studentPayments.reduce((sum, p) => sum + p.amount + p.have_discount, 0);
+          if (totalPaid >= fee.amount) {
+            paidStudentIds.add(payment.student_id);
+          }
+        });
+      }
+    });
+
+    const paidStudents = paidStudentIds.size;
+    const unpaidStudents = allStudentIds.size - paidStudents;
 
     return {
       totalFees: fees.length,
@@ -120,10 +139,10 @@ const FeeManagement = () => {
     };
   }, [fees]);
 
-  // Generate chart data from real fee data
+  // Generate chart data from actual payment data
   const monthlyRevenueData = useMemo(() => {
     if (!fees || fees.length === 0) return [];
-
+    
     const monthlyData = new Map<string, number>();
     const currentYear = new Date().getFullYear();
     
@@ -133,12 +152,16 @@ const FeeManagement = () => {
       monthlyData.set(monthKey, 0);
     }
 
-    // Aggregate fees by month
+    // Aggregate actual payments by month using payment_details.created_at
     fees.forEach(fee => {
-      const startDate = new Date(fee.start_time);
-      if (startDate.getFullYear() === currentYear) {
-        const monthKey = `T${startDate.getMonth() + 1}`;
-        monthlyData.set(monthKey, (monthlyData.get(monthKey) || 0) + fee.amount);
+      if (fee.payment_details && fee.payment_details.length > 0) {
+        fee.payment_details.forEach(payment => {
+          const paymentDate = new Date(payment.created_at || new Date());
+          if (paymentDate.getFullYear() === currentYear) {
+            const monthKey = `T${paymentDate.getMonth() + 1}`;
+            monthlyData.set(monthKey, (monthlyData.get(monthKey) || 0) + payment.amount);
+          }
+        });
       }
     });
 
@@ -157,14 +180,22 @@ const FeeManagement = () => {
       phi_khac: 0
     };
 
+    // Use actual payment amounts from payment_details
     fees.forEach(fee => {
-      const amount = fee.amount;
-      if (amount >= 500000) {
-        distribution.hoc_phi += amount;
-      } else if (amount >= 100000) {
-        distribution.phi_co_so += amount;
-      } else {
-        distribution.phi_khac += amount;
+      if (fee.payment_details && fee.payment_details.length > 0) {
+        fee.payment_details.forEach(payment => {
+          // Categorize by the original fee amount to determine type, but use payment amount for value
+          const feeAmount = fee.amount;
+          const paymentAmount = payment.amount;
+          
+          if (feeAmount >= 500000) {
+            distribution.hoc_phi += paymentAmount;
+          } else if (feeAmount >= 100000) {
+            distribution.phi_co_so += paymentAmount;
+          } else {
+            distribution.phi_khac += paymentAmount;
+          }
+        });
       }
     });
 
@@ -188,18 +219,40 @@ const FeeManagement = () => {
       };
     }
 
-    const amounts = fees.map(fee => fee.amount);
-    const totalRevenue = amounts.reduce((sum, amount) => sum + amount, 0);
-    const averageAmount = Math.round(totalRevenue / fees.length);
+    // Calculate actual revenue from payments
+    const totalRevenue = fees.reduce((sum, fee) => {
+      return sum + (fee.payment_details?.reduce((paymentSum, payment) => paymentSum + payment.amount, 0) || 0);
+    }, 0);
+
+    // Calculate average payment amount (not fee amount)
+    const totalPayments = fees.reduce((sum, fee) => sum + (fee.payment_details?.length || 0), 0);
+    const averageAmount = totalPayments > 0 ? Math.round(totalRevenue / totalPayments) : 0;
     
     const mostExpensive = fees.reduce((max, fee) => 
       fee.amount > max.amount ? fee : max, fees[0]);
     const cheapest = fees.reduce((min, fee) => 
       fee.amount < min.amount ? fee : min, fees[0]);
 
-    const totalPaymentDetails = fees.reduce((sum, fee) => sum + (fee.payment_details?.length || 0), 0);
-    const paidStudents = Math.floor(totalPaymentDetails * 0.7);
-    const unpaidStudents = Math.max(0, totalPaymentDetails - paidStudents);
+    // Get unique students who have made payments
+    const paidStudentIds = new Set<number>();
+    const allStudentIds = new Set<number>();
+    
+    fees.forEach(fee => {
+      if (fee.payment_details && fee.payment_details.length > 0) {
+        fee.payment_details.forEach(payment => {
+          allStudentIds.add(payment.student_id);
+          // Check if student has paid full amount for this fee
+          const studentPayments = fee.payment_details.filter(p => p.student_id === payment.student_id);
+          const totalPaid = studentPayments.reduce((sum, p) => sum + p.amount + p.have_discount, 0);
+          if (totalPaid >= fee.amount) {
+            paidStudentIds.add(payment.student_id);
+          }
+        });
+      }
+    });
+
+    const paidStudents = paidStudentIds.size;
+    const unpaidStudents = allStudentIds.size - paidStudents;
 
     return {
       totalFees: fees.length,
@@ -226,7 +279,7 @@ const FeeManagement = () => {
     // Implement Excel export
   };
 
-  const handleExportPDF = () => {
+const handleExportPDF = () => {
     toast.success('Đã xuất file PDF thành công!');
     // Implement PDF export
   };
