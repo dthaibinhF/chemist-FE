@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { EnhancedFinanceOverviewCards } from '@/components/common/enhanced-finance-overview-cards';
 import { PaymentStatusCharts } from '@/components/common/payment-status-charts';
 import { OverduePaymentAlerts } from '@/components/common/overdue-payment-alerts';
-import { EnhancedPaymentSummaryTable } from '@/components/common/enhanced-payment-summary-table';
 import { FinanceCalendar } from '@/components/common/finance-calendar';
 import { PaymentHistoryTable } from '@/feature/payment/components/payment-history-table';
 import { DialogCreatePayment } from '@/feature/payment/components/dialog-create-payment';
@@ -189,7 +188,7 @@ export const FinanceManagement = () => {
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="payments">Thanh toán</TabsTrigger>
-          <TabsTrigger value="obligations">Học phí</TabsTrigger>
+          {/* <TabsTrigger value="obligations">Học phí</TabsTrigger> */}
           <TabsTrigger value="charts">Biểu đồ</TabsTrigger>
           <TabsTrigger value="calendar">Lịch</TabsTrigger>
           {(teacher.canViewAllSalaries || teacher.canViewOwnSalary) && (
@@ -236,9 +235,9 @@ export const FinanceManagement = () => {
           />
         </TabsContent>
 
-        <TabsContent value="obligations" className="space-y-4">
+        {/* <TabsContent value="obligations" className="space-y-4">
           <EnhancedPaymentSummaryTable />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="charts" className="space-y-4">
           <div className="grid gap-6">
