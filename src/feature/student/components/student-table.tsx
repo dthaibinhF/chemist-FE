@@ -91,7 +91,17 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
       },
       {
         accessorKey: 'name',
-        header: 'Họ tên',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Họ tên
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
         cell: ({ row }) => (
           <button
             onClick={() => handleViewStudent(row.original)}
@@ -111,10 +121,25 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
       {
         id: 'groupName',
         accessorKey: 'group_name',
-        header: 'Nhóm học',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Nhóm học
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
         cell: ({ row }) => {
           const groupName = row.original.student_details?.[0]?.group_name;
           return <span className="text-sm">{groupName || '-'}</span>;
+        },
+        sortingFn: (rowA, rowB) => {
+          const groupA = rowA.original.student_details?.[0]?.group_name || '';
+          const groupB = rowB.original.student_details?.[0]?.group_name || '';
+          return groupA.localeCompare(groupB);
         },
       },
       {
@@ -129,7 +154,17 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
       {
         id: 'schoolName',
         accessorKey: 'school_name',
-        header: 'Trường',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Trường
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
         cell: ({ row }) => {
           const schoolName = row.original.student_details?.[0]?.school?.name;
           return (
@@ -137,6 +172,11 @@ export const StudentTable = memo(({ students: studentsProp }: StudentTableProps)
               {schoolName || '-'}
             </span>
           );
+        },
+        sortingFn: (rowA, rowB) => {
+          const schoolA = rowA.original.student_details?.[0]?.school?.name || '';
+          const schoolB = rowB.original.student_details?.[0]?.school?.name || '';
+          return schoolA.localeCompare(schoolB);
         },
       },
       {
