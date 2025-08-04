@@ -228,7 +228,7 @@ export const FinanceManagement = () => {
             isLoading={paymentLoading}
             showSummary={true}
             showFilters={false}
-            enableExport={true}
+            enableExport={false}
             onOpenAddPayment={() => setOpenAddPayment(true)}
             title="Quản lý thanh toán toàn hệ thống"
             description="Tất cả các giao dịch thanh toán trong hệ thống"
