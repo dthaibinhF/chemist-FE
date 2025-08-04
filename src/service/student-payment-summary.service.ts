@@ -49,6 +49,15 @@ export const studentPaymentSummaryService = {
     return response.data;
   },
 
+  //get payment summary by student id and fee id
+  getPaymentSummaryByStudentIdAndFeeId: async (
+    studentId: number,
+    feeId: number
+  ): Promise<StudentPaymentSummary> => {
+    const response = await apiClient.get(`/student/${studentId}/fee/${feeId}`);
+    return response.data;
+  },
+
   // 🔄 Payment Summary Updates
 
   // Update payment summary after payment is made

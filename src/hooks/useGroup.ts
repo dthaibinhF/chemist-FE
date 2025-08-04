@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 import { useAppDispatch, useAppSelector } from '@/redux/hook';
 
-import { createGroup, deleteGroup, fetchGroup, fetchGroupByName, fetchGroups, fetchGroupsWithDetail, updateGroup } from '@/redux/slice/group.slice';
+import { createGroup, deleteGroup, fetchGroup, fetchGroupBasicInfoById, fetchGroupByName, fetchGroups, fetchGroupsWithDetail, updateGroup } from '@/redux/slice/group.slice';
 import type { Group } from '@/types/api.types';
 
 
@@ -21,6 +21,13 @@ export const useGroup = () => {
   const handleFetchGroup = useCallback(
     (id: number) => {
       dispatch(fetchGroup(id));
+    },
+    [dispatch]
+  );
+
+  const handleFetchGroupBasicInfoById = useCallback(
+    (id: number) => {
+      dispatch(fetchGroupBasicInfoById(id));
     },
     [dispatch]
   );
@@ -64,6 +71,7 @@ export const useGroup = () => {
     handleFetchGroupsWithDetail,
     handleFetchGroup,
     handleFetchGroupByName,
+    handleFetchGroupBasicInfoById,
     handleCreateGroup,
     handleUpdateGroup,
     handleDeleteGroup,

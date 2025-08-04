@@ -9,7 +9,6 @@ import {
   fetchPaymentDetails,
   fetchPaymentsByDateRange,
   fetchPaymentsByStatus,
-  fetchTotalPaidByStudentForFee,
   searchPayments,
   updatePaymentDetail,
 } from "@/redux/slice/payment.slice";
@@ -84,12 +83,6 @@ export const usePayment = () => {
     [dispatch]
   );
 
-  const handleFetchTotalPaidByStudentForFee = useCallback(
-    (studentId: number, feeId: number) => {
-      dispatch(fetchTotalPaidByStudentForFee({ studentId, feeId }));
-    },
-    [dispatch]
-  );
 
   const handleFetchPaymentsByDateRange = useCallback(
     (params: PaymentSearchParams) => {
@@ -122,7 +115,6 @@ export const usePayment = () => {
     handleFetchPaymentDetailByStudentIdAndFeeId,
     // Enhanced methods
     handleFetchPaymentsByStatus,
-    handleFetchTotalPaidByStudentForFee,
     handleFetchPaymentsByDateRange,
     handleSearchPayments,
   };

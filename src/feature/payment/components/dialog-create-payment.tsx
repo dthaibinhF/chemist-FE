@@ -32,9 +32,12 @@ import { getCurrentStudentDetail } from '@/lib/student-utils';
 import { PaymentDetail, PaymentStatus } from '@/types/api.types';
 import { handlePaymentApiError } from '@/utils/payment-utils';
 import { formatCurrencyVND } from '@/utils/currency-utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { PaymentSummaryCard } from '@/components/common/payment-summary-card';
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import { Plus } from 'lucide-react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import { useEffect } from 'react';
+import { groupService } from '@/service/group.service';
 
 const PaymentSchema = z.object({
     fee_id: z.number().min(1, { message: 'Vui lòng chọn loại phí' }),
@@ -57,10 +60,14 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
     const { handleCreatePaymentDetail, loading } = usePayment();
     const {
         handleFetchPaymentSummariesByStudent,
+        handleFetchPaymentSummaryByStudentIdAndFeeId,
+        handleClearPaymentSummary,
+        paymentSummary,
+        loading: summaryLoading,
+        error: summaryError
     } = useStudentPaymentSummary();
     const { fees, handleFetchFees } = useFee();
     const { students, loadStudents } = useStudent();
-
     const form = useForm<PaymentFormData>({
         resolver: zodResolver(PaymentSchema),
         defaultValues: {
@@ -74,6 +81,9 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         },
     });
 
+    const selectedStudentId = form.watch('student_id');
+    const selectedFeeId = form.watch('fee_id');
+
     // Load fees and students when dialog opens - stabilized dependencies
     useEffect(() => {
         if (open) {
@@ -82,6 +92,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         }
     }, [open]); // Remove function dependencies to prevent re-renders
 
+    console.log('fees', fees);
 
     // Auto-fill form when dialog opens
     useEffect(() => {
@@ -90,9 +101,79 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         }
     }, [open]);
 
+    // Fetch group info when student is selected
+    useEffect(() => {
+        const fetchGroupInfo = async () => {
+        if (selectedStudentId > 0) {
+            const student = students.find(student => student.id === selectedStudentId);
+            if (student) {
+                const detail = getCurrentStudentDetail(student.student_details || []);
+                if (detail?.group_id) {
+                    const group = await groupService.getGroupBasicInfoById(detail.group_id);
+                    form.setValue('fee_id', group.fee_id);
+                    handleFetchPaymentSummaryByStudentIdAndFeeId(selectedStudentId, group.fee_id);
+                }
+            }
+            }
+        };
+        fetchGroupInfo();
+    }, [selectedStudentId, students]);
+
+    // Set fee_id after group is loaded
+    // useEffect(() => {
+    //     if (selectedStudentId > 0 && group?.fee_id) {
+    //         form.setValue('fee_id', group.fee_id);
+    //     }
+    // }, [selectedStudentId, group, form]);
+
+    // Fetch payment summary when student and fee are selected
+    // useEffect(() => {
+    //     if (open && selectedStudentId > 0 && selectedFeeId > 0) {
+    //         console.log('Fetching payment summary for student:', selectedStudentId, 'fee:', selectedFeeId);
+    //         handleFetchPaymentSummaryByStudentIdAndFeeId(selectedStudentId, selectedFeeId);
+    //     }
+    // }, [open, selectedStudentId, selectedFeeId, handleFetchPaymentSummaryByStudentIdAndFeeId]);
+
+    // Auto-suggest remaining amount when payment summary changes
+    useEffect(() => {
+        console.log('Payment summary changed:', paymentSummary);
+        if (paymentSummary && !paymentSummary.is_fully_paid && paymentSummary.outstanding_amount > 0) {
+            console.log('Setting amount to outstanding:', paymentSummary.outstanding_amount);
+            form.setValue('amount', paymentSummary.outstanding_amount);
+        } else if (!paymentSummary && selectedFeeId > 0) {
+            // New student case - suggest full fee amount
+            const selectedFee = fees.find(fee => fee.id === selectedFeeId);
+            if (selectedFee) {
+                console.log('Setting amount to full fee:', selectedFee.amount);
+                form.setValue('amount', selectedFee.amount);
+            }
+        }
+    }, [paymentSummary, selectedFeeId, fees, form]);
+
 
     const onSubmit = async (data: PaymentFormData) => {
         try {
+            // Check if payment should be prevented - student already fully paid
+            if (paymentSummary && paymentSummary.is_fully_paid) {
+                toast.error('Không thể tạo thanh toán vì học sinh đã thanh toán đủ phí này');
+                return;
+            }
+
+            // Check if amount exceeds remaining balance for existing students
+            if (paymentSummary && paymentSummary.outstanding_amount > 0 && data.amount > paymentSummary.outstanding_amount) {
+                toast.error(`Số tiền không được vượt quá ${paymentSummary.outstanding_amount.toLocaleString('vi-VN')} VNĐ (số tiền còn thiếu)`);
+                return;
+            }
+
+            // For new students, check against full fee amount
+            if (!paymentSummary) {
+                const selectedFee = fees.find(fee => fee.id === data.fee_id);
+                if (selectedFee && data.amount > selectedFee.amount) {
+                    toast.error(`Số tiền không được vượt quá ${selectedFee.amount.toLocaleString('vi-VN')} VNĐ (tổng phí)`);
+                    return;
+                }
+            }
+
             const selectedFee = fees.find(fee => fee.id === data.fee_id);
             const selectedStudent = students.find(student => student.id === data.student_id);
 
@@ -112,8 +193,8 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 description: data.description || '',
                 have_discount: data.have_discount,
                 payment_status: PaymentStatus.PENDING, // Let backend determine the actual status
-                due_date: new Date(data.due_date),
-                generated_amount: data.amount + data.have_discount,
+                due_date: selectedFee.end_time,
+                generated_amount: selectedFee.amount,
                 is_overdue: false, // Let backend determine this
             };
 
@@ -147,6 +228,9 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 have_discount: 0,
                 due_date: '',
             });
+            // Clear payment summary state when closing
+            handleClearPaymentSummary();
+            console.log('Dialog closed, clearing state');
         }
         onOpenChange?.(newOpen);
     };
@@ -165,7 +249,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 }
                 
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Tạo thanh toán mới</DialogTitle>
                     <DialogDescription>
@@ -232,6 +316,35 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                             )}
                         />
 
+                        {/* Payment Summary Card */}
+                        {selectedStudentId > 0 && selectedFeeId > 0 && (
+                            <div className="col-span-2">
+                                {(() => {
+                                    const selectedFee = fees.find(fee => fee.id === selectedFeeId);
+                                    if (!selectedFee) return null;
+                                    
+                                    return (
+                                        <PaymentSummaryCard
+                                            fee={selectedFee}
+                                            paymentSummary={paymentSummary}
+                                            isLoading={summaryLoading}
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        )}
+
+                        {/* Simple validation error for API issues */}
+                        {summaryError && (
+                            <div className="col-span-2">
+                                <Alert variant="destructive">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Lỗi kiểm tra</AlertTitle>
+                                    <AlertDescription>{summaryError}</AlertDescription>
+                                </Alert>
+                            </div>
+                        )}
+
                         <FormField
                             control={form.control}
                             name="pay_method"
@@ -269,8 +382,15 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                                 field.onChange(value);
                                             }}
                                             placeholder="Nhập số tiền"
+                                            disabled={paymentSummary?.is_fully_paid}
                                         />
+                                        
                                     </FormControl>
+                                    {paymentSummary?.is_fully_paid && (
+                                            <p className="text-xs text-gray-500">
+                                                Học sinh đã thanh toán đủ phí này
+                                            </p>
+                                        )}
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -309,7 +429,8 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                         <Input
                                             type="date"
                                             {...field}
-                                            min={new Date().toISOString().split('T')[0]}
+                                            // min={format(new Date(), 'dd/MM/yyyy')}
+                                            data-date-format="dd/MM/yyyy"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -342,7 +463,10 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                             >
                                 Hủy
                             </Button>
-                            <Button type="submit" disabled={loading}>
+                            <Button 
+                                type="submit" 
+                                disabled={loading || (paymentSummary ? paymentSummary.is_fully_paid : false)}
+                            >
                                 {loading ? 'Đang tạo...' : 'Tạo thanh toán'}
                             </Button>
                         </DialogFooter>

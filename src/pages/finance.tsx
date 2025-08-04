@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 
 import { EnhancedFinanceOverviewCards } from '@/components/common/enhanced-finance-overview-cards';
 import { PaymentStatusCharts } from '@/components/common/payment-status-charts';
-import { OverduePaymentAlerts } from '@/components/common/overdue-payment-alerts';
+// import { OverduePaymentAlerts } from '@/components/common/overdue-payment-alerts';
 import { FinanceCalendar } from '@/components/common/finance-calendar';
 import { PaymentHistoryTable } from '@/feature/payment/components/payment-history-table';
 import { DialogCreatePayment } from '@/feature/payment/components/dialog-create-payment';
@@ -76,11 +76,11 @@ export const FinanceManagement = () => {
   // Note: DialogCreatePayment handles success internally with toast notifications
 
   // Add refresh function for child components
-  const handleRefreshDashboardData = useCallback(() => {
-    handleFetchDashboardStatistics();
-    handleFetchOverdueStatistics();
-    handleFetchPaymentDetails();
-  }, [handleFetchDashboardStatistics, handleFetchOverdueStatistics, handleFetchPaymentDetails]);
+  // const handleRefreshDashboardData = useCallback(() => {
+  //   handleFetchDashboardStatistics();
+  //   handleFetchOverdueStatistics();
+  //   handleFetchPaymentDetails();
+  // }, [handleFetchDashboardStatistics, handleFetchOverdueStatistics, handleFetchPaymentDetails]);
 
   // Filter payment details based on current filters
   const filteredPaymentDetails = useMemo(() => {
@@ -178,7 +178,7 @@ export const FinanceManagement = () => {
       <EnhancedFinanceOverviewCards />
 
       {/* Overdue Payment Alerts */}
-      <OverduePaymentAlerts onRefreshData={handleRefreshDashboardData} />
+      {/* <OverduePaymentAlerts onRefreshData={handleRefreshDashboardData} /> */}
 
       {/* Filters */}
       <FinanceFiltersComponent onFiltersChange={handleFiltersChange} />
@@ -189,7 +189,7 @@ export const FinanceManagement = () => {
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="payments">Thanh toán</TabsTrigger>
           {/* <TabsTrigger value="obligations">Học phí</TabsTrigger> */}
-          <TabsTrigger value="charts">Biểu đồ</TabsTrigger>
+          {/* <TabsTrigger value="charts">Biểu đồ</TabsTrigger> */}
           <TabsTrigger value="calendar">Lịch</TabsTrigger>
           {(teacher.canViewAllSalaries || teacher.canViewOwnSalary) && (
             <TabsTrigger value="salary">Lương GV</TabsTrigger>
@@ -228,7 +228,7 @@ export const FinanceManagement = () => {
             isLoading={paymentLoading}
             showSummary={true}
             showFilters={false}
-            enableExport={true}
+            enableExport={false}
             onOpenAddPayment={() => setOpenAddPayment(true)}
             title="Quản lý thanh toán toàn hệ thống"
             description="Tất cả các giao dịch thanh toán trong hệ thống"
@@ -239,12 +239,11 @@ export const FinanceManagement = () => {
           <EnhancedPaymentSummaryTable />
         </TabsContent> */}
 
-        <TabsContent value="charts" className="space-y-4">
+        {/* <TabsContent value="charts" className="space-y-4">
           <div className="grid gap-6">
             <PaymentStatusCharts />
-
           </div>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="calendar" className="space-y-4">
           <FinanceCalendar

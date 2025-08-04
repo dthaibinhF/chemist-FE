@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
 import { useEffect, useState } from "react";
-import { BarChart3, GraduationCap } from "lucide-react";
 import { EnhancedFinanceOverviewCards } from "@/components/common/enhanced-finance-overview-cards";
 import { StudentStatsCards } from "@/feature/student/components/student-stats-cards";
 import { WeeklyCalendar } from "@/feature/timetable/components/weekly-calendar";
@@ -11,7 +10,7 @@ import { convertScheduleToEvent } from "@/feature/timetable/utils/calendar-utils
 
 const Dashboard = () => {
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
-  const { dashboard, financial, student, admin } = useRolePermissions();
+  const { financial, student } = useRolePermissions();
   const { students, loading: studentLoading, loadStudents } = useStudent();
   const { schedules, loading: scheduleLoading, handleFetchWeeklySchedules } = useTimetable();
 

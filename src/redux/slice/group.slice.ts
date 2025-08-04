@@ -38,6 +38,15 @@ export const fetchGroup = createAsyncThunk(
   }
 );
 
+export const fetchGroupBasicInfoById = createAsyncThunk(
+
+  "group/fetchGroupBasicInfoById",
+  async (id: number) => {
+    const response = await groupService.getGroupBasicInfoById(id);
+    return response;
+  }
+);
+
 export const fetchGroupByName = createAsyncThunk(
   "group/fetchGroupByName",
   async (name: string) => {
@@ -123,7 +132,20 @@ export const groupSlice = createSlice({
       state.loading = false;
       state.error = action.error.message ?? "Failed to fetch group";
     });
-    // fetch group by name
+    // fetch group basic info by id
+    builder.addCase(fetchGroupBasicInfoById.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchGroupBasicInfoById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.group = action.payload;
+    });
+    builder.addCase(fetchGroupBasicInfoById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message ?? "Failed to fetch group basic info by id";
+    });
+      // fetch group by name
     builder.addCase(fetchGroupByName.pending, (state) => {
       state.loading = true;
       state.error = null;

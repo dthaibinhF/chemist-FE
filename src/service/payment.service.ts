@@ -61,15 +61,6 @@ export const paymentService = {
     return response.data;
   },
 
-  // Get total amount paid by student for specific fee
-  getTotalPaidByStudentForFee: async (
-    studentId: number,
-    feeId: number
-  ): Promise<number> => {
-    const response = await apiClient.get(`/student/${studentId}/fee/${feeId}/total`);
-    return response.data;
-  },
-
   // Get payments within date range
   getPaymentsByDateRange: async (
     params: PaymentSearchParams
