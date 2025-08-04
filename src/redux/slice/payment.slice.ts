@@ -103,13 +103,6 @@ export const fetchPaymentsByStatus = createAsyncThunk(
   }
 );
 
-export const fetchTotalPaidByStudentForFee = createAsyncThunk(
-  "payment/fetchTotalPaidByStudentForFee",
-  async ({ studentId, feeId }: { studentId: number; feeId: number }) => {
-    const response = await paymentService.getTotalPaidByStudentForFee(studentId, feeId);
-    return response;
-  }
-);
 
 export const fetchPaymentsByDateRange = createAsyncThunk(
   "payment/fetchPaymentsByDateRange",
