@@ -28,17 +28,16 @@ import { useStudent } from '@/feature/student/hooks/useStudent';
 import { useFee } from '@/hooks/useFee';
 import { usePayment } from '@/hooks/usePayment';
 import { useStudentPaymentSummary } from '@/hooks/useStudentPaymentSummary';
-import { usePaymentDuplicateCheck } from '@/hooks/usePaymentDuplicateCheck';
 import { getCurrentStudentDetail } from '@/lib/student-utils';
 import { PaymentDetail, PaymentStatus } from '@/types/api.types';
 import { handlePaymentApiError } from '@/utils/payment-utils';
 import { formatCurrencyVND } from '@/utils/currency-utils';
-import { shouldPreventSubmission, suggestPaymentAmount } from '@/utils/payment-duplicate-validation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { PaymentSummaryCard } from '@/components/common/payment-summary-card';
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import { Plus, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import { useEffect } from 'react';
+import { groupService } from '@/service/group.service';
 
 const PaymentSchema = z.object({
     fee_id: z.number().min(1, { message: 'Vui lòng chọn loại phí' }),
@@ -61,10 +60,14 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
     const { handleCreatePaymentDetail, loading } = usePayment();
     const {
         handleFetchPaymentSummariesByStudent,
+        handleFetchPaymentSummaryByStudentIdAndFeeId,
+        handleClearPaymentSummary,
+        paymentSummary,
+        loading: summaryLoading,
+        error: summaryError
     } = useStudentPaymentSummary();
     const { fees, handleFetchFees } = useFee();
     const { students, loadStudents } = useStudent();
-
     const form = useForm<PaymentFormData>({
         resolver: zodResolver(PaymentSchema),
         defaultValues: {
@@ -80,12 +83,6 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
 
     const selectedStudentId = form.watch('student_id');
     const selectedFeeId = form.watch('fee_id');
-    
-    const { validationResult, isValidating, error: validationError } = usePaymentDuplicateCheck({
-        studentId: selectedStudentId,
-        feeId: selectedFeeId,
-        enabled: open && selectedStudentId > 0 && selectedFeeId > 0
-    });
 
     // Load fees and students when dialog opens - stabilized dependencies
     useEffect(() => {
@@ -95,6 +92,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         }
     }, [open]); // Remove function dependencies to prevent re-renders
 
+    console.log('fees', fees);
 
     // Auto-fill form when dialog opens
     useEffect(() => {
@@ -103,29 +101,77 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
         }
     }, [open]);
 
-    // Auto-suggest remaining amount when validation result changes
+    // Fetch group info when student is selected
     useEffect(() => {
-        if (validationResult && !validationResult.isFullyPaid && validationResult.remainingAmount > 0) {
-            const suggestedAmount = suggestPaymentAmount(validationResult);
-            if (suggestedAmount > 0) {
-                form.setValue('amount', suggestedAmount);
+        const fetchGroupInfo = async () => {
+        if (selectedStudentId > 0) {
+            const student = students.find(student => student.id === selectedStudentId);
+            if (student) {
+                const detail = getCurrentStudentDetail(student.student_details || []);
+                if (detail?.group_id) {
+                    const group = await groupService.getGroupBasicInfoById(detail.group_id);
+                    form.setValue('fee_id', group.fee_id);
+                    handleFetchPaymentSummaryByStudentIdAndFeeId(selectedStudentId, group.fee_id);
+                }
+            }
+            }
+        };
+        fetchGroupInfo();
+    }, [selectedStudentId, students]);
+
+    // Set fee_id after group is loaded
+    // useEffect(() => {
+    //     if (selectedStudentId > 0 && group?.fee_id) {
+    //         form.setValue('fee_id', group.fee_id);
+    //     }
+    // }, [selectedStudentId, group, form]);
+
+    // Fetch payment summary when student and fee are selected
+    // useEffect(() => {
+    //     if (open && selectedStudentId > 0 && selectedFeeId > 0) {
+    //         console.log('Fetching payment summary for student:', selectedStudentId, 'fee:', selectedFeeId);
+    //         handleFetchPaymentSummaryByStudentIdAndFeeId(selectedStudentId, selectedFeeId);
+    //     }
+    // }, [open, selectedStudentId, selectedFeeId, handleFetchPaymentSummaryByStudentIdAndFeeId]);
+
+    // Auto-suggest remaining amount when payment summary changes
+    useEffect(() => {
+        console.log('Payment summary changed:', paymentSummary);
+        if (paymentSummary && !paymentSummary.is_fully_paid && paymentSummary.outstanding_amount > 0) {
+            console.log('Setting amount to outstanding:', paymentSummary.outstanding_amount);
+            form.setValue('amount', paymentSummary.outstanding_amount);
+        } else if (!paymentSummary && selectedFeeId > 0) {
+            // New student case - suggest full fee amount
+            const selectedFee = fees.find(fee => fee.id === selectedFeeId);
+            if (selectedFee) {
+                console.log('Setting amount to full fee:', selectedFee.amount);
+                form.setValue('amount', selectedFee.amount);
             }
         }
-    }, [validationResult, form]);
+    }, [paymentSummary, selectedFeeId, fees, form]);
 
 
     const onSubmit = async (data: PaymentFormData) => {
         try {
-            // Check if payment should be prevented
-            if (validationResult && shouldPreventSubmission(validationResult)) {
+            // Check if payment should be prevented - student already fully paid
+            if (paymentSummary && paymentSummary.is_fully_paid) {
                 toast.error('Không thể tạo thanh toán vì học sinh đã thanh toán đủ phí này');
                 return;
             }
 
-            // Check if amount exceeds remaining balance
-            if (validationResult && validationResult.remainingAmount > 0 && data.amount > validationResult.remainingAmount) {
-                toast.error(`Số tiền không được vượt quá ${validationResult.remainingAmount.toLocaleString('vi-VN')} VNĐ (số tiền còn thiếu)`);
+            // Check if amount exceeds remaining balance for existing students
+            if (paymentSummary && paymentSummary.outstanding_amount > 0 && data.amount > paymentSummary.outstanding_amount) {
+                toast.error(`Số tiền không được vượt quá ${paymentSummary.outstanding_amount.toLocaleString('vi-VN')} VNĐ (số tiền còn thiếu)`);
                 return;
+            }
+
+            // For new students, check against full fee amount
+            if (!paymentSummary) {
+                const selectedFee = fees.find(fee => fee.id === data.fee_id);
+                if (selectedFee && data.amount > selectedFee.amount) {
+                    toast.error(`Số tiền không được vượt quá ${selectedFee.amount.toLocaleString('vi-VN')} VNĐ (tổng phí)`);
+                    return;
+                }
             }
 
             const selectedFee = fees.find(fee => fee.id === data.fee_id);
@@ -147,8 +193,8 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 description: data.description || '',
                 have_discount: data.have_discount,
                 payment_status: PaymentStatus.PENDING, // Let backend determine the actual status
-                due_date: new Date(data.due_date),
-                generated_amount: data.amount + data.have_discount,
+                due_date: selectedFee.end_time,
+                generated_amount: selectedFee.amount,
                 is_overdue: false, // Let backend determine this
             };
 
@@ -182,11 +228,12 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 have_discount: 0,
                 due_date: '',
             });
+            // Clear payment summary state when closing
+            handleClearPaymentSummary();
+            console.log('Dialog closed, clearing state');
         }
         onOpenChange?.(newOpen);
     };
-
-    // console.log('validationResult', validationResult);
 
 
     return (
@@ -202,7 +249,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                 }
                 
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Tạo thanh toán mới</DialogTitle>
                     <DialogDescription>
@@ -279,61 +326,22 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                     return (
                                         <PaymentSummaryCard
                                             fee={selectedFee}
-                                            totalPaid={validationResult?.totalPaid || 0}
-                                            remainingAmount={validationResult?.remainingAmount || selectedFee.amount}
-                                            existingPayments={validationResult?.existingPayments || []}
-                                            isLoading={isValidating}
+                                            paymentSummary={paymentSummary}
+                                            isLoading={summaryLoading}
                                         />
                                     );
                                 })()}
                             </div>
                         )}
 
-                        {/* Payment Validation Alert */}
-                        {(validationResult || isValidating || validationError) && (
+                        {/* Simple validation error for API issues */}
+                        {summaryError && (
                             <div className="col-span-2">
-                                {isValidating && (
-                                    <Alert>
-                                        <Info className="h-4 w-4" />
-                                        <AlertTitle>Đang kiểm tra...</AlertTitle>
-                                        <AlertDescription>
-                                            Đang kiểm tra trạng thái thanh toán cho học sinh và phí đã chọn.
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
-                                
-                                {validationError && (
-                                    <Alert variant="destructive">
-                                        <AlertTriangle className="h-4 w-4" />
-                                        <AlertTitle>Lỗi kiểm tra</AlertTitle>
-                                        <AlertDescription>{validationError}</AlertDescription>
-                                    </Alert>
-                                )}
-                                
-                                {validationResult && validationResult.message && (
-                                    <Alert variant={validationResult.severity === 'error' ? 'destructive' : 'default'}>
-                                        {validationResult.severity === 'error' && <AlertTriangle className="h-4 w-4" />}
-                                        {validationResult.severity === 'warning' && <AlertTriangle className="h-4 w-4" />}
-                                        {validationResult.severity === 'info' && <CheckCircle className="h-4 w-4" />}
-                                        
-                                        <AlertTitle>
-                                            {validationResult.isFullyPaid && 'Đã thanh toán đủ'}
-                                            {!validationResult.isFullyPaid && validationResult.totalPaid > 0 && 'Đã thanh toán một phần'}
-                                            {validationResult.totalPaid === 0 && validationResult.existingPayments.length > 0 && 'Có thanh toán chờ xử lý'}
-                                        </AlertTitle>
-                                        
-                                        <AlertDescription>
-                                            <div className="space-y-1">
-                                                <p>{validationResult.message}</p>
-                                                {validationResult.existingPayments.length > 0 && (
-                                                    <p className="text-xs">
-                                                        Có {validationResult.existingPayments.length} khoản thanh toán liên quan.
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
+                                <Alert variant="destructive">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Lỗi kiểm tra</AlertTitle>
+                                    <AlertDescription>{summaryError}</AlertDescription>
+                                </Alert>
                             </div>
                         )}
 
@@ -362,50 +370,30 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                         <FormField
                             control={form.control}
                             name="amount"
-                            render={({ field }) => {
-                                const currentAmount = field.value;
-                                const remainingAmount = validationResult?.remainingAmount || 0;
-                                const isExceedingLimit = currentAmount > remainingAmount && remainingAmount > 0;
-                                
-                                return (
-                                    <FormItem>
-                                        <FormLabel className="flex items-center justify-between">
-                                            <span>Số tiền</span>
-                                            {validationResult && remainingAmount > 0 && (
-                                                <span className="text-xs text-muted-foreground">
-                                                    Tối đa: {formatCurrencyVND(remainingAmount)}
-                                                </span>
-                                            )}
-                                        </FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Input
-                                                    type="number"
-                                                    {...field}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        field.onChange(value);
-                                                    }}
-                                                    placeholder="Nhập số tiền"
-                                                    className={isExceedingLimit ? 'border-red-500 focus:border-red-500' : ''}
-                                                />
-                                                {isExceedingLimit && (
-                                                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </FormControl>
-                                        {isExceedingLimit && (
-                                            <div className="text-xs text-red-600 flex items-center gap-1">
-                                                <AlertTriangle className="h-3 w-3" />
-                                                Vượt quá số tiền còn thiếu ({formatCurrencyVND(remainingAmount)})
-                                            </div>
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Số tiền</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            {...field}
+                                            onChange={(e) => {
+                                                const value = Number(e.target.value);
+                                                field.onChange(value);
+                                            }}
+                                            placeholder="Nhập số tiền"
+                                            disabled={paymentSummary?.is_fully_paid}
+                                        />
+                                        
+                                    </FormControl>
+                                    {paymentSummary?.is_fully_paid && (
+                                            <p className="text-xs text-gray-500">
+                                                Học sinh đã thanh toán đủ phí này
+                                            </p>
                                         )}
-                                        <FormMessage />
-                                    </FormItem>
-                                );
-                            }}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
 
                         <FormField
@@ -441,7 +429,8 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                                         <Input
                                             type="date"
                                             {...field}
-                                            min={new Date().toISOString().split('T')[0]}
+                                            // min={format(new Date(), 'dd/MM/yyyy')}
+                                            data-date-format="dd/MM/yyyy"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -476,7 +465,7 @@ export const DialogCreatePayment = ({ open, onOpenChange }: DialogCreatePaymentP
                             </Button>
                             <Button 
                                 type="submit" 
-                                disabled={loading || (validationResult ? shouldPreventSubmission(validationResult) : false)}
+                                disabled={loading || (paymentSummary ? paymentSummary.is_fully_paid : false)}
                             >
                                 {loading ? 'Đang tạo...' : 'Tạo thanh toán'}
                             </Button>

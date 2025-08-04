@@ -8,6 +8,8 @@ import {
   generatePaymentForStudentInGroup,
   recalculateAllSummaries,
   updateSummaryAfterPayment,
+  fetchPaymentSummaryByStudentIdAndFeeId,
+  clearPaymentSummary,
 } from "@/redux/slice/student-payment-summary.slice";
 import { formatCurrency } from "@/utils/currency-utils";
 import { useCallback } from "react";
@@ -58,6 +60,13 @@ export const useStudentPaymentSummary = () => {
     [dispatch]
   );
 
+  const handleFetchPaymentSummaryByStudentIdAndFeeId = useCallback(
+    (studentId: number, feeId: number) => {
+      dispatch(fetchPaymentSummaryByStudentIdAndFeeId({ studentId, feeId }));
+    },
+    [dispatch]
+  );
+
   // 🔄 Payment Summary Updates
 
   const handleUpdateSummaryAfterPayment = useCallback(
@@ -76,6 +85,10 @@ export const useStudentPaymentSummary = () => {
 
   const handleRecalculateAllSummaries = useCallback(() => {
     dispatch(recalculateAllSummaries());
+  }, [dispatch]);
+
+  const handleClearPaymentSummary = useCallback(() => {
+    dispatch(clearPaymentSummary());
   }, [dispatch]);
 
   // 📈 Helper Functions
@@ -124,11 +137,13 @@ export const useStudentPaymentSummary = () => {
     handleFetchPaymentSummariesByStudent,
     handleFetchPaymentSummariesByGroup,
     handleFetchPaymentSummaryById,
-
+    handleFetchPaymentSummaryByStudentIdAndFeeId,
+    
     // Payment Summary Updates
     handleUpdateSummaryAfterPayment,
     handleDeletePaymentSummary,
     handleRecalculateAllSummaries,
+    handleClearPaymentSummary,
 
     // Helper Functionss
     getPaymentStatusColor,

@@ -23,6 +23,12 @@ export const groupService = {
     return response.data;
   },
 
+  // Lấy thoong tin cơ bản của nhóm theo id
+  getGroupBasicInfoById: async (id: number): Promise<Group> => {
+    const response = await apiClient.get(`/${id}/basic-info`);
+    return response.data;
+  },
+
   // Lấy nhóm theo tên
   getGroupByName: async (name: string): Promise<Group> => {
     const response = await apiClient.get(`/name/${name}`);

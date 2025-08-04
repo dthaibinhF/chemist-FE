@@ -63,6 +63,15 @@ export const fetchPaymentSummaryById = createAsyncThunk(
   }
 );
 
+export const fetchPaymentSummaryByStudentIdAndFeeId = createAsyncThunk(
+
+  "studentPaymentSummary/fetchPaymentSummaryByStudentIdAndFeeId",
+  async ({ studentId, feeId }: { studentId: number; feeId: number }) => {
+    const response = await studentPaymentSummaryService.getPaymentSummaryByStudentIdAndFeeId(studentId, feeId);
+    return response;
+  }
+);
+
 // 🔄 Payment Summary Update Thunks
 
 export const updateSummaryAfterPayment = createAsyncThunk(
@@ -194,6 +203,21 @@ export const studentPaymentSummarySlice = createSlice({
     builder.addCase(fetchPaymentSummaryById.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || "Failed to fetch payment summary by ID";
+    });
+
+    // Fetch payment summary by student ID and fee ID
+    builder.addCase(fetchPaymentSummaryByStudentIdAndFeeId.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchPaymentSummaryByStudentIdAndFeeId.fulfilled, (state, action) => {
+      state.loading = false;
+      state.paymentSummary = action.payload;
+      state.error = null;
+    });
+    builder.addCase(fetchPaymentSummaryByStudentIdAndFeeId.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch payment summary by student ID and fee ID";
     });
 
     // Update summary after payment

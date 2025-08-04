@@ -2,14 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrencyVND } from '@/utils/currency-utils';
-import { PaymentDetail, PaymentStatus, Fee } from '@/types/api.types';
-import { CheckCircle, Clock, AlertCircle, XCircle, CreditCard, TrendingUp } from 'lucide-react';
+import { PaymentStatus, Fee, StudentPaymentSummary } from '@/types/api.types';
+import { CheckCircle, Clock, AlertCircle, XCircle, CreditCard, TrendingUp, Users } from 'lucide-react';
 
 interface PaymentSummaryCardProps {
     fee: Fee;
-    totalPaid: number;
-    remainingAmount: number;
-    existingPayments: PaymentDetail[];
+    paymentSummary: StudentPaymentSummary | null;
     isLoading?: boolean;
 }
 
@@ -60,15 +58,9 @@ const getStatusLabel = (status: PaymentStatus) => {
 
 export const PaymentSummaryCard = ({
     fee,
-    totalPaid,
-    remainingAmount,
-    existingPayments,
+    paymentSummary,
     isLoading = false
 }: PaymentSummaryCardProps) => {
-    const completionPercentage = fee.amount > 0 ? Math.round((totalPaid / fee.amount) * 100) : 0;
-    const isFullyPaid = remainingAmount <= 0;
-    const hasPayments = existingPayments.length > 0;
-
     if (isLoading) {
         return (
             <Card className="animate-pulse">
@@ -87,15 +79,73 @@ export const PaymentSummaryCard = ({
         );
     }
 
+    // Handle new student case (no payment summary)
+    if (!paymentSummary) {
+        return (
+            <Card className="border-l-4 border-l-blue-500">
+                <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between text-base">
+                        <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            {fee.name}
+                        </div>
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            Học sinh mới
+                        </Badge>
+                    </CardTitle>
+                    <CardDescription>
+                        Tổng phí: {formatCurrencyVND(fee.amount)}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                            <span>Tiến độ thanh toán</span>
+                            <span className="font-medium">0%</span>
+                        </div>
+                        <Progress value={0} className="h-2" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="space-y-1">
+                            <span className="text-muted-foreground">Đã thanh toán</span>
+                            <div className="font-medium text-green-600">
+                                {formatCurrencyVND(0)}
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-muted-foreground">Còn thiếu</span>
+                            <div className="font-medium text-orange-600">
+                                {formatCurrencyVND(fee.amount)}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-center text-sm text-muted-foreground py-2 bg-gray-50 rounded">
+                        Chưa có lịch sử thanh toán
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const completionPercentage = Math.round(paymentSummary.completion_rate * 100);
+    const isFullyPaid = paymentSummary.is_fully_paid;
+
     return (
         <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                    <CreditCard className="h-4 w-4" />
-                    {fee.name}
+                <CardTitle className="flex items-center justify-between text-base">
+                    <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        {fee.name}
+                    </div>
+                    <Badge className={`${getStatusColor(paymentSummary.payment_status)} flex items-center gap-1`}>
+                        {getStatusIcon(paymentSummary.payment_status)}
+                        {getStatusLabel(paymentSummary.payment_status)}
+                    </Badge>
                 </CardTitle>
                 <CardDescription>
-                    Tổng phí: {formatCurrencyVND(fee.amount)}
+                    Tổng phí: {formatCurrencyVND(paymentSummary.total_amount_due)}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -113,77 +163,42 @@ export const PaymentSummaryCard = ({
                     <div className="space-y-1">
                         <span className="text-muted-foreground">Đã thanh toán</span>
                         <div className="font-medium text-green-600">
-                            {formatCurrencyVND(totalPaid)}
+                            {formatCurrencyVND(paymentSummary.total_amount_paid)}
                         </div>
                     </div>
                     <div className="space-y-1">
                         <span className="text-muted-foreground">Còn thiếu</span>
                         <div className={`font-medium ${isFullyPaid ? 'text-green-600' : 'text-orange-600'}`}>
-                            {formatCurrencyVND(remainingAmount)}
+                            {formatCurrencyVND(paymentSummary.outstanding_amount)}
                         </div>
                     </div>
                 </div>
 
-                {/* Payment Status */}
-                <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Trạng thái</span>
-                    <Badge className={`${getStatusColor(
-                        isFullyPaid ? PaymentStatus.PAID :
-                        totalPaid > 0 ? PaymentStatus.PARTIAL :
-                        PaymentStatus.PENDING
-                    )} flex items-center gap-1`}>
-                        {getStatusIcon(
-                            isFullyPaid ? PaymentStatus.PAID :
-                            totalPaid > 0 ? PaymentStatus.PARTIAL :
-                            PaymentStatus.PENDING
+                {/* Additional Info */}
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="flex items-center gap-2">
+                        {paymentSummary.is_overdue ? (
+                            <>
+                                <XCircle className="h-3 w-3 text-red-500" />
+                                <span className="text-red-600">Quá hạn</span>
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                                <span className="text-green-600">Đúng hạn</span>
+                            </>
                         )}
-                        {getStatusLabel(
-                            isFullyPaid ? PaymentStatus.PAID :
-                            totalPaid > 0 ? PaymentStatus.PARTIAL :
-                            PaymentStatus.PENDING
-                        )}
-                    </Badge>
-                </div>
-
-                {/* Payment History */}
-                {hasPayments && (
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Lịch sử thanh toán</span>
-                            <span className="text-xs text-muted-foreground">
-                                {existingPayments.length} khoản
-                            </span>
-                        </div>
-                        <div className="space-y-1 max-h-24 overflow-y-auto">
-                            {existingPayments.slice(0, 3).map((payment, index) => (
-                                <div key={payment.id || index} className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded">
-                                    <div className="flex items-center gap-2">
-                                        {getStatusIcon(payment.payment_status)}
-                                        <span>{formatCurrencyVND(payment.amount)}</span>
-                                        {payment.have_discount > 0 && (
-                                            <span className="text-green-600">
-                                                (-{formatCurrencyVND(payment.have_discount)})
-                                            </span>
-                                        )}
-                                    </div>
-                                    <Badge className={getStatusColor(payment.payment_status)}>
-                                        {getStatusLabel(payment.payment_status)}
-                                    </Badge>
-                                </div>
-                            ))}
-                            {existingPayments.length > 3 && (
-                                <div className="text-xs text-center text-muted-foreground py-1">
-                                    +{existingPayments.length - 3} khoản thanh toán khác
-                                </div>
-                            )}
-                        </div>
                     </div>
-                )}
+                    <div className="text-right">
+                        <span className="text-muted-foreground">Nhóm: </span>
+                        <span className="font-medium">{paymentSummary.group_name}</span>
+                    </div>
+                </div>
 
                 {/* Quick Info */}
-                {!isFullyPaid && remainingAmount > 0 && (
+                {!isFullyPaid && paymentSummary.outstanding_amount > 0 && (
                     <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
-                        💡 Số tiền đề xuất: {formatCurrencyVND(remainingAmount)}
+                        💡 Số tiền đề xuất: {formatCurrencyVND(paymentSummary.outstanding_amount)}
                     </div>
                 )}
 

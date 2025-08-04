@@ -90,23 +90,23 @@ export interface PaymentDetail extends BaseDTO {
 }
 
 export interface StudentPaymentSummary extends BaseDTO {
-  student_id: number;
-  student_name: string;
+  student_id: number; //ID of the student this summary belongs to.
+  student_name: string; 
   fee_id: number;
   fee_name: string;
   academic_year_id: number;
   academic_year_name: string;
   group_id: number;
   group_name: string;
-  total_amount_due: number;
-  total_amount_paid: number;
-  outstanding_amount: number;
-  payment_status: PaymentStatus;
-  due_date: Date;
-  enrollment_date: Date;
-  completion_rate: number;
-  is_overdue: boolean;
-  is_fully_paid: boolean;
+  total_amount_due: number; //Total amount the student is supposed to pay for this fee.
+  total_amount_paid: number; //Total amount the student has actually paid for this fee.
+  outstanding_amount: number; //Outstanding amount that still needs to be paid.
+  payment_status: PaymentStatus; //Current payment status for this fee obligation.
+  due_date: Date; //Date when the payment is due.
+  enrollment_date: Date; //Date when the student enrolled in the group/fee.
+  completion_rate: number; //Payment completion percentage (0.0 to 1.0).
+  is_overdue: boolean; //Whether the payment is overdue.
+  is_fully_paid: boolean; //Whether the payment is fully paid.
 }
 
 // Fee types
