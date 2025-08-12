@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -14,14 +14,16 @@ import FeeTable from '@/feature/fee/components/fee-table';
 import { useFee } from '@/hooks/useFee';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { DialogAddFee } from '@/feature/fee/components/dialog-add-fee';
+import { DialogCreatePayment } from '@/feature/payment/components';
 
 const FeeManagement = () => {
+  const [openCreatePayment, setOpenCreatePayment] = useState(false);
   usePageTitle('Quản lý học phí');
   const [activeTab, setActiveTab] = useState('list');
   const [filters, setFilters] = useState<FeeFiltersType>({
     searchTerm: '',
     feeType: 'all',
-    sortBy: 'name',
+    sortBy: 'name', 
     sortOrder: 'asc',
   });
   
@@ -269,10 +271,6 @@ const FeeManagement = () => {
     setFilters(newFilters);
   };
 
-  const handleExportReport = () => {
-    toast.info('Đang xuất báo cáo...');
-    // Implement export functionality
-  };
 
   const handleExportExcel = () => {
     toast.success('Đã xuất file Excel thành công!');
@@ -301,10 +299,10 @@ const handleExportPDF = () => {
           </div>
           <div className="flex items-center gap-2">
             <DialogAddFee />
-            <Button onClick={handleExportReport}>
+            {/* <Button onClick={handleExportReport}>
               <Download className="mr-2 h-4 w-4" />
               Xuất báo cáo
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -323,7 +321,10 @@ const handleExportPDF = () => {
           </TabsList>
 
           <TabsContent value="list">
-            <FeeTable ComponentForCreate={null} data={filteredAndSortedFees} />
+            <FeeTable ComponentForCreate={ <Button onClick={() => setOpenCreatePayment(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm thanh toán
+                  </Button> } data={filteredAndSortedFees} />
           </TabsContent>
 
           <TabsContent value="charts" className="space-y-4">
@@ -342,6 +343,7 @@ const handleExportPDF = () => {
             />
           </TabsContent>
         </Tabs>
+        <DialogCreatePayment open={openCreatePayment} onOpenChange={setOpenCreatePayment} />
       </div>
   );
 };

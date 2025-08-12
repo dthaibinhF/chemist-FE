@@ -9,8 +9,8 @@ import FinanceManagement from "@/pages/finance.tsx";
 import { GroupDetail } from "@/pages/group-detail";
 import GroupManagement from "@/pages/group.tsx";
 import AuthLayout from "@/pages/layout/AuthLayout.tsx";
+import ConditionalAILayout from "@/pages/layout/ConditionalAILayout.tsx";
 import HomeLayout from "@/pages/layout/HomeLayout.tsx";
-import PublicLayout from "@/pages/layout/PublicLayout.tsx";
 import { LoginPage } from "@/pages/login-page.tsx";
 import Profile from "@/pages/profile.tsx";
 import { StudentDetailPage } from "@/pages/student-detail.tsx";
@@ -28,49 +28,51 @@ export const router = createBrowserRouter([
       {
         index: true,
         path: "dashboard",
-        Component: Dashboard,
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
+          <Dashboard />
+        </RoleBasedAccess>,
       },
       {
         path: "student",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <StudentManagement />
         </RoleBasedAccess>,
         errorElement: <ErrorPage />,
       },
       {
         path: "student/:id",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <StudentDetailPage />
         </RoleBasedAccess>,
         // errorElement: <ErrorPage />,
       },
       {
         path: "finance",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER']}>
           <FinanceManagement />
         </RoleBasedAccess>,
       },
       {
         path: "group",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <GroupManagement />
         </RoleBasedAccess>,
       },
       {
         path: "fee",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <FeeManagement />
         </RoleBasedAccess>,
       },
       {
         path: "fee/:id",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER']}>
           <FeeDetail />
         </RoleBasedAccess>,
       },
       {
         path: "group/:id",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <GroupDetail />
         </RoleBasedAccess>,
       },
@@ -102,7 +104,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/ai-assistant",
-    Component: PublicLayout,
+    Component: ConditionalAILayout,
     children: [
       {
         index: true,
