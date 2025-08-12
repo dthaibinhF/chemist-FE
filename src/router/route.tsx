@@ -11,7 +11,6 @@ import GroupManagement from "@/pages/group.tsx";
 import AuthLayout from "@/pages/layout/AuthLayout.tsx";
 import ConditionalAILayout from "@/pages/layout/ConditionalAILayout.tsx";
 import HomeLayout from "@/pages/layout/HomeLayout.tsx";
-import PublicLayout from "@/pages/layout/PublicLayout.tsx";
 import { LoginPage } from "@/pages/login-page.tsx";
 import Profile from "@/pages/profile.tsx";
 import { StudentDetailPage } from "@/pages/student-detail.tsx";
