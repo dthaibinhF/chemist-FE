@@ -9,6 +9,7 @@ import FinanceManagement from "@/pages/finance.tsx";
 import { GroupDetail } from "@/pages/group-detail";
 import GroupManagement from "@/pages/group.tsx";
 import AuthLayout from "@/pages/layout/AuthLayout.tsx";
+import ConditionalAILayout from "@/pages/layout/ConditionalAILayout.tsx";
 import HomeLayout from "@/pages/layout/HomeLayout.tsx";
 import PublicLayout from "@/pages/layout/PublicLayout.tsx";
 import { LoginPage } from "@/pages/login-page.tsx";
@@ -104,7 +105,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/ai-assistant",
-    Component: PublicLayout,
+    Component: ConditionalAILayout,
     children: [
       {
         index: true,
