@@ -18,9 +18,25 @@ import { useRolePermissions } from "@/hooks/useRolePermissions";
 const items = {
   navMain: [
     {
+      title: "Quản trị hệ thống",
+      url: "#",
+      items: [
+        {
+          title: "Quản lý người dùng",
+          url: "/admin/users",
+          isActive: false,
+        },
+      ],
+    },
+    {
       title: "Quản lý",
       url: "#",
       items: [
+        {
+          title: "Profile",
+          url: "/profile",
+          isActive: false,
+        },
         {
           title: "Dashboard",
           url: "dashboard",
@@ -54,22 +70,6 @@ const items = {
         {
           title: "Lịch học",
           url: "/time-table",
-          isActive: false,
-        },
-        {
-          title: "Profile",
-          url: "/profile",
-          isActive: false,
-        },
-      ],
-    },
-    {
-      title: "Quản trị hệ thống",
-      url: "#",
-      items: [
-        {
-          title: "Quản lý người dùng",
-          url: "/admin/users",
           isActive: false,
         },
       ],

@@ -28,7 +28,9 @@ export const router = createBrowserRouter([
       {
         index: true,
         path: "dashboard",
-        Component: Dashboard,
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
+          <Dashboard />
+        </RoleBasedAccess>,
       },
       {
         path: "student",
