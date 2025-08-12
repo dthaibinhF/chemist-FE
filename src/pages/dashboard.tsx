@@ -16,6 +16,11 @@ const Dashboard = () => {
 
   const calendarEvents = schedules.map(convertScheduleToEvent);
 
+  // financialDashboardService.getDashboardStatistics().then((res) => {
+  //   console.log(res);
+  // });
+
+
   useEffect(() => {
     if (student.canViewAllStudents || student.canViewOwnStudentData) {
       loadStudents();

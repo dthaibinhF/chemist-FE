@@ -80,6 +80,7 @@ const items = {
 const AppSideBar = () => {
   const [render, setRender] = useState<number>(1);
   const {
+    dashboard,
     student,
     financial,
     group: groupPermissions,
@@ -114,8 +115,10 @@ const AppSideBar = () => {
               // Route requires: ADMIN only
               return admin.canManageUsers;
             case 'dashboard':
-            case '/ai-assistant':
+              return dashboard.canViewDashboard;
             case '/time-table':
+              return timetable.canViewTimetable;
+            case '/ai-assistant':
             case '/profile':
               return true;
             default:

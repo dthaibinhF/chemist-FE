@@ -32,45 +32,45 @@ export const router = createBrowserRouter([
       },
       {
         path: "student",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <StudentManagement />
         </RoleBasedAccess>,
         errorElement: <ErrorPage />,
       },
       {
         path: "student/:id",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <StudentDetailPage />
         </RoleBasedAccess>,
         // errorElement: <ErrorPage />,
       },
       {
         path: "finance",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER']}>
           <FinanceManagement />
         </RoleBasedAccess>,
       },
       {
         path: "group",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <GroupManagement />
         </RoleBasedAccess>,
       },
       {
         path: "fee",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <FeeManagement />
         </RoleBasedAccess>,
       },
       {
         path: "fee/:id",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER']}>
           <FeeDetail />
         </RoleBasedAccess>,
       },
       {
         path: "group/:id",
-        element: <RoleBasedAccess allowedRoles={['ADMIN', 'MANAGER', 'TEACHER']}>
+        element: <RoleBasedAccess allowedRoles={['MANAGER', 'TEACHER']}>
           <GroupDetail />
         </RoleBasedAccess>,
       },
