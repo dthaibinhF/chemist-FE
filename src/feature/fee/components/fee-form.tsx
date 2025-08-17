@@ -167,7 +167,7 @@ export const FeeForm = ({ mode, initialData, onSuccess }: FeeFormProps) => {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading}>
+        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={loading}>
           {loading
             ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...')
             : (mode === 'create' ? 'Tạo phí' : 'Cập nhật phí')
