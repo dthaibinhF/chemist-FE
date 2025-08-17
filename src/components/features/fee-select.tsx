@@ -87,7 +87,18 @@ export const FeeSelect = ({
         end_time: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       };
 
-      await handleCreateFee(newFee as Fee);
+      const result = await handleCreateFee(newFee as Fee);
+      
+      // Auto-select the newly created fee
+      if (result && 'payload' in result && result.payload) {
+        const createdFee = result.payload as Fee;
+        const feeId = createdFee.id?.toString();
+        if (feeId) {
+          setSelectedValue(feeId);
+          onSelect(createdFee);
+        }
+      }
+      
       toast.success('Tạo học phí mới thành công');
       setIsNewFeeDialogOpen(false);
       feeForm.reset();

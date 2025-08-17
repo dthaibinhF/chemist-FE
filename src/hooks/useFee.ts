@@ -27,7 +27,7 @@ export const useFee = () => {
 
   const handleCreateFee = useCallback(
     (fee: Fee) => {
-      dispatch(createFee(fee));
+      return dispatch(createFee(fee));
     },
     [dispatch]
   );
