@@ -196,7 +196,7 @@ const RoomSelect: FC<RoomSelectProps> = ({ handleSelect, value, placeholder = "C
                                 >
                                     Hủy
                                 </Button>
-                                <Button type="submit" disabled={creatingRoom}>
+                                <Button type="button" onClick={roomForm.handleSubmit(handleCreateNewRoom)} disabled={creatingRoom}>
                                     {creatingRoom ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
