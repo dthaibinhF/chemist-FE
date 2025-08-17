@@ -86,7 +86,7 @@ export const GroupDetail = () => {
                     {displayDayEnum(schedule.day_of_week)}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {displayTimeRange(schedule.start_time, schedule.end_time)}
+                    {`${schedule.start_time.slice(0, 5)} - ${schedule.end_time.slice(0, 5)}`}
                   </span>
                 </div>
               );
