@@ -97,7 +97,18 @@ const RoomSelect: FC<RoomSelectProps> = ({ handleSelect, value, placeholder = "C
                 capacity: data.capacity,
             };
 
-            await handleCreateRoom(newRoom);
+            const result = await handleCreateRoom(newRoom);
+            
+            // Auto-select the newly created room
+            if (result && 'payload' in result && result.payload) {
+                const createdRoom = result.payload as any;
+                const roomId = createdRoom.id?.toString();
+                if (roomId) {
+                    setSelectedValue(roomId);
+                    handleSelect(createdRoom.id);
+                }
+            }
+            
             toast.success('Tạo phòng mới thành công');
             setIsNewRoomDialogOpen(false);
             roomForm.reset();

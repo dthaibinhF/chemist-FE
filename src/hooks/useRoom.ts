@@ -26,7 +26,7 @@ export const useRoom = () => {
 
   const handleCreateRoom = useCallback(
     (room: Room) => {
-      dispatch(createRoom(room));
+      return dispatch(createRoom(room));
     },
     [dispatch]
   );
