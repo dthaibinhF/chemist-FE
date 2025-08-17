@@ -35,9 +35,10 @@ import AcademicYearSelect from '@/components/features/academic-year-select';
 interface FormAddStudentProps {
   groupId?: number;
   gradeId?: number;
+  onStudentAdded?: () => void;
 }
 
-export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
+export const FormAddStudent = ({ groupId, gradeId, onStudentAdded }: FormAddStudentProps) => {
   const { addStudent } = useStudent();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -99,7 +100,10 @@ export const FormAddStudent = ({ groupId, gradeId }: FormAddStudentProps) => {
         };
         await addStudent(mappedStudent);
         toast.success('Thêm học sinh thành công');
-        // form.reset();
+        form.reset();
+        if (onStudentAdded) {
+          onStudentAdded();
+        }
       } catch (error) {
         toast.error('Thêm học sinh thất bại');
       } finally {

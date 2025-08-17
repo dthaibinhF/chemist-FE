@@ -26,9 +26,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface AddStudentTabProps {
   groupId?: number;
   gradeId?: number;
+  onStudentAdded?: () => void;
 }
 
-export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
+export const AddStudentTab = ({ groupId, gradeId, onStudentAdded }: AddStudentTabProps) => {
   const { student } = useRolePermissions();
 
   return (
@@ -50,6 +51,7 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
             <FormAddStudent
               groupId={groupId}
               gradeId={gradeId}
+              onStudentAdded={onStudentAdded}
             />
           </div>
         </DialogContent>
@@ -77,6 +79,7 @@ export const AddStudentTab = ({ groupId, gradeId }: AddStudentTabProps) => {
                   <AddStudentCsvFile
                     groupId={groupId}
                     gradeId={gradeId}
+                    onStudentAdded={onStudentAdded}
                   />
                 </div>
               </div>

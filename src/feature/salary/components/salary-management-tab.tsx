@@ -24,6 +24,7 @@ export const SalaryManagementTab = () => {
 
   const {
     handleFetchTeacherSalaryConfig,
+    handleFetchTeacherSalarySummaries,
     teacherConfigs,
     monthlySummaries,
     configLoading
@@ -105,7 +106,10 @@ export const SalaryManagementTab = () => {
   };
 
   const handleCalculationComplete = (summary: TeacherMonthlySummary) => {
-    // This will trigger a re-render of stats and table
+    // Refresh the summaries table
+    if (selectedTeacher?.id) {
+      handleFetchTeacherSalarySummaries(selectedTeacher.id, { page: 0, size: 12 });
+    }
     console.log('Calculation completed:', summary);
   };
 

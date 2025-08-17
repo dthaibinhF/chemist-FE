@@ -13,7 +13,7 @@ import { useStudent } from '@/feature/student/hooks';
 import { useFee } from '@/hooks/useFee';
 import { useGroup } from '@/hooks/useGroup';
 import { formatCurrencyVND } from '@/utils/currency-utils';
-import { displayDayEnum, displayTimeRange } from '@/utils/date-formatters';
+import { displayDayEnum } from '@/utils/date-formatters';
 import { PERMISSIONS } from '@/utils/rbac-utils';
 
 export const GroupDetail = () => {
@@ -68,7 +68,15 @@ export const GroupDetail = () => {
             <GroupDialogEdit group={group} />
           </RoleBasedAccess>
           <RoleBasedAccess allowedRoles={PERMISSIONS.MANAGE_GROUPS}>
-            <AddStudentTab groupId={group.id} gradeId={group.grade_id} />
+            <AddStudentTab 
+              groupId={group.id} 
+              gradeId={group.grade_id} 
+              onStudentAdded={() => {
+                if (id) {
+                  fetchStudentsByGroupId(Number(id));
+                }
+              }}
+            />
           </RoleBasedAccess>
         </div>
       </div>
